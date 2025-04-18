@@ -1,0 +1,20 @@
+cc_test(
+    name = "main",
+    srcs = [
+        "main.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenmp",
+    ],
+    deps = [
+        "@gtest//:gtest_main",
+        "//:ctmd",
+    ],
+)
