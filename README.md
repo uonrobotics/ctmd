@@ -50,7 +50,7 @@ c extents: (3, 2, 2)
 c: [[[3, 3], [3, 3]], [[3, 3], [3, 3]], [[3, 3], [3, 3]]]
 ```
 
-## Testing
+## Tests
 Run all tests with bazel:
 ```bash
 bazel test ...
