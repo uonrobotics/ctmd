@@ -189,4 +189,7 @@
       incurred by, or claims asserted against, such Contributor by reason
       of your accepting any such warranty or additional liability.
 
+   10. This product includes Eigen (http://eigen.tuxfamily.org),
+       a C++ template library for linear algebra licensed under the MPL 2.0.
+
    END OF TERMS AND CONDITIONS
