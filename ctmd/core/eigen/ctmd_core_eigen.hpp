@@ -10,7 +10,7 @@ namespace eigen {
 namespace detail {
 
 [[nodiscard]] inline constexpr int ext_to_dyn(const size_t extent) noexcept {
-    if (extent == stdex::dyn) {
+    if (extent == dyn) {
         return Eigen::Dynamic;
 
     } else if (extent < std::numeric_limits<int>::max()) {
@@ -25,8 +25,8 @@ namespace detail {
 } // namespace detail
 
 template <md_c in_t> [[nodiscard]] inline constexpr bool can_map() noexcept {
-    return (std::is_same_v<typename in_t::layout_type, stdex::layout_right> ||
-            std::is_same_v<typename in_t::layout_type, stdex::layout_left>) &&
+    return (std::is_same_v<typename in_t::layout_type, layout_right> ||
+            std::is_same_v<typename in_t::layout_type, layout_left>) &&
            in_t::rank() == 2 && in_t::is_always_unique() &&
            in_t::is_always_exhaustive() && in_t::is_always_strided();
 }
@@ -51,10 +51,10 @@ template <md_c in_t>
         if constexpr (ColsAtCompileTime == 1 && RowsAtCompileTime != 1) {
             return Eigen::ColMajor;
 
-        } else if constexpr (std::is_same_v<Lay, stdex::layout_right>) {
+        } else if constexpr (std::is_same_v<Lay, layout_right>) {
             return Eigen::RowMajor;
 
-        } else if constexpr (std::is_same_v<Lay, stdex::layout_left>) {
+        } else if constexpr (std::is_same_v<Lay, layout_left>) {
             return Eigen::ColMajor;
 
         } else {

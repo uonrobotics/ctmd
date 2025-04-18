@@ -3,14 +3,6 @@
 #include <experimental/mdarray>
 #include <experimental/mdspan> // TODO: Remove when C++23 std::mdspan supports
 
-#define USE_OMP_ONLY_FIRST_BCAST
-
-#ifndef __USE_MISC
-#define __USE_MISC
-#endif
-
-namespace stdex = std::experimental;
-
 namespace std::experimental {
 
 // dims: will be included in C++23
@@ -26,15 +18,15 @@ _MDSPAN_INLINE_VARIABLE constexpr auto dyn = dynamic_extent;
 
 namespace ctmd {
 
-using namespace stdex;
+using namespace std::experimental;
 
 namespace detail {
 
 template <typename T> struct make_extents_impl {
     template <size_t... Is>
     static constexpr auto generate(std::index_sequence<Is...>) noexcept {
-        return stdex::extents<typename T::index_type,
-                              T::static_extent(Is)...>{};
+        return std::experimental::extents<typename T::index_type,
+                                          T::static_extent(Is)...>{};
     }
 };
 
@@ -60,10 +52,10 @@ concept mdspan_c =
         typename T::layout_type;
         typename T::accessor_type;
     } &&
-    std::is_same_v<
-        std::remove_const_t<T>,
-        stdex::mdspan<typename T::element_type, typename T::extents_type,
-                      typename T::layout_type, typename T::accessor_type>>;
+    std::is_same_v<std::remove_const_t<T>,
+                   std::experimental::mdspan<
+                       typename T::element_type, typename T::extents_type,
+                       typename T::layout_type, typename T::accessor_type>>;
 
 template <typename T>
 concept mdarray_c =
@@ -73,9 +65,9 @@ concept mdarray_c =
         typename T::layout_type;
         typename T::container_type;
     } &&
-    std::is_same_v<
-        std::remove_const_t<T>,
-        stdex::mdarray<typename T::element_type, typename T::extents_type,
+    std::is_same_v<std::remove_const_t<T>,
+                   std::experimental::mdarray<
+                       typename T::element_type, typename T::extents_type,
                        typename T::layout_type, typename T::container_type>>;
 
 template <typename T>
@@ -100,36 +92,15 @@ template <extents_c extent_t>
 template <typename T, extents_c extent_t>
 using mdarray = std::conditional_t<
     extent_t::rank_dynamic() == 0,
-    stdex::mdarray<T, extent_t, layout_right,
-                   std::array<T, detail::static_mdarray_size<extent_t>()>>,
-    stdex::mdarray<T, extent_t, layout_right, std::vector<T>>>;
+    std::experimental::mdarray<
+        T, extent_t, layout_right,
+        std::array<T, detail::static_mdarray_size<extent_t>()>>,
+    std::experimental::mdarray<T, extent_t, layout_right, std::vector<T>>>;
 
 template <size_t start, size_t end>
-using slice = stdex::strided_slice<std::integral_constant<size_t, start>,
-                                   std::integral_constant<size_t, end - start>,
-                                   std::integral_constant<size_t, 1>>;
-
-// template <md_c in_t>
-// [[nodiscard]] inline constexpr auto to_mdspan(in_t &in) noexcept {
-//     if constexpr (mdspan_c<in_t>) {
-//         return in;
-
-//     } else if constexpr (mdarray_c<in_t>) {
-//         return in.to_mdspan();
-
-//     } else {
-//         static_assert(false, "Invalid type");
-//     }
-// }
-
-// template <mdspan_c in_t>
-// [[nodiscard]] inline constexpr auto to_const(const in_t &in = in_t{})
-// noexcept {
-//     using const_element_t = const typename in_t::element_type;
-//     return mdspan<const_element_t, typename in_t::extents_type,
-//                   typename in_t::layout_type,
-//                   std::experimental::default_accessor<const_element_t>>(
-//         in.data_handle(), in.mapping(), {});
-// }
+using slice = std::experimental::strided_slice<
+    std::integral_constant<size_t, start>,
+    std::integral_constant<size_t, end - start>,
+    std::integral_constant<size_t, 1>>;
 
 } // namespace ctmd

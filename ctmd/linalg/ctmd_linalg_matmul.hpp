@@ -85,11 +85,10 @@ matmul(const A_t &A, const B_t &B, const bool multi_process = false) noexcept {
         std::common_type_t<typename A_t::index_type, typename B_t::index_type>;
 
     const auto uC =
-        mdarray<uC_element_type,
-                stdex::extents<uC_index_type, A_t::static_extent(0),
-                               B_t::static_extent(1)>>{
-            stdex::extents<uC_index_type, A_t::static_extent(0),
-                           B_t::static_extent(1)>{A.extent(0), B.extent(1)}}
+        mdarray<uC_element_type, extents<uC_index_type, A_t::static_extent(0),
+                                         B_t::static_extent(1)>>{
+            extents<uC_index_type, A_t::static_extent(0),
+                    B_t::static_extent(1)>{A.extent(0), B.extent(1)}}
             .to_mdspan();
 
     const auto results = core::batch_out(
