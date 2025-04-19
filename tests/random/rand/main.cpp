@@ -4,23 +4,22 @@
 
 namespace md = ctmd;
 
-TEST(const, rand) {
-    const auto a = md::random::rand<double, md::extents<size_t, 2, 2>>();
-    std::cout << "a: " << md::to_string(a) << std::endl;
+TEST(stack, rand) {
+    using T = double;
 
-    ASSERT_TRUE(true);
+    constexpr auto a = md::random::rand<T, md::extents<size_t, 2, 2>>();
+
+    std::cout << md::to_string(a) << std::endl;
+
+    ASSERT_TRUE(!md::allclose(a, md::full<T, md::extents<size_t, 2, 2>>(0)));
 }
 
-TEST(constexpr, rand) {
-    constexpr auto a = md::random::rand<double, md::extents<size_t, 2, 2>>();
-    std::cout << "a: " << md::to_string(a) << std::endl;
+TEST(heap, rand) {
+    using T = double;
 
-    ASSERT_TRUE(true);
-}
+    const auto a = md::random::rand<T, md::dims<2>>(md::dims<2>{2, 2});
 
-TEST(dynamic, rand) {
-    const auto a = md::random::rand<double, md::dims<2>>(md::dims<2>{2, 2});
-    std::cout << "a: " << md::to_string(a) << std::endl;
+    std::cout << md::to_string(a) << std::endl;
 
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(!md::allclose(a, md::full<T, md::extents<size_t, 2, 2>>(0)));
 }

@@ -4,26 +4,38 @@
 
 namespace md = ctmd;
 
-TEST(const, is_equal) {
-    const auto a = md::full<double, md::extents<size_t, 2, 3>>(1);
-    const auto b = md::full<double, md::extents<size_t, 2, 3>>(1);
-    const bool is_equal = md::array_equal(a, b);
+TEST(stack, array_equal) {
+    using T = double;
 
-    ASSERT_TRUE(is_equal);
+    constexpr auto a = md::mdarray<T, md::extents<size_t, 2, 1, 2>>{
+        std::array<T, 4>{1, 2, 3, 4}};
+    constexpr auto b = md::mdarray<T, md::extents<size_t, 2, 1, 2>>{
+        std::array<T, 4>{1, 2, 3, 4}};
+    constexpr bool array_equal = md::array_equal(a, b);
+
+    ASSERT_TRUE(array_equal);
 }
 
-TEST(constexpr, is_equal) {
-    constexpr auto a = md::full<double, md::extents<size_t, 2, 3>>(1);
-    constexpr auto b = md::full<double, md::extents<size_t, 2, 3>>(1);
-    constexpr bool is_equal = md::array_equal(a, b);
+TEST(heap, array_equal) {
+    using T = double;
 
-    ASSERT_TRUE(is_equal);
+    const auto a = md::mdarray<T, md::extents<size_t, 2, 1, 2>>{
+        std::array<T, 4>{1, 2, 3, 4}};
+    const auto b = md::mdarray<T, md::extents<size_t, 2, 1, 2>>{
+        std::array<T, 4>{1, 2, 3, 4}};
+    const bool array_equal = md::array_equal(a, b);
+
+    ASSERT_TRUE(array_equal);
 }
 
-TEST(dynamic, is_equal) {
-    const auto a = md::full<double, md::dims<2>>(1, md::dims<2>{2, 3});
-    const auto b = md::full<double, md::dims<2>>(1, md::dims<2>{2, 3});
-    const bool is_equal = md::array_equal(a, b);
+TEST(mix, array_equal) {
+    using T = double;
 
-    ASSERT_TRUE(is_equal);
+    constexpr auto a = md::mdarray<T, md::extents<size_t, 2, 1, 2>>{
+        std::array<T, 4>{1, 2, 3, 4}};
+    const auto b = md::mdarray<T, md::extents<size_t, 2, 1, 2>>{
+        std::array<T, 4>{1, 2, 3, 4}};
+    const bool array_equal = md::array_equal(a, b);
+
+    ASSERT_TRUE(array_equal);
 }

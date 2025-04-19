@@ -4,40 +4,32 @@
 
 namespace md = ctmd;
 
-TEST(const, rand) {
-    const auto a = md::mdarray<double, md::extents<size_t, 2, 2>>{{1, 2, 3, 4}};
-    const auto a_inv = md::linalg::inv(a);
+TEST(stack, inv) {
+    using T = double;
 
-    const auto a_inv_expect =
-        md::mdarray<double, md::extents<size_t, 2, 2>>{{-2, 1, 1.5, -0.5}};
-
-    const bool is_allclose = md::allclose(a_inv, a_inv_expect);
-
-    ASSERT_TRUE(is_allclose);
-}
-
-TEST(constexpr, rand) {
     constexpr auto a =
-        md::mdarray<double, md::extents<size_t, 2, 2>>{{1, 2, 3, 4}};
+        md::mdarray<T, md::extents<size_t, 2, 2>>{std::array<T, 4>{1, 2, 3, 4}};
     constexpr auto a_inv = md::linalg::inv(a);
 
-    constexpr auto a_inv_expect =
-        md::mdarray<double, md::extents<size_t, 2, 2>>{{-2, 1, 1.5, -0.5}};
+    constexpr auto a_inv_expect = md::mdarray<T, md::extents<size_t, 2, 2>>{
+        std::array<T, 4>{-2, 1, 1.5, -0.5}};
 
-    constexpr bool is_allclose = md::allclose(a_inv, a_inv_expect);
+    constexpr bool allclose = md::allclose(a_inv, a_inv_expect);
 
-    ASSERT_TRUE(is_allclose);
+    ASSERT_TRUE(allclose);
 }
 
-TEST(dynamic, rand) {
-    const auto a =
-        md::mdarray<double, md::dims<2>>{{1, 2, 3, 4}, md::dims<2>{2, 2}};
+TEST(heap, inv) {
+    using T = double;
+
+    const auto a = md::mdarray<T, md::dims<2>>{std::vector<T>{1, 2, 3, 4},
+                                               md::dims<2>{2, 2}};
     const auto a_inv = md::linalg::inv(a);
 
-    const auto a_inv_expect =
-        md::mdarray<double, md::dims<2>>{{-2, 1, 1.5, -0.5}, md::dims<2>{2, 2}};
+    const auto a_inv_expect = md::mdarray<T, md::dims<2>>{
+        std::vector<T>{-2, 1, 1.5, -0.5}, md::dims<2>{2, 2}};
 
-    const bool is_allclose = md::allclose(a_inv, a_inv_expect);
+    const bool allclose = md::allclose(a_inv, a_inv_expect);
 
-    ASSERT_TRUE(is_allclose);
+    ASSERT_TRUE(allclose);
 }
