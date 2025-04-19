@@ -18,8 +18,15 @@ inline void test(benchmark::State &state, const bool multi_process) noexcept {
     auto c = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
+#if true
         md::add(a, b, c, multi_process);
-        benchmark::DoNotOptimize(c);
+
+#else
+        for (size_t i = 0; i < set_num; i++) {
+            c[i] = a[i] + b[i];
+        }
+
+#endif
     }
 
     state.SetComplexityN(state.range(0));
