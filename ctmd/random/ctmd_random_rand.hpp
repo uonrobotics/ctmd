@@ -4,6 +4,7 @@
 #include <random>
 
 #include "../core/ctmd_core.hpp"
+#include "../ctmd_copy.hpp"
 
 namespace ctmd {
 namespace random {
@@ -72,26 +73,30 @@ template <md_c in_t>
              std::is_floating_point_v<typename in_t::element_type>)
 inline constexpr void rand(in_t &in,
                            const bool multi_process = false) noexcept {
-    if (std::is_constant_evaluated()) {
-        constexpr auto size = []<size_t... Is>(std::index_sequence<Is...>) {
-            return (in_t::static_extent(Is) * ...);
-        }(std::make_index_sequence<in_t::rank()>{});
+    if constexpr (in_t::rank_dynamic() == 0) {
+        if (std::is_constant_evaluated()) {
+            using T = typename in_t::element_type;
 
-        constexpr auto values =
-            detail::uniform_distribution<typename in_t::element_type, size>(0,
-                                                                            1);
-        auto it = core::to_mdspan(in).data_handle();
-        for (size_t i = 0; i < size; i++) {
-            it[i] = values[i];
+            constexpr auto data_size =
+                []<size_t... Is>(std::index_sequence<Is...>) {
+                    return (in_t::static_extent(Is) * ...);
+                }(std::make_index_sequence<in_t::rank()>{});
+
+            constexpr auto data = mdarray<T, typename in_t::extents_type>{
+                detail::uniform_distribution<typename in_t::element_type,
+                                             data_size>(0, 1)};
+
+            ctmd::copy(data, in);
+
+            return;
         }
-
-    } else {
-        const auto uin = core::submdspan_unit<0>(in);
-
-        core::batch(rand<decltype(uin)>, std::make_tuple(uin), std::tuple<>{},
-                    std::make_tuple(core::to_mdspan(in)), std::tuple<>{},
-                    std::tuple<>{}, multi_process);
     }
+
+    const auto uin = core::submdspan_unit<0>(in);
+
+    core::batch(rand<decltype(uin)>, std::make_tuple(uin), std::tuple<>{},
+                std::make_tuple(core::to_mdspan(in)), std::tuple<>{},
+                std::tuple<>{}, multi_process);
 }
 
 template <typename T, extents_c extents_t>
