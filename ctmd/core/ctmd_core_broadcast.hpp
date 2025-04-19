@@ -177,12 +177,11 @@ template <size_t BatchRank, typename Func, mdspan_c... uins_t,
           typename... Args>
     requires(sizeof...(uins_t) == sizeof...(ins_t) &&
              sizeof...(uouts_t) == sizeof...(outs_t))
-inline constexpr void batch_impl(Func &&func, std::tuple<uins_t...> &&uins,
-                                 std::tuple<uouts_t...> &&uouts,
-                                 std::tuple<ins_t...> &&ins,
-                                 std::tuple<outs_t...> &&outs,
-                                 std::tuple<Args...> &&args = std::tuple<>{},
-                                 bool multi_process = false) noexcept {
+inline constexpr void
+batch_impl(Func &&func, std::tuple<uins_t...> &&uins,
+           std::tuple<uouts_t...> &&uouts, std::tuple<ins_t...> &&ins,
+           std::tuple<outs_t...> &&outs,
+           std::tuple<Args...> &&args = std::tuple<>{}) noexcept {
     using index_type =
         typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
 
@@ -199,7 +198,7 @@ inline constexpr void batch_impl(Func &&func, std::tuple<uins_t...> &&uins,
         static_assert(std::is_invocable_v<Func, std::remove_cvref_t<ins_t>...,
                                           std::remove_cvref_t<outs_t>...,
                                           std::remove_cvref_t<Args>...>,
-                      "Function signature mismatch.");
+                      "Func must be invocable with: ins..., outs..., args...");
 
         batch_call(std::move(func), std::move(ins), std::move(outs),
                    std::move(args), std::index_sequence_for<ins_t...>{},
@@ -207,30 +206,59 @@ inline constexpr void batch_impl(Func &&func, std::tuple<uins_t...> &&uins,
                    std::index_sequence_for<Args...>{});
 
     } else {
-        const index_type extent0 = std::get<0>(ins).extent(0);
+        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
+            auto subins = make_subtuple(ins, i);
+            auto subouts = make_subtuple(outs, i);
 
-        if (std::is_constant_evaluated() || !multi_process) [[likely]] {
-            for (index_type i = 0; i < extent0; i++) {
-                auto subins = make_subtuple(ins, i);
-                auto subouts = make_subtuple(outs, i);
+            batch_impl<BatchRank - 1>(std::move(func), std::move(uins),
+                                      std::move(uouts), std::move(subins),
+                                      std::move(subouts), std::move(args));
+        }
+    }
+}
 
-                batch_impl<BatchRank - 1>(std::move(func), std::move(uins),
-                                          std::move(uouts), std::move(subins),
-                                          std::move(subouts), std::move(args),
-                                          false);
-            }
+template <size_t BatchRank, typename Func, mdspan_c... uins_t,
+          mdspan_c... uouts_t, mdspan_c... ins_t, mdspan_c... outs_t,
+          typename... Args>
+    requires(sizeof...(uins_t) == sizeof...(ins_t) &&
+             sizeof...(uouts_t) == sizeof...(outs_t))
+inline constexpr void
+batch_impl_omp(Func &&func, std::tuple<uins_t...> &&uins,
+               std::tuple<uouts_t...> &&uouts, std::tuple<ins_t...> &&ins,
+               std::tuple<outs_t...> &&outs,
+               std::tuple<Args...> &&args = std::tuple<>{}) noexcept {
+    using index_type =
+        typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
 
-        } else [[unlikely]] {
+    auto make_subtuple = [&](auto &&tuple, index_type i) {
+        return std::apply(
+            [&](auto &&...refs) {
+                return std::make_tuple(submdspan_from_start(
+                    std::forward<decltype(refs)>(refs), i)...);
+            },
+            std::forward<decltype(tuple)>(tuple));
+    };
+
+    if constexpr (BatchRank == 0) {
+        static_assert(std::is_invocable_v<Func, std::remove_cvref_t<ins_t>...,
+                                          std::remove_cvref_t<outs_t>...,
+                                          std::remove_cvref_t<Args>...>,
+                      "Func must be invocable with: ins..., outs..., args...");
+
+        batch_call(std::move(func), std::move(ins), std::move(outs),
+                   std::move(args), std::index_sequence_for<ins_t...>{},
+                   std::index_sequence_for<outs_t...>{},
+                   std::index_sequence_for<Args...>{});
+
+    } else {
 #pragma omp parallel for
-            for (index_type i = 0; i < extent0; i++) {
-                auto subins = make_subtuple(ins, i);
-                auto subouts = make_subtuple(outs, i);
+        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
+            auto subins = make_subtuple(ins, i);
+            auto subouts = make_subtuple(outs, i);
 
-                batch_impl<BatchRank - 1>(std::move(func), std::move(uins),
-                                          std::move(uouts), std::move(subins),
-                                          std::move(subouts), std::move(args),
-                                          false);
-            }
+            batch_impl<BatchRank - 1>(std::move(func), std::move(uins),
+                                      std::move(uouts), std::move(subins),
+                                      std::move(subouts), std::move(args));
         }
     }
 }
@@ -280,9 +308,19 @@ batch(Func &&func, std::tuple<uins_t...> &&uins, std::tuple<uouts_t...> &&uouts,
                     std::get<Is>(outs).extents())))...);
     }(std::make_index_sequence<sizeof...(outs_t)>{});
 
-    detail::batch_impl<decltype(bexts)::rank()>(
-        std::move(func), std::move(uins), std::move(uouts), std::move(bins),
-        std::move(bouts), std::move(args), multi_process);
+    if (std::is_constant_evaluated() || !multi_process) {
+        detail::batch_impl<decltype(bexts)::rank()>(
+            std::move(func), std::move(uins), std::move(uouts), std::move(bins),
+            std::move(bouts), std::move(args));
+
+    } else {
+        // TODO: batch_impl_omp make slow when element_type is uint8_t, int8_t,
+        // even function is not called. check it.
+
+        detail::batch_impl_omp<decltype(bexts)::rank()>(
+            std::move(func), std::move(uins), std::move(uouts), std::move(bins),
+            std::move(bouts), std::move(args));
+    }
 }
 
 template <typename Func, mdspan_c... uins_t, mdspan_c... uouts_t,
