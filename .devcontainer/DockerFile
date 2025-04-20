@@ -48,11 +48,13 @@ RUN git clone https://github.com/SourceryTools/nvptx-newlib.git /opt/nvptx-newli
 RUN mkdir -p /opt/nvptx-build && cd /opt/nvptx-build && \
     /opt/gcc-src/configure \
         --target=nvptx-none \
-        --with-newlib \
-        --disable-sjlj-exceptions \
+        --with-build-sysroot=/dev/null \
+        --enable-as-accelerator-for=x86_64-pc-linux-gnu \
         --enable-newlib-io-long-long \
         --without-headers \
         --disable-shared \
+        --disable-libssp \
+        --disable-multilib \
         --enable-languages=c,c++ \
         --prefix=$NVPTX_INSTALL_DIR && \
     make -j$(nproc) all && make install
@@ -66,9 +68,10 @@ RUN mkdir -p /opt/gcc-build && cd /opt/gcc-build && \
         --enable-languages=c,c++ \
         --disable-multilib \
         --enable-offload-targets=nvptx-none=$NVPTX_INSTALL_DIR \
+        --with-build-time-tools=$NVPTX_INSTALL_DIR/bin \
+        --with-toolexeclibdir=$NVPTX_INSTALL_DIR/lib \
         --with-cuda-driver=/usr/local/cuda \
         --with-cuda-lib=/usr/local/cuda/lib64 \
-        --with-build-time-tools=$NVPTX_INSTALL_DIR/bin \
         --enable-checking=release \
         --enable-gomp && \
     make -j$(nproc) && make install
