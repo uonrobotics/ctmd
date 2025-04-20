@@ -2,7 +2,7 @@
     "name": "CUDA OpenACC GCC13 Dev",
     "build": {
         "dockerfile": "Dockerfile",
-        "context": "."
+        "context": ".."
     },
     "runArgs": [
         "--gpus=all"

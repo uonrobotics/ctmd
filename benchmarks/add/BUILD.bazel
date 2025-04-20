@@ -366,7 +366,7 @@ cc_binary(
         "-Wall",
         "-march=native",
         "-fopenmp",
-        "-fopenacc",
+        # "-fopenacc",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",

@@ -1,12 +1,11 @@
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
-LABEL maintainer="your_email@example.com"
-
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GCC_VER=13
 ENV PREFIX=/opt/gcc-$GCC_VER
+ENV NVPTX_INSTALL_DIR=/usr/local/nvptx-tools
 
-# 1. 필수 패키지 설치
+# 1. 필수 패키지
 RUN apt-get update && apt-get install -y \
     build-essential \
     g++ \
@@ -27,34 +26,61 @@ RUN apt-get update && apt-get install -y \
     cmake \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. nvptx-tools 설치
-RUN git clone https://gcc.gnu.org/git/nvptx-tools.git /tmp/nvptx-tools && \
-    cd /tmp/nvptx-tools && \
-    ./configure --prefix=/usr/local && make -j$(nproc) && make install && \
-    rm -rf /tmp/nvptx-tools
+# 2. Bazel 설치
+RUN curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \
+    chmod +x /usr/local/bin/bazel && \
+    echo "BAZELISK_BASE_VERSION=7.5.0" >> /etc/environment
 
-# 3. GCC 13 소스 다운로드 및 빌드
-RUN git clone --depth=1 --branch releases/gcc-13 https://gcc.gnu.org/git/gcc.git /tmp/gcc && \
-    mkdir -p /tmp/gcc-build && \
-    cd /tmp/gcc && contrib/download_prerequisites && \
-    cd /tmp/gcc-build && \
-    ../gcc/configure \
+# 3. nvptx-tools 설치
+RUN git clone https://github.com/SourceryTools/nvptx-tools /tmp/nvptx-tools && \
+    cd /tmp/nvptx-tools && ./configure --prefix=$NVPTX_INSTALL_DIR && \
+    make -j$(nproc) && make install && rm -rf /tmp/nvptx-tools
+
+# 4. GCC 소스 받기
+RUN git clone --depth=1 --branch releases/gcc-13 https://gcc.gnu.org/git/gcc.git /opt/gcc-src && \
+    cd /opt/gcc-src && ./contrib/download_prerequisites
+
+# 5. nvptx-newlib 설치 → gcc/newlib 로 이동
+RUN git clone https://github.com/SourceryTools/nvptx-newlib.git /opt/nvptx-newlib && \
+    mv /opt/nvptx-newlib/newlib /opt/gcc-src/newlib
+
+# 6. nvptx device compiler 빌드 (mkoffload 포함)
+RUN mkdir -p /opt/nvptx-build && cd /opt/nvptx-build && \
+    /opt/gcc-src/configure \
+        --target=nvptx-none \
+        --with-newlib \
+        --disable-sjlj-exceptions \
+        --enable-newlib-io-long-long \
+        --without-headers \
+        --disable-shared \
+        --enable-languages=c,c++ \
+        --prefix=$NVPTX_INSTALL_DIR && \
+    make -j$(nproc) all && make install
+
+ENV PATH=$NVPTX_INSTALL_DIR/bin:$PATH
+
+# 7. Host GCC 빌드
+RUN mkdir -p /opt/gcc-build && cd /opt/gcc-build && \
+    ../gcc-src/configure \
         --prefix=$PREFIX \
         --enable-languages=c,c++ \
         --disable-multilib \
-        --enable-offload-targets=nvptx-none \
+        --enable-offload-targets=nvptx-none=$NVPTX_INSTALL_DIR \
         --with-cuda-driver=/usr/local/cuda \
         --with-cuda-lib=/usr/local/cuda/lib64 \
-        --enable-as-accelerator-for=nvptx-none \
-        --disable-bootstrap \
+        --with-build-time-tools=$NVPTX_INSTALL_DIR/bin \
         --enable-checking=release \
-        --enable-gomp \
-        && make -j$(nproc) && make install && \
-    rm -rf /tmp/gcc /tmp/gcc-build
+        --enable-gomp && \
+    make -j$(nproc) && make install
 
-# 4. 환경변수 설정
-ENV PATH=$PREFIX/bin:$PATH
+# 8. 환경 변수 설정
+ENV PATH=/opt/gcc-13/bin:$PATH
+ENV PATH=$PREFIX/bin:$NVPTX_INSTALL_DIR/bin:$PATH
 ENV LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
 
-# 5. 기본 테스트 빌드 디렉토리
+# 8-1. GCC 기본 버전으로 등록
+RUN ln -sf /opt/gcc-13/bin/gcc /usr/bin/gcc && \
+    ln -sf /opt/gcc-13/bin/g++ /usr/bin/g++
+
+# 9. 기본 작업 디렉토리
 WORKDIR /workspace

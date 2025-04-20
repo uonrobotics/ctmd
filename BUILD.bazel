@@ -1,7 +1,6 @@
 cc_library(
     name = "ctmd",
     hdrs = glob(["ctmd/**/*.hpp"]),
-    srcs = glob(["ctmd/**/*.cpp"]),
     deps = [
         "@mdspan",
         "@eigen",

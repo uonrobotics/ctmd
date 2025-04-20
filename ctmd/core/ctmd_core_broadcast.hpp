@@ -305,7 +305,7 @@ inline void batch_impl_gpu(Func &&func, const std::tuple<uins_t...> &uins,
     } else {
         const index_type extent0 = std::get<0>(ins).extent(0);
 
-#pragma acc parallel loop
+        // #pragma acc parallel loop
         for (index_type i = 0; i < extent0; ++i) {
             const auto subins = make_subtuple(ins, i);
             const auto subouts = make_subtuple(outs, i);
