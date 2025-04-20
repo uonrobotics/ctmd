@@ -1,0 +1,60 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+LABEL maintainer="your_email@example.com"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV GCC_VER=13
+ENV PREFIX=/opt/gcc-$GCC_VER
+
+# 1. 필수 패키지 설치
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    g++ \
+    wget \
+    git \
+    curl \
+    python3 \
+    python3-pip \
+    zlib1g-dev \
+    libgmp-dev \
+    libmpfr-dev \
+    libmpc-dev \
+    flex \
+    bison \
+    texinfo \
+    libisl-dev \
+    ninja-build \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. nvptx-tools 설치
+RUN git clone https://gcc.gnu.org/git/nvptx-tools.git /tmp/nvptx-tools && \
+    cd /tmp/nvptx-tools && \
+    ./configure --prefix=/usr/local && make -j$(nproc) && make install && \
+    rm -rf /tmp/nvptx-tools
+
+# 3. GCC 13 소스 다운로드 및 빌드
+RUN git clone --depth=1 --branch releases/gcc-13 https://gcc.gnu.org/git/gcc.git /tmp/gcc && \
+    mkdir -p /tmp/gcc-build && \
+    cd /tmp/gcc && contrib/download_prerequisites && \
+    cd /tmp/gcc-build && \
+    ../gcc/configure \
+        --prefix=$PREFIX \
+        --enable-languages=c,c++ \
+        --disable-multilib \
+        --enable-offload-targets=nvptx-none \
+        --with-cuda-driver=/usr/local/cuda \
+        --with-cuda-lib=/usr/local/cuda/lib64 \
+        --enable-as-accelerator-for=nvptx-none \
+        --disable-bootstrap \
+        --enable-checking=release \
+        --enable-gomp \
+        && make -j$(nproc) && make install && \
+    rm -rf /tmp/gcc /tmp/gcc-build
+
+# 4. 환경변수 설정
+ENV PATH=$PREFIX/bin:$PATH
+ENV LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
+
+# 5. 기본 테스트 빌드 디렉토리
+WORKDIR /workspace

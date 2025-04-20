@@ -1,13 +1,19 @@
 #!/bin/bash
 
-sudo apt-get update -y
-sudo apt-get upgrade -y
+apt-get update -y
+apt-get upgrade -y
 
-sudo apt install build-essential -y
-sudo apt-get install software-properties-common -y
-sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+export LIBRARY_PATH=/usr/local/cuda/lib64:$LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export CPATH=/usr/local/cuda/include:$CPATH
 
-sudo apt-get update -y
-sudo apt install gcc-13 g++-13 -y
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13 --slave /usr/bin/g++ g++ /usr/bin/g++-13
-sudo apt-get install gdb -y
+# apt install -y git
+
+# apt install build-essential -y
+# apt-get install software-properties-common -y
+# add-apt-repository ppa:ubuntu-toolchain-r/test -y
+
+# apt-get update -y
+# apt install gcc-13 g++-13 -y
+# update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13 --slave /usr/bin/g++ g++ /usr/bin/g++-13
+# apt-get install gdb -y

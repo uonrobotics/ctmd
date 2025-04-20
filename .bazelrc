@@ -1,3 +1,13 @@
 build --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
 run --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
 test --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
+
+# build --cxxopt=--cuda-path=/usr/local/cuda
+# build --crosstool_top=@llvm_toolchain//:toolchain
+# build --compiler=llvm
+# # build --cxxopt=-fopenmp-targets=nvptx64-nvidia-cuda
+
+# build --compiler=clang
+# build --cxxopt="-fopenmp"
+# build --linkopt="-lomp"
+# build --linkopt="-fopenmp"

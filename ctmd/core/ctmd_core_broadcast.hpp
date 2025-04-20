@@ -222,7 +222,7 @@ template <size_t BatchRank, typename Func, mdspan_c... uins_t,
           typename... Args>
     requires(sizeof...(uins_t) == sizeof...(ins_t) &&
              sizeof...(uouts_t) == sizeof...(outs_t))
-inline constexpr void
+inline void
 batch_impl_omp(Func &&func, std::tuple<uins_t...> &&uins,
                std::tuple<uouts_t...> &&uouts, std::tuple<ins_t...> &&ins,
                std::tuple<outs_t...> &&outs,
@@ -259,6 +259,59 @@ batch_impl_omp(Func &&func, std::tuple<uins_t...> &&uins,
             batch_impl<BatchRank - 1>(std::move(func), std::move(uins),
                                       std::move(uouts), std::move(subins),
                                       std::move(subouts), std::move(args));
+        }
+    }
+}
+
+template <size_t BatchRank, typename Func, mdspan_c... uins_t,
+          mdspan_c... uouts_t, mdspan_c... ins_t, mdspan_c... outs_t,
+          typename... Args>
+    requires(sizeof...(uins_t) == sizeof...(ins_t) &&
+             sizeof...(uouts_t) == sizeof...(outs_t))
+inline void batch_impl_gpu(Func &&func, const std::tuple<uins_t...> &uins,
+                           const std::tuple<uouts_t...> &uouts,
+                           const std::tuple<ins_t...> &ins,
+                           const std::tuple<outs_t...> &outs,
+                           const std::tuple<Args...> &args) {
+    using index_type =
+        typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
+
+    auto make_subtuple = [](auto &&tuple, index_type i) {
+        return std::apply(
+            [&](auto &&...refs) {
+                return std::make_tuple(submdspan_from_start(refs, i)...);
+            },
+            tuple);
+    };
+
+    if constexpr (BatchRank == 0) {
+        static_assert(std::is_invocable_v<Func, ins_t..., outs_t..., Args...>,
+                      "Function signature mismatch in batch_impl_gpu.");
+
+        std::apply(
+            [&](const auto &...in_refs) {
+                std::apply(
+                    [&](const auto &...out_refs) {
+                        std::apply(
+                            [&](const auto &...arg_vals) {
+                                func(in_refs..., out_refs..., arg_vals...);
+                            },
+                            args);
+                    },
+                    outs);
+            },
+            ins);
+
+    } else {
+        const index_type extent0 = std::get<0>(ins).extent(0);
+
+#pragma acc parallel loop
+        for (index_type i = 0; i < extent0; ++i) {
+            const auto subins = make_subtuple(ins, i);
+            const auto subouts = make_subtuple(outs, i);
+
+            batch_impl_gpu<BatchRank - 1>(func, uins, uouts, subins, subouts,
+                                          args);
         }
     }
 }
@@ -317,9 +370,17 @@ batch(Func &&func, std::tuple<uins_t...> &&uins, std::tuple<uouts_t...> &&uouts,
         // TODO: batch_impl_omp make slow when element_type is uint8_t, int8_t,
         // even function is not called. check it.
 
+#if false
         detail::batch_impl_omp<decltype(bexts)::rank()>(
             std::move(func), std::move(uins), std::move(uouts), std::move(bins),
             std::move(bouts), std::move(args));
+
+#else
+        detail::batch_impl_gpu<decltype(bexts)::rank()>(
+            std::move(func), std::move(uins), std::move(uouts), std::move(bins),
+            std::move(bouts), std::move(args));
+
+#endif
     }
 }
 
