@@ -27,7 +27,7 @@ RUN mkdir /tmp/build-nvptx && cd /tmp/build-nvptx && \
     /tmp/gcc/configure \
       --target=nvptx-none \
       --with-build-time-tools=$NVPTX_TOOLS_PREFIX/bin \
-      --enable-as-accelerator-for=x86_64-pc-linux-gnu \
+      # --enable-as-accelerator-for=x86_64-pc-linux-gnu \
       --disable-sjlj-exceptions \
       --enable-newlib-io-long-long \
       --enable-languages=c,c++,fortran,lto \
@@ -35,7 +35,7 @@ RUN mkdir /tmp/build-nvptx && cd /tmp/build-nvptx && \
     make -j$(nproc) && make install
 
 # Add
-ENV PATH=$NVPTX_PREFIX/bin:$PATH
+# ENV PATH=$NVPTX_PREFIX/bin:$PATH
 
 # 5. host GCC 빌드 (mkoffload 포함)
 RUN mkdir /tmp/build-host && cd /tmp/build-host && \
@@ -49,30 +49,30 @@ RUN mkdir /tmp/build-host && cd /tmp/build-host && \
       --prefix=$HOST_PREFIX && \
     make -j$(nproc) && make install
     
-# 4.5. 디바이스용 오프로더 컴파일러 심볼릭 링크 추가
-RUN ln -sf $NVPTX_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-gcc $NVPTX_TOOLS_PREFIX/bin/nvptx-none-gcc && \
-ln -sf $NVPTX_PREFIX/bin/nvptx-none-g++ $NVPTX_TOOLS_PREFIX/bin/nvptx-none-g++
+# # 4.5. 디바이스용 오프로더 컴파일러 심볼릭 링크 추가
+# RUN ln -sf $NVPTX_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-gcc $NVPTX_TOOLS_PREFIX/bin/nvptx-none-gcc && \
+# ln -sf $NVPTX_PREFIX/bin/nvptx-none-g++ $NVPTX_TOOLS_PREFIX/bin/nvptx-none-g++
 
-# 6. mkoffload 확인
-RUN find $HOST_PREFIX/libexec/gcc/x86_64-pc-linux-gnu/ -name mkoffload
+# # 6. mkoffload 확인
+# RUN find $HOST_PREFIX/libexec/gcc/x86_64-pc-linux-gnu/ -name mkoffload
 
-# 7. 기본 gcc 등록
-RUN ln -sf $HOST_PREFIX/bin/gcc /usr/bin/gcc && \
-    ln -sf $HOST_PREFIX/bin/g++ /usr/bin/g++
+# # 7. 기본 gcc 등록
+# RUN ln -sf $HOST_PREFIX/bin/gcc /usr/bin/gcc && \
+#     ln -sf $HOST_PREFIX/bin/g++ /usr/bin/g++
 
-# 7.5. 디바이스용 오프로더 컴파일러 심볼릭 링크 추가
-RUN ln -sf $NVPTX_PREFIX/bin/nvptx-none-gcc $HOST_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-gcc && \
-ln -sf $NVPTX_PREFIX/bin/nvptx-none-g++ $HOST_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-g++
+# # 7.5. 디바이스용 오프로더 컴파일러 심볼릭 링크 추가
+# RUN ln -sf $NVPTX_PREFIX/bin/nvptx-none-gcc $HOST_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-gcc && \
+# ln -sf $NVPTX_PREFIX/bin/nvptx-none-g++ $HOST_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-g++
 
-# 8. 환경 설정
-ENV PATH=$HOST_PREFIX/bin:$PATH
-ENV LD_LIBRARY_PATH=$HOST_PREFIX/lib64:$LD_LIBRARY_PATH
-ENV PTXAS=/usr/local/cuda/bin/ptxas
-ENV COLLECT_GCC=$HOST_PREFIX/bin/gcc
+# # 8. 환경 설정
+# ENV PATH=$HOST_PREFIX/bin:$PATH
+# ENV LD_LIBRARY_PATH=$HOST_PREFIX/lib64:$LD_LIBRARY_PATH
+# ENV PTXAS=/usr/local/cuda/bin/ptxas
+# ENV COLLECT_GCC=$HOST_PREFIX/bin/gcc
 
-# 9. 기타 도구
-RUN curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \
-    chmod +x /usr/local/bin/bazel && \
-    echo "BAZELISK_BASE_VERSION=7.5.0" >> /etc/environment
+# # 9. 기타 도구
+# RUN curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \
+#     chmod +x /usr/local/bin/bazel && \
+#     echo "BAZELISK_BASE_VERSION=7.5.0" >> /etc/environment
 
-WORKDIR /workspace
+# WORKDIR /workspace
