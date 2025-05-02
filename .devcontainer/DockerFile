@@ -1,78 +1,80 @@
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV NVPTX_PREFIX=/opt/gcc-nvptx
-ENV HOST_PREFIX=/opt/gcc-13
 ENV NVPTX_TOOLS_PREFIX=/opt/nvptx-tools
-ENV PATH=$HOST_PREFIX/bin:$NVPTX_TOOLS_PREFIX/bin:$PATH
+ENV GCC_PREFIX=/opt/gcc-13
+ENV PATH=/usr/local/cuda/bin:$PATH
 
-# 1. 기본 패키지 설치
+# Install necessary packages
 RUN apt-get update && apt-get install -y \
-  build-essential git wget curl bison flex gawk texinfo libzstd-dev \
-  libgmp-dev libmpfr-dev libmpc-dev libisl-dev \
-  zlib1g-dev bzip2 xz-utils && rm -rf /var/lib/apt/lists/*
+    build-essential git wget curl bison flex gawk texinfo libzstd-dev \
+    bzip2 xz-utils && \
+    rm -rf /var/lib/apt/lists/*
 
-# 2. 소스 클론
+# Clone nvptx-tools, nvptx-newlib, and gcc-13
 RUN git clone https://github.com/MentorEmbedded/nvptx-tools.git /tmp/nvptx-tools && \
     git clone https://github.com/MentorEmbedded/nvptx-newlib.git /tmp/nvptx-newlib && \
-    git clone --depth 1 --branch releases/gcc-13 https://github.com/gcc-mirror/gcc.git /tmp/gcc && \
-    cd /tmp/gcc && ./contrib/download_prerequisites && \
-    ln -s /tmp/nvptx-newlib/newlib /tmp/gcc/newlib
+    git clone https://gcc.gnu.org/git/gcc.git /tmp/gcc-13 && \
+    cd /tmp/gcc-13 && \
+    git checkout releases/gcc-13 && \
+    ./contrib/download_prerequisites
 
-# 3. nvptx-tools 빌드
-RUN cd /tmp/nvptx-tools && ./configure --prefix=$NVPTX_TOOLS_PREFIX && make -j$(nproc) && make install
+# Build nvptx-tools
+RUN cd /tmp/nvptx-tools && \
+    ./configure \
+        --prefix=$NVPTX_TOOLS_PREFIX && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/nvptx-tools
 
-# 4. nvptx-none 대상용 device compiler 빌드
-RUN mkdir /tmp/build-nvptx && cd /tmp/build-nvptx && \
-    /tmp/gcc/configure \
-      --target=nvptx-none \
-      --with-build-time-tools=$NVPTX_TOOLS_PREFIX/bin \
-      # --enable-as-accelerator-for=x86_64-pc-linux-gnu \
-      --disable-sjlj-exceptions \
-      --enable-newlib-io-long-long \
-      --enable-languages=c,c++,fortran,lto \
-      --prefix=$NVPTX_PREFIX && \
-    make -j$(nproc) && make install
+# Build device compiler (nvptx-none) with newlib
+RUN ln -s /tmp/nvptx-newlib/newlib /tmp/gcc-13/newlib && \
+    mkdir /tmp/build-nvptx && \
+    cd /tmp/build-nvptx && \
+    /tmp/gcc-13/configure \
+        --target=nvptx-none \
+        --with-arch=sm_70 \
+        --enable-as-accelerator-for=x86_64-pc-linux-gnu \
+        --with-build-time-tools=$NVPTX_TOOLS_PREFIX/nvptx-none/bin \
+        --disable-sjlj-exceptions \
+        --enable-newlib-io-long-long \
+        --enable-languages=c,c++,fortran,lto \
+        --prefix=$GCC_PREFIX && \
+    make -j$(nproc) V=1 2>&1 | tee /tmp/device_full_build.log && \
+    make install && \
+    rm -rf /tmp/gcc-13/newlib
 
-# Add
-# ENV PATH=$NVPTX_PREFIX/bin:$PATH
+# Build host GCC with NVPTX offloading support
+RUN mkdir /tmp/build-host && \
+    cd /tmp/build-host && \
+    /tmp/gcc-13/configure \
+        --build=x86_64-pc-linux-gnu \
+        --host=x86_64-pc-linux-gnu \
+        --target=x86_64-pc-linux-gnu \
+        --enable-offload-targets=nvptx-none=$GCC_PREFIX/lib/gcc/x86_64-pc-linux-gnu/13.3.1/accel/nvptx-none \
+        --with-cuda-driver-include=/usr/local/cuda/include \
+        --with-cuda-driver-lib=/usr/local/cuda/lib64/stubs \
+        --disable-bootstrap \
+        --disable-multilib \
+        --enable-languages=c,c++,fortran,lto \
+        --prefix=$GCC_PREFIX && \
+    make -j$(nproc) V=1 2>&1 | tee /tmp/host_full_build.log && \
+    make install
 
-# 5. host GCC 빌드 (mkoffload 포함)
-RUN mkdir /tmp/build-host && cd /tmp/build-host && \
-    /tmp/gcc/configure --build=x86_64-pc-linux-gnu \
-      --enable-offload-targets=nvptx-none=$NVPTX_PREFIX \
-      --with-cuda-driver-include=/usr/local/cuda/include \
-      --with-cuda-driver-lib=/usr/local/cuda/lib64 \
-      --disable-bootstrap \
-      --disable-multilib \
-      --enable-languages=c,c++,fortran,lto \
-      --prefix=$HOST_PREFIX && \
-    make -j$(nproc) && make install
-    
-# # 4.5. 디바이스용 오프로더 컴파일러 심볼릭 링크 추가
-# RUN ln -sf $NVPTX_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-gcc $NVPTX_TOOLS_PREFIX/bin/nvptx-none-gcc && \
-# ln -sf $NVPTX_PREFIX/bin/nvptx-none-g++ $NVPTX_TOOLS_PREFIX/bin/nvptx-none-g++
 
-# # 6. mkoffload 확인
-# RUN find $HOST_PREFIX/libexec/gcc/x86_64-pc-linux-gnu/ -name mkoffload
+# Copy nvptx tools to the GCC directory
+RUN cd /opt/gcc-13/libexec/gcc/x86_64-pc-linux-gnu/13.3.1/accel/nvptx-none
+    for tool in as ld ar nm ranlib; do
+        cp /opt/nvptx-tools/bin/nvptx-none-$tool $tool
+    done
 
-# # 7. 기본 gcc 등록
-# RUN ln -sf $HOST_PREFIX/bin/gcc /usr/bin/gcc && \
-#     ln -sf $HOST_PREFIX/bin/g++ /usr/bin/g++
+# Set as default compiler
+RUN ln -sf $GCC_PREFIX/bin/gcc /usr/bin/gcc && \
+    ln -sf $GCC_PREFIX/bin/g++ /usr/bin/g++
 
-# # 7.5. 디바이스용 오프로더 컴파일러 심볼릭 링크 추가
-# RUN ln -sf $NVPTX_PREFIX/bin/nvptx-none-gcc $HOST_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-gcc && \
-# ln -sf $NVPTX_PREFIX/bin/nvptx-none-g++ $HOST_PREFIX/bin/x86_64-pc-linux-gnu-accel-nvptx-none-g++
+# Install Bazelisk
+RUN curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \
+    chmod +x /usr/local/bin/bazel && \
+    echo "BAZELISK_BASE_VERSION=7.5.0" >> /etc/environment
 
-# # 8. 환경 설정
-# ENV PATH=$HOST_PREFIX/bin:$PATH
-# ENV LD_LIBRARY_PATH=$HOST_PREFIX/lib64:$LD_LIBRARY_PATH
-# ENV PTXAS=/usr/local/cuda/bin/ptxas
-# ENV COLLECT_GCC=$HOST_PREFIX/bin/gcc
-
-# # 9. 기타 도구
-# RUN curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \
-#     chmod +x /usr/local/bin/bazel && \
-#     echo "BAZELISK_BASE_VERSION=7.5.0" >> /etc/environment
-
-# WORKDIR /workspace
+# Go back to the workspace
+WORKDIR /workspaces
