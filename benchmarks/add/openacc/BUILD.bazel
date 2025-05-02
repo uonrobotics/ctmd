@@ -1,0 +1,253 @@
+cc_binary(
+    name = "epi8",
+    srcs = [
+        "source.hpp",
+        "epi8.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epi16",
+    srcs = [
+        "source.hpp",
+        "epi16.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epi32",
+    srcs = [
+        "source.hpp",
+        "epi32.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epi64",
+    srcs = [
+        "source.hpp",
+        "epi64.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epu8",
+    srcs = [
+        "source.hpp",
+        "epu8.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epu16",
+    srcs = [
+        "source.hpp",
+        "epu16.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epu32",
+    srcs = [
+        "source.hpp",
+        "epu32.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epu64",
+    srcs = [
+        "source.hpp",
+        "epu64.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "ps",
+    srcs = [
+        "source.hpp",
+        "ps.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+        "-foffload=nvptx-none",
+        "-fno-lto",
+        "-DUSE_OPENACC",
+    ],
+    linkopts = [
+        "-lgomp",
+        "-fno-lto",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "pd",
+    srcs = [
+        "source.hpp",
+        "pd.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-Ofast",
+        "-unroll-loops",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+        "-fopenacc",
+    ],
+    linkopts = [
+        "-lgomp",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)

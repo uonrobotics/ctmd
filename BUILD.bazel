@@ -13,10 +13,6 @@ cc_library(
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
     ],
-    linkopts = [
-        "-lgomp",
-    ],    
     visibility = ["//visibility:public"],
 )

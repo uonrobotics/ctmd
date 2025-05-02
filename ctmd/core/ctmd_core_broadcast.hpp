@@ -217,6 +217,8 @@ batch_impl(Func &&func, std::tuple<uins_t...> &&uins,
     }
 }
 
+#ifdef _OPENMP
+
 template <size_t BatchRank, typename Func, mdspan_c... uins_t,
           mdspan_c... uouts_t, mdspan_c... ins_t, mdspan_c... outs_t,
           typename... Args>
@@ -263,11 +265,16 @@ batch_impl_omp(Func &&func, std::tuple<uins_t...> &&uins,
     }
 }
 
+#endif
+
+#ifdef USE_OPENACC
+
 template <size_t BatchRank, typename Func, mdspan_c... uins_t,
           mdspan_c... uouts_t, mdspan_c... ins_t, mdspan_c... outs_t,
           typename... Args>
     requires(sizeof...(uins_t) == sizeof...(ins_t) &&
              sizeof...(uouts_t) == sizeof...(outs_t))
+#pragma acc routine seq
 inline void batch_impl_gpu(Func &&func, const std::tuple<uins_t...> &uins,
                            const std::tuple<uouts_t...> &uouts,
                            const std::tuple<ins_t...> &ins,
@@ -305,7 +312,7 @@ inline void batch_impl_gpu(Func &&func, const std::tuple<uins_t...> &uins,
     } else {
         const index_type extent0 = std::get<0>(ins).extent(0);
 
-#pragma acc parallel loop
+#pragma acc loop seq
         for (index_type i = 0; i < extent0; ++i) {
             const auto subins = make_subtuple(ins, i);
             const auto subouts = make_subtuple(outs, i);
@@ -315,6 +322,8 @@ inline void batch_impl_gpu(Func &&func, const std::tuple<uins_t...> &uins,
         }
     }
 }
+
+#endif
 
 } // namespace detail
 
@@ -367,16 +376,20 @@ batch(Func &&func, std::tuple<uins_t...> &&uins, std::tuple<uouts_t...> &&uouts,
             std::move(bouts), std::move(args));
 
     } else {
+#ifdef _OPENMP
         // TODO: batch_impl_omp make slow when element_type is uint8_t, int8_t,
         // even function is not called. check it.
-
-#if false
         detail::batch_impl_omp<decltype(bexts)::rank()>(
             std::move(func), std::move(uins), std::move(uouts), std::move(bins),
             std::move(bouts), std::move(args));
 
-#else
+#elif defined(USE_OPENACC)
         detail::batch_impl_gpu<decltype(bexts)::rank()>(
+            std::move(func), std::move(uins), std::move(uouts), std::move(bins),
+            std::move(bouts), std::move(args));
+
+#else
+        detail::batch_impl<decltype(bexts)::rank()>(
             std::move(func), std::move(uins), std::move(uouts), std::move(bins),
             std::move(bouts), std::move(args));
 

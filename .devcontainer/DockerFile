@@ -1,3 +1,5 @@
+# Check further information at https://gcc.gnu.org/wiki/Offloading
+
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 ENV NVPTX_TOOLS_PREFIX=/opt/nvptx-tools
@@ -13,9 +15,8 @@ RUN apt-get update && apt-get install -y \
 # Clone nvptx-tools, nvptx-newlib, and gcc-13
 RUN git clone https://github.com/MentorEmbedded/nvptx-tools.git /tmp/nvptx-tools && \
     git clone https://github.com/MentorEmbedded/nvptx-newlib.git /tmp/nvptx-newlib && \
-    git clone https://gcc.gnu.org/git/gcc.git /tmp/gcc-13 && \
-    cd /tmp/gcc-13 && \
-    git checkout releases/gcc-13 && \
+    git clone --branch releases/gcc-13 https://gcc.gnu.org/git/gcc.git /tmp/gcc-13
+RUN cd /tmp/gcc-13 && \
     ./contrib/download_prerequisites
 
 # Build nvptx-tools
@@ -27,8 +28,8 @@ RUN cd /tmp/nvptx-tools && \
     rm -rf /tmp/nvptx-tools
 
 # Build device compiler (nvptx-none) with newlib
-RUN ln -s /tmp/nvptx-newlib/newlib /tmp/gcc-13/newlib && \
-    mkdir /tmp/build-nvptx && \
+RUN ln -s /tmp/nvptx-newlib/newlib /tmp/gcc-13/newlib
+RUN mkdir /tmp/build-nvptx && \
     cd /tmp/build-nvptx && \
     /tmp/gcc-13/configure \
         --target=nvptx-none \
@@ -40,8 +41,8 @@ RUN ln -s /tmp/nvptx-newlib/newlib /tmp/gcc-13/newlib && \
         --enable-languages=c,c++,fortran,lto \
         --prefix=$GCC_PREFIX && \
     make -j$(nproc) V=1 2>&1 | tee /tmp/device_full_build.log && \
-    make install && \
-    rm -rf /tmp/gcc-13/newlib
+    make install
+RUN rm -rf /tmp/gcc-13/newlib
 
 # Build host GCC with NVPTX offloading support
 RUN mkdir /tmp/build-host && \
@@ -60,11 +61,17 @@ RUN mkdir /tmp/build-host && \
     make -j$(nproc) V=1 2>&1 | tee /tmp/host_full_build.log && \
     make install
 
+# Clean up temporary files
+RUN rm -rf /tmp/build-nvptx && \
+    rm -rf /tmp/build-host && \
+    rm -rf /tmp/gcc-13 && \
+    rm -rf /tmp/nvptx-newlib
+
 
 # Copy nvptx tools to the GCC directory
-RUN cd /opt/gcc-13/libexec/gcc/x86_64-pc-linux-gnu/13.3.1/accel/nvptx-none
-    for tool in as ld ar nm ranlib; do
-        cp /opt/nvptx-tools/bin/nvptx-none-$tool $tool
+RUN cd /opt/gcc-13/libexec/gcc/x86_64-pc-linux-gnu/13.3.1/accel/nvptx-none && \
+    for tool in as ld ar nm ranlib; do \
+        cp /opt/nvptx-tools/bin/nvptx-none-$tool $tool; \
     done
 
 # Set as default compiler
