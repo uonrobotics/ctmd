@@ -1,20 +1,16 @@
 {
-    "name": "CUDA OpenACC GCC13 Dev",
     "build": {
-        "dockerfile": "Dockerfile",
+        "dockerfile": "base/Dockerfile",
+        // "dockerfile": "omp_gpu/Dockerfile",
         "context": ".."
     },
     "runArgs": [
         "--gpus=all"
     ],
-    "remoteEnv": {
-        "PATH": "${containerEnv:PATH}:/usr/local/cuda/bin:/opt/gcc-13/bin",
-        "LD_LIBRARY_PATH": "${containerEnv:LD_LIBRARY_PATH}:/opt/gcc-13/lib64:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64"
-    },
-    "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
     "customizations": {
         "vscode": {
             "extensions": [
+                "ms-azuretools.vscode-docker",
                 "bazelbuild.vscode-bazel",
                 "ms-vscode.cpptools",
                 "ms-vscode.cpptools-extension-pack",

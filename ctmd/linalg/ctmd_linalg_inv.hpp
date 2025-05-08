@@ -8,23 +8,23 @@ namespace ctmd {
 namespace linalg {
 namespace detail {
 
-template <md_c A_t, md_c A_inv_t>
-    requires(A_t::rank() == 2 && A_inv_t::rank() == 2)
-inline constexpr void inv_naive(const A_t &A, A_inv_t &A_inv) noexcept {
-    using TO = typename A_inv_t::element_type;
+template <mdspan_c in_t, mdspan_c out_t>
+    requires(in_t::rank() == 2 && out_t::rank() == 2)
+inline constexpr void inv_naive(const in_t &in, const out_t &out) noexcept {
+    using TO = typename out_t::element_type;
 
-    const size_t n = A.extent(0);
+    const size_t n = in.extent(0);
 
-    // check A and A_inv are same pointer
-    auto A_copy = copy(A);
+    // check in and out are same pointer
+    auto in_copy = copy(in);
     for (size_t i = 0; i < n; ++i) {
         for (size_t j = 0; j < n; ++j) {
-            A_inv[i, j] = (i == j) ? 1 : 0;
+            out[i, j] = (i == j) ? 1 : 0;
         }
     }
 
     for (size_t i = 0; i < n; ++i) {
-        const TO pivot = A_copy[i, i];
+        const TO pivot = in_copy[i, i];
 
         if (pivot == TO(0)) {
             // Handle error: singular matrix (no inverse)
@@ -33,8 +33,8 @@ inline constexpr void inv_naive(const A_t &A, A_inv_t &A_inv) noexcept {
 
         // Normalize the pivot row
         for (size_t j = 0; j < n; ++j) {
-            A_copy[i, j] /= pivot;
-            A_inv[i, j] /= pivot;
+            in_copy[i, j] /= pivot;
+            out[i, j] /= pivot;
         }
 
         // Eliminate other rows
@@ -42,67 +42,111 @@ inline constexpr void inv_naive(const A_t &A, A_inv_t &A_inv) noexcept {
             if (i == j)
                 continue;
 
-            TO factor = A_copy[j, i];
+            TO factor = in_copy[j, i];
             for (size_t k = 0; k < n; ++k) {
-                A_copy[j, k] -= factor * A_copy[i, k];
-                A_inv[j, k] -= factor * A_inv[i, k];
+                in_copy[j, k] -= factor * in_copy[i, k];
+                out[j, k] -= factor * out[i, k];
             }
+        }
+    }
+}
+
+template <mdspan_c in_t, mdspan_c out_t>
+    requires(in_t::rank() == 2 && out_t::rank() == 2)
+inline constexpr void inv_impl(const in_t &in, const out_t &out) noexcept {
+    if constexpr (!core::eigen::can_map<in_t>() ||
+                  !core::eigen::can_map<out_t>()) {
+        inv_naive(in, out);
+
+    } else {
+        if (std::is_constant_evaluated()) [[unlikely]] {
+            inv_naive(in, out);
+
+        } else [[likely]] {
+            const auto A_eigen = core::eigen::to_eigen(in);
+            auto A_inv_eigen = core::eigen::to_eigen(out);
+            A_inv_eigen = A_eigen.inverse();
         }
     }
 }
 
 } // namespace detail
 
-template <md_c A_t, md_c A_inv_t>
-    requires(A_t::rank() == 2 && A_inv_t::rank() == 2)
-inline constexpr void inv(const A_t &A, A_inv_t &A_inv) noexcept {
-    if constexpr (!core::eigen::can_map<A_t>() ||
-                  !core::eigen::can_map<A_inv_t>()) {
-        detail::inv_naive(A, A_inv);
+template <md_c in_t, md_c out_t>
+    requires(in_t::rank() >= 2 && out_t::rank() >= 2)
+inline constexpr void inv(const in_t &in, out_t &out,
+                          const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto uin_exts = core::slice_from_last<2>(in.extents());
+    const auto uout_exts = core::slice_from_last<2>(out.extents());
 
-    } else {
-        if (std::is_constant_evaluated()) [[unlikely]] {
-            detail::inv_naive(A, A_inv);
+    const auto bexts = core::broadcast(
+        core::slice_from_start<in_t::rank() - decltype(uin_exts)::rank()>(
+            in.extents()),
+        core::slice_from_start<out_t::rank() - decltype(uout_exts)::rank()>(
+            out.extents()));
 
-        } else [[likely]] {
-            const auto A_eigen = core::eigen::to_eigen(A);
-            auto A_inv_eigen = core::eigen::to_eigen(A_inv);
-            A_inv_eigen = A_eigen.inverse();
-        }
+    auto bin = core::broadcast_to(core::to_mdspan(in),
+                                  core::concatenate(bexts, uin_exts));
+    auto bout = core::to_mdspan(out);
+
+    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::inv_impl<decltype(ubin), decltype(ubout)>,
+            std::tuple{bin, bout}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::inv_impl<decltype(ubin), decltype(ubout)>,
+            std::tuple{bin, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
     }
 }
 
-template <md_c A_t, md_c A_inv_t>
-    requires(A_t::rank() >= 2 && A_inv_t::rank() >= 2 &&
-             !(A_t::rank() == 2 && A_inv_t::rank() == 2))
-inline constexpr void inv(const A_t &A, A_inv_t &A_inv,
-                          const bool multi_process = false) noexcept {
-    const auto uA = core::submdspan_unit<2>(A);
-    const auto uA_inv = core::submdspan_unit<2>(A_inv);
-
-    core::batch(inv<decltype(uA), decltype(uA_inv)>, std::make_tuple(uA),
-                std::make_tuple(uA_inv), std::make_tuple(core::to_mdspan(A)),
-                std::make_tuple(core::to_mdspan(A_inv)), std::tuple<>{},
-                multi_process);
-}
-
-template <md_c A_t>
-    requires(A_t::rank() >= 2)
+template <md_c in_t>
+    requires(in_t::rank() >= 2)
 [[nodiscard]] inline constexpr auto
-inv(const A_t &A, const bool multi_process = false) noexcept {
-    const auto uA = core::submdspan_unit<2>(A);
+inv(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto uin_exts = core::slice_from_last<2>(in.extents());
+    const auto uout_exts = uin_exts;
 
-    const auto uA_inv =
-        mdarray<std::remove_const_t<typename decltype(uA)::element_type>,
-                typename decltype(uA)::extents_type>{uA.extents()}
-            .to_mdspan();
+    auto out_exts = in.extents();
+    auto out =
+        mdarray<typename in_t::element_type, decltype(out_exts)>{out_exts};
 
-    const auto results = core::batch_out(
-        inv<decltype(uA), decltype(uA_inv)>, std::make_tuple(uA),
-        std::make_tuple(uA_inv), std::make_tuple(core::to_mdspan(A)),
-        std::tuple<>{}, multi_process);
+    auto bin = core::to_mdspan(in);
+    auto bout = core::to_mdspan(out);
 
-    return std::get<0>(results);
+    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<in_t::rank() - 2, MPMode::NONE>(
+            detail::inv_impl<decltype(ubin), decltype(ubout)>,
+            std::tuple{bin, bout}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<in_t::rank() - 2, MPMode::CPUMP>(
+            detail::inv_impl<decltype(ubin), decltype(ubout)>,
+            std::tuple{bin, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+
+    return out;
 }
 
 } // namespace linalg

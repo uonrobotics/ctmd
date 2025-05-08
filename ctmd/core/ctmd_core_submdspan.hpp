@@ -10,7 +10,7 @@ namespace detail {
 template <size_t... Is>
 [[nodiscard]] constexpr auto
 full_extents_tuple(std::index_sequence<Is...>) noexcept {
-    return std::make_tuple(((void)Is, full_extent)...);
+    return std::tuple{((void)Is, full_extent)...};
 }
 
 template <size_t Count> [[nodiscard]] constexpr auto full_extents() noexcept {

@@ -7,8 +7,7 @@ cc_library(
     ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",

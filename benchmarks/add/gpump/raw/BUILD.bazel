@@ -6,15 +6,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -30,15 +33,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -54,15 +60,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -78,15 +87,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -102,15 +114,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -126,15 +141,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -150,15 +168,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -174,15 +195,18 @@
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [
@@ -190,33 +214,32 @@
 #     ],
 # )
 
-cc_binary(
-    name = "ps",
-    srcs = [
-        "source.hpp",
-        "ps.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
-        "-foffload=nvptx-none",
-    ],
-    linkopts = [
-        "-B/opt/gcc-13/bin",
-        "-fopenmp",
-        "-foffload=nvptx-none",
-        "-lgomp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-    ],
-)
+# cc_binary(
+#     name = "ps",
+#     srcs = [
+#         "source.hpp",
+#         "ps.cpp",
+#         ],
+#     copts = [
+#         "-O3",
+#         "-funroll-loops",
+#         "-fno-exceptions",
+#         "-fno-rtti",
+#         "-Wall",
+#         "-march=native",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
+#     ],
+#     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
+#         "-lgomp",
+#     ],
+#     deps = [
+#         "@com_google_benchmark//:benchmark",
+#     ],
+# )
 
 # cc_binary(
 #     name = "pd",
@@ -226,15 +249,18 @@ cc_binary(
 #         ],
 #     copts = [
 #         "-O3",
-#         "-Ofast",
-#         "-unroll-loops",
+#         "-funroll-loops",
 #         "-fno-exceptions",
 #         "-fno-rtti",
 #         "-Wall",
 #         "-march=native",
-#         "-fopenacc",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #     ],
 #     linkopts = [
+#         "-B/opt/gcc-13/bin",
+#         "-fopenmp",
+#         "-foffload=nvptx-none",
 #         "-lgomp",
 #     ],
 #     deps = [

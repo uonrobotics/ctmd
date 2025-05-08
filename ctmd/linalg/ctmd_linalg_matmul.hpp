@@ -7,48 +7,50 @@ namespace ctmd {
 namespace linalg {
 namespace detail {
 
-template <md_c A_t, md_c B_t, md_c C_t>
-    requires(A_t::rank() == 2 && B_t::rank() == 2 && C_t::rank() == 2)
-inline constexpr void matmul_naive(const A_t &A, const B_t &B,
-                                   C_t &C) noexcept {
-    if (core::to_mdspan(A).data_handle() != core::to_mdspan(C).data_handle() &&
-        core::to_mdspan(B).data_handle() != core::to_mdspan(C).data_handle())
-        [[likely]] {
-        for (typename C_t::size_type i = 0; i < C.extent(0); i++) {
-            for (typename C_t::size_type j = 0; j < C.extent(1); j++) {
-                C[i, j] = 0;
-                for (typename A_t::size_type k = 0; k < A.extent(1); k++) {
-                    C[i, j] += A[i, k] * B[k, j];
+template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
+    requires(in1_t::rank() == 2 && in2_t::rank() == 2 && out_t::rank() == 2)
+inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
+                                   const out_t &out) noexcept {
+    if (core::to_mdspan(in1).data_handle() !=
+            core::to_mdspan(out).data_handle() &&
+        core::to_mdspan(in2).data_handle() !=
+            core::to_mdspan(out).data_handle()) [[likely]] {
+        for (typename out_t::size_type i = 0; i < out.extent(0); i++) {
+            for (typename out_t::size_type j = 0; j < out.extent(1); j++) {
+                out[i, j] = 0;
+                for (typename in1_t::size_type k = 0; k < in1.extent(1); k++) {
+                    out[i, j] += in1[i, k] * in2[k, j];
                 }
             }
         }
 
     } else [[unlikely]] {
-        auto C_tmp =
-            mdarray<typename C_t::element_type, typename C_t::extents_type>{
-                C.extent(0), C.extent(1)};
-        matmul_naive(A, B, C_tmp);
-        copy(C_tmp, C);
+        auto out_tmp =
+            mdarray<typename out_t::element_type, typename out_t::extents_type>{
+                out.extent(0), out.extent(1)};
+        matmul_naive(in1, in2, out_tmp.to_mdspan());
+        copy(out_tmp, out);
     }
 }
 
-template <md_c A_t, md_c B_t, md_c C_t>
-    requires(A_t::rank() == 2 && B_t::rank() == 2 && C_t::rank() == 2)
-inline constexpr void matmul_impl(const A_t &A, const B_t &B, C_t &C) noexcept {
-    if constexpr (!core::eigen::can_map<A_t>() ||
-                  !core::eigen::can_map<B_t>() ||
-                  !core::eigen::can_map<C_t>()) {
-        detail::matmul_naive(A, B, C);
+template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
+    requires(in1_t::rank() == 2 && in2_t::rank() == 2 && out_t::rank() == 2)
+inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
+                                  const out_t &out) noexcept {
+    if constexpr (!core::eigen::can_map<in1_t>() ||
+                  !core::eigen::can_map<in2_t>() ||
+                  !core::eigen::can_map<out_t>()) {
+        matmul_naive(in1, in2, out);
 
     } else {
-        if (std::is_constant_evaluated() || C.extent(0) + C.extent(1) <= 8)
+        if (std::is_constant_evaluated() || out.extent(0) + out.extent(1) <= 8)
             [[likely]] {
-            detail::matmul_naive(A, B, C);
+            matmul_naive(in1, in2, out);
 
         } else [[unlikely]] {
-            const auto A_eigen = core::eigen::to_eigen(A);
-            const auto B_eigen = core::eigen::to_eigen(B);
-            auto C_eigen = core::eigen::to_eigen(C);
+            const auto A_eigen = core::eigen::to_eigen(in1);
+            const auto B_eigen = core::eigen::to_eigen(in2);
+            auto C_eigen = core::eigen::to_eigen(out);
             C_eigen = A_eigen * B_eigen;
         }
     }
@@ -56,48 +58,108 @@ inline constexpr void matmul_impl(const A_t &A, const B_t &B, C_t &C) noexcept {
 
 } // namespace detail
 
-template <md_c A_t, md_c B_t, md_c C_t>
-    requires(A_t::rank() >= 2 && B_t::rank() >= 2 && C_t::rank() >= 2)
-inline constexpr void matmul(const A_t &A, const B_t &B, C_t &C,
-                             const bool multi_process = false) noexcept {
-    const auto uA = core::submdspan_unit<2>(A);
-    const auto uB = core::submdspan_unit<2>(B);
-    const auto uC = core::submdspan_unit<2>(C);
+template <md_c in1_t, md_c in2_t, md_c out_t>
+    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2 && out_t::rank() >= 2)
+inline constexpr void matmul(const in1_t &in1, const in2_t &in2, out_t &out,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto uin1_exts = core::slice_from_last<2>(in1.extents());
+    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
+    const auto uout_exts = core::slice_from_last<2>(out.extents());
 
-    core::batch(detail::matmul_impl<decltype(uA), decltype(uB), decltype(uC)>,
-                std::make_tuple(uA, uB), std::make_tuple(uC),
-                std::make_tuple(core::to_mdspan(A), core::to_mdspan(B)),
-                std::make_tuple(core::to_mdspan(C)), std::tuple<>{},
-                multi_process);
+    const auto bexts = core::broadcast(
+        core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
+            in1.extents()),
+        core::slice_from_start<in2_t::rank() - decltype(uin2_exts)::rank()>(
+            in2.extents()),
+        core::slice_from_start<out_t::rank() - decltype(uout_exts)::rank()>(
+            out.extents()));
+
+    auto bin1 = core::broadcast_to(core::to_mdspan(in1),
+                                   core::concatenate(bexts, uin1_exts));
+    auto bin2 = core::broadcast_to(core::to_mdspan(in2),
+                                   core::concatenate(bexts, uin2_exts));
+    auto bout = core::to_mdspan(out);
+
+    const auto ubin1 = core::submdspan_unit<decltype(uin1_exts)::rank()>(bin1);
+    const auto ubin2 = core::submdspan_unit<decltype(uin2_exts)::rank()>(bin2);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+                                decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+                                decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
 }
 
-template <md_c A_t, md_c B_t>
-    requires(A_t::rank() >= 2 && B_t::rank() >= 2)
+template <md_c in1_t, md_c in2_t>
+    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2)
 [[nodiscard]] inline constexpr auto
-matmul(const A_t &A, const B_t &B, const bool multi_process = false) noexcept {
-    const auto uA = core::submdspan_unit<2>(A);
-    const auto uB = core::submdspan_unit<2>(B);
+matmul(const in1_t &in1, const in2_t &in2,
+       const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto uin1_exts = core::slice_from_last<2>(in1.extents());
+    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
+    const auto uout_exts =
+        extents<std::common_type_t<typename in1_t::index_type,
+                                   typename in2_t::index_type>,
+                in1_t::static_extent(0), in2_t::static_extent(1)>{
+            in1.extent(0), in2.extent(1)};
 
-    using uC_element_type =
-        std::remove_const_t<std::common_type_t<typename A_t::element_type,
-                                               typename B_t::element_type>>;
-    using uC_index_type =
-        std::common_type_t<typename A_t::index_type, typename B_t::index_type>;
+    const auto bexts = core::broadcast(
+        core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
+            in1.extents()),
+        core::slice_from_start<in2_t::rank() - decltype(uin2_exts)::rank()>(
+            in2.extents()));
 
-    const auto uC =
-        mdarray<uC_element_type, extents<uC_index_type, A_t::static_extent(0),
-                                         B_t::static_extent(1)>>{
-            extents<uC_index_type, A_t::static_extent(0),
-                    B_t::static_extent(1)>{A.extent(0), B.extent(1)}}
-            .to_mdspan();
+    auto out_exts = core::concatenate(bexts, uout_exts);
+    auto out = mdarray<std::common_type_t<typename in1_t::element_type,
+                                          typename in2_t::element_type>,
+                       decltype(out_exts)>{out_exts};
 
-    const auto results = core::batch_out(
-        detail::matmul_impl<decltype(uA), decltype(uB), decltype(uC)>,
-        std::make_tuple(uA, uB), std::make_tuple(uC),
-        std::make_tuple(core::to_mdspan(A), core::to_mdspan(B)), std::tuple<>{},
-        multi_process);
+    auto bin1 = core::broadcast_to(core::to_mdspan(in1),
+                                   core::concatenate(bexts, uin1_exts));
+    auto bin2 = core::broadcast_to(core::to_mdspan(in2),
+                                   core::concatenate(bexts, uin2_exts));
+    auto bout = core::to_mdspan(out);
 
-    return std::get<0>(results);
+    const auto ubin1 = core::submdspan_unit<decltype(uin1_exts)::rank()>(bin1);
+    const auto ubin2 = core::submdspan_unit<decltype(uin2_exts)::rank()>(bin2);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+                                decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+                                decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+
+    return out;
 }
 
 } // namespace linalg

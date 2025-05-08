@@ -3,7 +3,7 @@
 #include "benchmark/benchmark.h"
 
 constexpr size_t RANGE_START = 1;
-constexpr size_t RANGE_END = 1e6;
+constexpr size_t RANGE_END = 5e8;
 constexpr size_t RANGE_MULTIPLIER = 10;
 
 template <typename T> inline void test(benchmark::State &state) noexcept {
@@ -14,6 +14,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto c = std::vector<T>(set_num, 0);
 
     for (auto _ : state) {
+#pragma omp parallel for
         for (size_t i = 0; i < set_num; ++i) {
             c[i] = a[i] + b[i];
         }

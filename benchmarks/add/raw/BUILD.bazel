@@ -6,8 +6,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -15,7 +14,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -27,8 +25,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -36,7 +33,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -48,8 +44,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -57,7 +52,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -69,8 +63,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -78,7 +71,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -90,8 +82,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -99,7 +90,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -111,8 +101,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -120,7 +109,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -132,8 +120,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -141,7 +128,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -153,8 +139,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -162,7 +147,6 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -174,17 +158,14 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        # "-fopenacc",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )
 
@@ -196,8 +177,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -205,6 +185,5 @@ cc_binary(
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
-        "//:ctmd",
     ],
 )

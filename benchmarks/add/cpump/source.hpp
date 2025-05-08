@@ -6,7 +6,7 @@
 namespace md = ctmd;
 
 constexpr size_t RANGE_START = 1;
-constexpr size_t RANGE_END = 1e6;
+constexpr size_t RANGE_END = 1e8;
 constexpr size_t RANGE_MULTIPLIER = 10;
 
 template <typename T> inline void test(benchmark::State &state) noexcept {
@@ -17,7 +17,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto c = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::add(a, b, c, true);
+        md::add(a, b, c, md::MPMode::CPUMP);
     }
 
     state.SetComplexityN(state.range(0));

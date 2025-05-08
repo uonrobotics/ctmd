@@ -5,10 +5,10 @@
 namespace ctmd {
 namespace detail {
 
-template <md_c in_t>
+template <mdspan_c in_t>
     requires(in_t::rank() == 0)
 inline constexpr void
-fill_impl(in_t &in, const typename in_t::element_type &val) noexcept {
+fill_impl(const in_t &in, const typename in_t::element_type &val) noexcept {
     in[] = val;
 }
 
@@ -16,12 +16,29 @@ fill_impl(in_t &in, const typename in_t::element_type &val) noexcept {
 
 template <md_c in_t>
 inline constexpr void fill(in_t &in, const typename in_t::element_type &val,
-                           const bool multi_process = false) noexcept {
-    const auto uin = core::submdspan_unit<0>(in);
+                           const MPMode mpmode = MPMode::NONE) noexcept {
+    constexpr auto uin_exts = extents<typename in_t::index_type>{};
 
-    core::batch(detail::fill_impl<decltype(uin)>, std::make_tuple(uin),
-                std::tuple<>{}, std::make_tuple(core::to_mdspan(in)),
-                std::tuple<>{}, std::make_tuple(val), multi_process);
+    auto bin = core::to_mdspan(in);
+    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<in_t::rank(), MPMode::NONE>(
+            detail::fill_impl<decltype(ubin)>, std::tuple{bin},
+            std::tuple{val});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<in_t::rank(), MPMode::CPUMP>(
+            detail::fill_impl<decltype(ubin)>, std::tuple{bin},
+            std::tuple{val});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
 }
 
 } // namespace ctmd

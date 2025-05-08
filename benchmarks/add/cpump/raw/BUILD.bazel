@@ -6,8 +6,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -30,8 +30,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -54,8 +54,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -78,8 +78,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -102,8 +102,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -126,8 +126,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -150,8 +150,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -174,8 +174,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -198,8 +198,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
@@ -222,8 +222,8 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",

@@ -23,8 +23,8 @@ template <mdspan_c in_t>
     using const_element_t = const typename in_t::element_type;
     return mdspan<const_element_t, typename in_t::extents_type,
                   typename in_t::layout_type,
-                  std::experimental::default_accessor<const_element_t>>(
-        in.data_handle(), in.mapping(), {});
+                  default_accessor<const_element_t>>(in.data_handle(),
+                                                     in.mapping(), {});
 }
 
 template <mdspan_c in_t>

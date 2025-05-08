@@ -5,10 +5,10 @@
 namespace ctmd {
 namespace detail {
 
-template <md_c in1_t, md_c in2_t, md_c out_t>
+template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
     requires(in1_t::rank() == 0 && in2_t::rank() == 0 && out_t::rank() == 0)
 inline constexpr void subtract_impl(const in1_t &in1, const in2_t &in2,
-                                    out_t &out) noexcept {
+                                    const out_t &out) noexcept {
     out[] = in1[] - in2[];
 }
 
@@ -16,46 +16,102 @@ inline constexpr void subtract_impl(const in1_t &in1, const in2_t &in2,
 
 template <md_c in1_t, md_c in2_t, md_c out_t>
 inline constexpr void subtract(const in1_t &in1, const in2_t &in2, out_t &out,
-                               const bool multi_process = false) noexcept {
-    const auto uin1 = core::submdspan_unit<0>(in1);
-    const auto uin2 = core::submdspan_unit<0>(in2);
-    const auto uout = core::submdspan_unit<0>(out);
+                               const MPMode mpmode = MPMode::NONE) noexcept {
+    constexpr auto uin1_exts = extents<typename in1_t::index_type>{};
+    constexpr auto uin2_exts = extents<typename in2_t::index_type>{};
+    constexpr auto uout_exts = extents<typename out_t::index_type>{};
 
-    core::batch(
-        detail::subtract_impl<decltype(uin1), decltype(uin2), decltype(uout)>,
-        std::make_tuple(uin1, uin2), std::make_tuple(uout),
-        std::make_tuple(core::to_mdspan(in1), core::to_mdspan(in2)),
-        std::make_tuple(core::to_mdspan(out)), std::tuple<>{}, multi_process);
+    const auto bexts = core::broadcast(
+        core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
+            in1.extents()),
+        core::slice_from_start<in2_t::rank() - decltype(uin2_exts)::rank()>(
+            in2.extents()),
+        core::slice_from_start<out_t::rank() - decltype(uout_exts)::rank()>(
+            out.extents()));
+
+    auto bin1 = core::broadcast_to(core::to_mdspan(in1),
+                                   core::concatenate(bexts, uin1_exts));
+    auto bin2 = core::broadcast_to(core::to_mdspan(in2),
+                                   core::concatenate(bexts, uin2_exts));
+    auto bout = core::to_mdspan(out);
+
+    const auto ubin1 = core::submdspan_unit<decltype(uin1_exts)::rank()>(bin1);
+    const auto ubin2 = core::submdspan_unit<decltype(uin2_exts)::rank()>(bin2);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::subtract_impl<decltype(ubin1), decltype(ubin2),
+                                  decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::subtract_impl<decltype(ubin1), decltype(ubin2),
+                                  decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
 }
 
 template <md_c in1_t, md_c in2_t>
 [[nodiscard]] inline constexpr auto
 subtract(const in1_t &in1, const in2_t &in2,
-         const bool multi_process = false) noexcept {
-    const auto uin1 = core::submdspan_unit<0>(in1);
-    const auto uin2 = core::submdspan_unit<0>(in2);
+         const MPMode mpmode = MPMode::NONE) noexcept {
+    constexpr auto uin1_exts = extents<typename in1_t::index_type>{};
+    constexpr auto uin2_exts = extents<typename in2_t::index_type>{};
+    constexpr auto uout_exts =
+        extents<std::common_type_t<typename in1_t::index_type,
+                                   typename in2_t::index_type>>{};
 
-    const auto uext =
-        extents<std::common_type_t<typename decltype(uin1)::index_type,
-                                   typename decltype(uin2)::index_type>>{};
-    using uext_t = decltype(uext);
+    const auto bexts = core::broadcast(
+        core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
+            in1.extents()),
+        core::slice_from_start<in2_t::rank() - decltype(uin2_exts)::rank()>(
+            in2.extents()));
 
-    auto uout_data = [&uext]<size_t... Is>(std::index_sequence<Is...>) {
-        return mdarray<
-            std::common_type_t<typename decltype(uin1)::element_type,
-                               typename decltype(uin2)::element_type>,
-            extents<typename uext_t::index_type, uext_t::static_extent(Is)...>>{
-            uext.extent(Is)...};
-    }(std::make_index_sequence<uext_t::rank()>());
-    const auto uout = core::to_mdspan(uout_data);
+    auto out_exts = core::concatenate(bexts, uout_exts);
+    auto out = mdarray<std::common_type_t<typename in1_t::element_type,
+                                          typename in2_t::element_type>,
+                       decltype(out_exts)>{out_exts};
 
-    const auto results = core::batch_out(
-        detail::subtract_impl<decltype(uin1), decltype(uin2), decltype(uout)>,
-        std::make_tuple(uin1, uin2), std::make_tuple(uout),
-        std::make_tuple(core::to_mdspan(in1), core::to_mdspan(in2)),
-        std::tuple<>{}, multi_process);
+    auto bin1 = core::broadcast_to(core::to_mdspan(in1),
+                                   core::concatenate(bexts, uin1_exts));
+    auto bin2 = core::broadcast_to(core::to_mdspan(in2),
+                                   core::concatenate(bexts, uin2_exts));
+    auto bout = core::to_mdspan(out);
 
-    return std::get<0>(results);
+    const auto ubin1 = core::submdspan_unit<decltype(uin1_exts)::rank()>(bin1);
+    const auto ubin2 = core::submdspan_unit<decltype(uin2_exts)::rank()>(bin2);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::subtract_impl<decltype(ubin1), decltype(ubin2),
+                                  decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::subtract_impl<decltype(ubin1), decltype(ubin2),
+                                  decltype(ubout)>,
+            std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+
+    return out;
 }
 
 } // namespace ctmd

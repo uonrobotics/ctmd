@@ -17,12 +17,13 @@ constexpr std::uint32_t lce_a = 16807;
 constexpr std::uint32_t lce_c = 0;
 constexpr std::uint32_t lce_m = 2147483647;
 
-constexpr std::uint32_t time_from_string(const char *str, int offset) {
+[[nodiscard]] inline constexpr std::uint32_t time_from_string(const char *str,
+                                                              int offset) {
     return static_cast<std::uint32_t>(str[offset] - '0') * 10 +
            static_cast<std::uint32_t>(str[offset + 1] - '0');
 }
 
-constexpr std::uint32_t get_seed_constexpr() {
+[[nodiscard]] inline constexpr std::uint32_t get_seed_constexpr() {
     const char *t = __TIME__;
     return time_from_string(t, 0) * 3600 + time_from_string(t, 3) * 60 +
            time_from_string(t, 6);
@@ -33,18 +34,18 @@ struct LCEngine {
 
     constexpr LCEngine(std::uint32_t seed) : state(seed) {}
 
-    constexpr std::uint32_t next() {
+    [[nodiscard]] constexpr std::uint32_t next() {
         state = (lce_a * state + lce_c) % lce_m;
         return state;
     }
 
-    constexpr double next_normalized() {
+    [[nodiscard]] constexpr double next_normalized() {
         return static_cast<double>(next()) / lce_m;
     }
 };
 
 template <typename T, std::size_t sz>
-constexpr auto uniform_distribution(T min, T max) {
+[[nodiscard]] inline constexpr auto uniform_distribution(T min, T max) {
     std::array<T, sz> dst{};
     LCEngine rng{get_seed_constexpr()};
     for (auto &el : dst)
@@ -52,12 +53,10 @@ constexpr auto uniform_distribution(T min, T max) {
     return dst;
 }
 
-} // namespace detail
-
-template <md_c in_t>
+template <mdspan_c in_t>
     requires(in_t::rank() == 0 &&
              std::is_floating_point_v<typename in_t::element_type>)
-inline void rand(in_t &in) noexcept {
+inline constexpr void rand_impl(const in_t &in) noexcept {
     using T = typename in_t::element_type;
     using dist_t = std::uniform_real_distribution<T>;
 
@@ -68,11 +67,13 @@ inline void rand(in_t &in) noexcept {
     in[] = dist(gen);
 }
 
+} // namespace detail
+
 template <md_c in_t>
     requires(in_t::rank() > 0 &&
              std::is_floating_point_v<typename in_t::element_type>)
 inline constexpr void rand(in_t &in,
-                           const bool multi_process = false) noexcept {
+                           const MPMode mpmode = MPMode::NONE) noexcept {
     if constexpr (in_t::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {
             using T = typename in_t::element_type;
@@ -92,11 +93,25 @@ inline constexpr void rand(in_t &in,
         }
     }
 
-    const auto uin = core::submdspan_unit<0>(in);
+    constexpr auto uin_exts = extents<typename in_t::index_type>{};
+    auto bin = core::to_mdspan(in);
+    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
 
-    core::batch(rand<decltype(uin)>, std::make_tuple(uin), std::tuple<>{},
-                std::make_tuple(core::to_mdspan(in)), std::tuple<>{},
-                std::tuple<>{}, multi_process);
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<in_t::rank(), MPMode::NONE>(
+            detail::rand_impl<decltype(ubin)>, std::tuple{bin}, std::tuple{});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<in_t::rank(), MPMode::CPUMP>(
+            detail::rand_impl<decltype(ubin)>, std::tuple{bin}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
 }
 
 template <typename T, extents_c extents_t>
