@@ -10,13 +10,17 @@
 - **Compile-Time Computation**: Enables compile-time operations when possible for maximum efficiency.
 - **Flexibility**: Seamlessly supports constexpr and non-constexpr contexts, diverse data types, and both static and dynamic extents.
 - **High Performance**: Optimized for fast execution, leveraging modern C++ and hardware acceleration.
-- **Modern C++ Support**: Fully compatible with C++23 and ready to adopt future features like [std::linalg](https://en.cppreference.com/w/cpp/numeric/linalg).
+- **Modern C++ Support**: Fully compatible with C++23 and ready to adopt future features like [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html).
+
+### Important Notes
+- A single vector has 1D extents, while a single matrix has 2D extents.
+- Broadcasting applies to the leftmost dimensions of the operands, following the rules of [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html) rather than covering all NumPy-like broadcasting scenarios.
 
 ## Installation
-CTMD is header-only — simply #include [ctmd/ctmd.hpp](ctmd/ctmd.hpp) in your project.
-If you're using Bazel, you can import CTMD as a dependency in your WORKSPACE file.
-Ensure your compiler supports C++23. For additional setup requirements, see [.devcontainer/postCreateCommand.sh](.devcontainer/postCreateCommand.sh).
-Alternatively, use the included devcontainer to automatically configure your development environment.
+CTMD is a header-only library, so you can start using it by simply including [ctmd/ctmd.hpp](ctmd/ctmd.hpp) in your project.
+
+### Using Bazel
+To integrate CTMD into a Bazel project, add it as a dependency in your WORKSPACE file. Ensure your compiler supports C++23. For specific setup requirements, refer to the [.devcontainer/DockerFile](.devcontainer/DockerFile) file. Alternatively, you can use the provided development container to automatically configure your environment.
 
 ## Examples
 

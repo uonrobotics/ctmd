@@ -8,44 +8,41 @@ namespace linalg {
 namespace detail {
 
 template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
-    requires(in1_t::rank() == 2 && in2_t::rank() == 2 && out_t::rank() == 2)
-inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
+    requires(in1_t::rank() == 2 && in2_t::rank() == 1 && out_t::rank() == 1)
+inline constexpr void matvec_naive(const in1_t &in1, const in2_t &in2,
                                    const out_t &out) noexcept {
     if (core::to_mdspan(in1).data_handle() !=
             core::to_mdspan(out).data_handle() &&
         core::to_mdspan(in2).data_handle() !=
             core::to_mdspan(out).data_handle()) [[likely]] {
         for (typename out_t::size_type i = 0; i < out.extent(0); i++) {
-            for (typename out_t::size_type j = 0; j < out.extent(1); j++) {
-                out[i, j] = 0;
-                for (typename in1_t::size_type k = 0; k < in1.extent(1); k++) {
-                    out[i, j] += in1[i, k] * in2[k, j];
-                }
+            out[i] = 0;
+            for (typename in1_t::size_type j = 0; j < in1.extent(1); j++) {
+                out[i] += in1[i, j] * in2[j];
             }
         }
 
     } else [[unlikely]] {
         auto out_tmp =
             mdarray<typename out_t::element_type, typename out_t::extents_type>{
-                out.extent(0), out.extent(1)};
-        matmul_naive(in1, in2, out_tmp.to_mdspan());
+                out.extents()};
+        matvec_naive(in1, in2, out_tmp.to_mdspan());
         copy(out_tmp, out);
     }
 }
 
 template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
-    requires(in1_t::rank() == 2 && in2_t::rank() == 2 && out_t::rank() == 2)
-inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
+    requires(in1_t::rank() == 2 && in2_t::rank() == 1 && out_t::rank() == 1)
+inline constexpr void matvec_impl(const in1_t &in1, const in2_t &in2,
                                   const out_t &out) noexcept {
     if constexpr (!core::eigen::can_map<in1_t>() ||
                   !core::eigen::can_map<in2_t>() ||
                   !core::eigen::can_map<out_t>()) {
-        matmul_naive(in1, in2, out);
+        matvec_naive(in1, in2, out);
 
     } else {
-        if (std::is_constant_evaluated() || out.extent(0) + out.extent(1) <= 8)
-            [[likely]] {
-            matmul_naive(in1, in2, out);
+        if (std::is_constant_evaluated() || out.extent(0) <= 8) [[likely]] {
+            matvec_naive(in1, in2, out);
 
         } else [[unlikely]] {
             const auto A_eigen = core::eigen::to_eigen(in1);
@@ -59,12 +56,12 @@ inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
 } // namespace detail
 
 template <md_c in1_t, md_c in2_t, md_c out_t>
-    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2 && out_t::rank() >= 2)
-inline constexpr void matmul(const in1_t &in1, const in2_t &in2, out_t &out,
+    requires(in1_t::rank() >= 2 && in2_t::rank() >= 1 && out_t::rank() >= 1)
+inline constexpr void matvec(const in1_t &in1, const in2_t &in2, out_t &out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
     const auto uin1_exts = core::slice_from_last<2>(in1.extents());
-    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
-    const auto uout_exts = core::slice_from_last<2>(out.extents());
+    const auto uin2_exts = core::slice_from_last<1>(in2.extents());
+    const auto uout_exts = core::slice_from_last<1>(out.extents());
 
     const auto bexts = core::broadcast(
         core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
@@ -87,14 +84,14 @@ inline constexpr void matmul(const in1_t &in1, const in2_t &in2, out_t &out,
     switch (mpmode) {
     case MPMode::NONE:
         core::batch<decltype(bexts)::rank(), MPMode::NONE>(
-            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+            detail::matvec_impl<decltype(ubin1), decltype(ubin2),
                                 decltype(ubout)>,
             std::tuple{bin1, bin2, bout}, std::tuple{});
         break;
 
     case MPMode::CPUMP:
         core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
-            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+            detail::matvec_impl<decltype(ubin1), decltype(ubin2),
                                 decltype(ubout)>,
             std::tuple{bin1, bin2, bout}, std::tuple{});
         break;
@@ -106,18 +103,16 @@ inline constexpr void matmul(const in1_t &in1, const in2_t &in2, out_t &out,
 }
 
 template <md_c in1_t, md_c in2_t>
-    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2)
+    requires(in1_t::rank() >= 2 && in2_t::rank() >= 1)
 [[nodiscard]] inline constexpr auto
-matmul(const in1_t &in1, const in2_t &in2,
+matvec(const in1_t &in1, const in2_t &in2,
        const MPMode mpmode = MPMode::NONE) noexcept {
     const auto uin1_exts = core::slice_from_last<2>(in1.extents());
-    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
+    const auto uin2_exts = core::slice_from_last<1>(in2.extents());
     const auto uout_exts =
         extents<std::common_type_t<typename in1_t::index_type,
                                    typename in2_t::index_type>,
-                decltype(uin1_exts)::static_extent(0),
-                decltype(uin2_exts)::static_extent(1)>{uin1_exts.extent(0),
-                                                       uin2_exts.extent(1)};
+                decltype(uin1_exts)::static_extent(0)>{uin1_exts.extent(0)};
 
     const auto bexts = core::broadcast(
         core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
@@ -143,14 +138,14 @@ matmul(const in1_t &in1, const in2_t &in2,
     switch (mpmode) {
     case MPMode::NONE:
         core::batch<decltype(bexts)::rank(), MPMode::NONE>(
-            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+            detail::matvec_impl<decltype(ubin1), decltype(ubin2),
                                 decltype(ubout)>,
             std::tuple{bin1, bin2, bout}, std::tuple{});
         break;
 
     case MPMode::CPUMP:
         core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
-            detail::matmul_impl<decltype(ubin1), decltype(ubin2),
+            detail::matvec_impl<decltype(ubin1), decltype(ubin2),
                                 decltype(ubout)>,
             std::tuple{bin1, bin2, bout}, std::tuple{});
         break;
