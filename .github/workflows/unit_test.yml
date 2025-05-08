@@ -16,7 +16,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .docker-cache
-          key: ${{ runner.os }}-docker-cache-${{ hashFiles('.devcontainer/Dockerfile') }}
+          key: ${{ runner.os }}-docker-cache-${{ hashFiles('.devcontainer/DockerFile') }}
           restore-keys: |
             ${{ runner.os }}-docker-cache-
 
