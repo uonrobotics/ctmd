@@ -1,4 +1,4 @@
-name: CI
+name: Unit Test
 on:
   push:
     branches: [ main ]
@@ -47,3 +47,10 @@ jobs:
             -v /home/runner/.cache/bazel:/root/.cache/bazel \
             ctmd-dev:latest \
             bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //... && bazel test //..."
+
+      # Save Bazel cache
+      - name: Save Bazel cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/bazel
+          key: ${{ runner.os }}-bazel-cache
