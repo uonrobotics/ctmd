@@ -35,14 +35,14 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ctmd-dev-container -f .devcontainer/Dockerfile .
+          docker build -t ctmd-dev-container -f .devcontainer/DockerFile .
           docker save ctmd-dev-container -o .docker-cache/docker-cache.tar
 
       - name: Save Docker cache
         uses: actions/cache@v3
         with:
           path: .docker-cache
-          key: ${{ runner.os }}-docker-cache-${{ hashFiles('.devcontainer/Dockerfile') }}
+          key: ${{ runner.os }}-docker-cache-${{ hashFiles('.devcontainer/DockerFile') }}
 
       - name: Run container
         run: |
