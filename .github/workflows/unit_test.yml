@@ -27,9 +27,7 @@ jobs:
       - name: Build Docker image (if cache miss)
         if: steps.docker-cache.outputs.cache-hit != 'true'
         run: |
-          # Build the Docker image from the custom DockerFile
           docker build -f .devcontainer/DockerFile -t ctmd-dev:latest .
-          # Save the built image as a tar archive for caching
           mkdir -p .docker-cache
           docker save -o .docker-cache/docker-cache.tar ctmd-dev:latest
 
@@ -44,9 +42,8 @@ jobs:
       - name: Run Bazel build and tests inside container
         run: |
           # Run the Docker container with the workspace mounted at /workspaces/ctmd
-          # Also mount the host's Bazel cache directory into the container for reuse
           docker run --rm \
             -v ${{ github.workspace }}:/workspaces/ctmd \
             -v /home/runner/.cache/bazel:/root/.cache/bazel \
             ctmd-dev:latest \
-            bash -c "bazel build //... && bazel test //..."
+            bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //... && bazel test //..."
