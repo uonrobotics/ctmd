@@ -35,7 +35,7 @@ jobs:
       - name: Build Docker image
         run: |
           cd ${{ github.workspace }}
-          docker build -t ctmd-dev-container -f .devcontainer/Dockerfile .
+          docker build -t ctmd-dev-container -f .devcontainer/DockerFile .
           docker save ctmd-dev-container -o /tmp/.docker-cache/docker-cache.tar
 
       - name: Save Docker cache
