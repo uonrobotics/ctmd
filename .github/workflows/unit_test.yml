@@ -1,0 +1,59 @@
+name: Unit Test
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Load Docker cache
+        id: cache-docker
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.docker-cache
+          key: ${{ runner.os }}-docker-cache
+          restore-keys: |
+            ${{ runner.os }}-docker-cache
+
+      - name: Build Docker image
+        run: |
+          mkdir -p /tmp/.docker-cache
+          docker load -i /tmp/.docker-cache/docker-cache.tar || echo "No cached image found"
+          docker build -t ctmd-dev-container -f .devcontainer/Dockerfile .
+          docker save ctmd-dev-container -o /tmp/.docker-cache/docker-cache.tar
+
+      - name: Save Docker cache
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.docker-cache
+          key: ${{ runner.os }}-docker-cache
+
+      - name: Run container
+        run: |
+          docker run -d --name ctmd-container ctmd-dev-container tail -f /dev/null
+
+      - name: Restore Bazel cache
+        uses: actions/cache@v3
+        with:
+          path: /root/.cache/bazel
+          key: ${{ runner.os }}-bazel-cache
+
+      - name: Run tests in container
+        run: |
+          docker exec ctmd-container bash -c "bazel test //..."
+
+      - name: Save Bazel cache
+        uses: actions/cache@v3
+        with:
+          path: /root/.cache/bazel
+          key: ${{ runner.os }}-bazel-cache
+
+      - name: Cleanup
+        run: |
+          docker stop ctmd-container
+          docker rm ctmd-container

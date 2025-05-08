@@ -1,6 +1,6 @@
 {
     "build": {
-        "dockerfile": "base/Dockerfile",
+        "dockerfile": "Dockerfile",
         // "dockerfile": "omp_gpu/Dockerfile",
         "context": ".."
     },
@@ -17,6 +17,7 @@
                 "xaver.clang-format",
                 "gruntfuggly.todo-tree",
                 "mhutchie.git-graph",
+                "github.vscode-github-actions",
                 "github.copilot"
             ]
         }
