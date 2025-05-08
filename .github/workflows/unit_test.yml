@@ -15,34 +15,34 @@ jobs:
         id: cache-docker
         uses: actions/cache@v3
         with:
-          path: /tmp/.docker-cache
-          key: ${{ runner.os }}-docker-cache
+          path: .docker-cache
+          key: ${{ runner.os }}-docker-cache-${{ hashFiles('.devcontainer/Dockerfile') }}
           restore-keys: |
-            ${{ runner.os }}-docker-cache
+            ${{ runner.os }}-docker-cache-
 
       - name: Prepare Docker cache
         run: |
-          mkdir -p /tmp/.docker-cache
+          mkdir -p .docker-cache
 
       - name: Load cached Docker image
         run: |
-          if [ -f /tmp/.docker-cache/docker-cache.tar ]; then
-            docker load -i /tmp/.docker-cache/docker-cache.tar
+          if [ -f .docker-cache/docker-cache.tar ]; then
+            docker load -i .docker-cache/docker-cache.tar
+            echo "Loaded cached image"
           else
             echo "No cached image found"
           fi
 
       - name: Build Docker image
         run: |
-          cd ${{ github.workspace }}
-          docker build -t ctmd-dev-container -f .devcontainer/DockerFile .
-          docker save ctmd-dev-container -o /tmp/.docker-cache/docker-cache.tar
+          docker build -t ctmd-dev-container -f .devcontainer/Dockerfile .
+          docker save ctmd-dev-container -o .docker-cache/docker-cache.tar
 
       - name: Save Docker cache
         uses: actions/cache@v3
         with:
-          path: /tmp/.docker-cache
-          key: ${{ runner.os }}-docker-cache
+          path: .docker-cache
+          key: ${{ runner.os }}-docker-cache-${{ hashFiles('.devcontainer/Dockerfile') }}
 
       - name: Run container
         run: |
