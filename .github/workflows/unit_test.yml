@@ -46,7 +46,7 @@ jobs:
 
       - name: Run container
         run: |
-          docker run -d --name ctmd-container ctmd-dev-container tail -f /dev/null
+          docker run -d --name ctmd-container -v ${{ github.workspace }}:/workspaces/ctmd ctmd-dev-container tail -f /dev/null
 
       - name: Restore Bazel cache
         uses: actions/cache@v3
