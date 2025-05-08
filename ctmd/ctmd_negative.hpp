@@ -54,8 +54,8 @@ inline constexpr void negative(const in_t &in, out_t &out,
 template <md_c in_t>
 [[nodiscard]] inline constexpr auto
 negative(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    auto out = mdarray<std::remove_const_t<typename in_t::element_type>,
-                       typename in_t::extents_type>{in.extents()};
+    auto out = ctmd::mdarray<std::remove_const_t<typename in_t::element_type>,
+                             typename in_t::extents_type>{in.extents()};
     negative(in, out, mpmode);
     return out;
 }

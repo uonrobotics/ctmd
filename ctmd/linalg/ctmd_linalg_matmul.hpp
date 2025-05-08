@@ -25,9 +25,9 @@ inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
         }
 
     } else [[unlikely]] {
-        auto out_tmp =
-            mdarray<typename out_t::element_type, typename out_t::extents_type>{
-                out.extent(0), out.extent(1)};
+        auto out_tmp = ctmd::mdarray<typename out_t::element_type,
+                                     typename out_t::extents_type>{
+            out.extent(0), out.extent(1)};
         matmul_naive(in1, in2, out_tmp.to_mdspan());
         copy(out_tmp, out);
     }
@@ -126,9 +126,9 @@ matmul(const in1_t &in1, const in2_t &in2,
             in2.extents()));
 
     auto out_exts = core::concatenate(bexts, uout_exts);
-    auto out = mdarray<std::common_type_t<typename in1_t::element_type,
-                                          typename in2_t::element_type>,
-                       decltype(out_exts)>{out_exts};
+    auto out = ctmd::mdarray<std::common_type_t<typename in1_t::element_type,
+                                                typename in2_t::element_type>,
+                             decltype(out_exts)>{out_exts};
 
     auto bin1 = core::broadcast_to(core::to_mdspan(in1),
                                    core::concatenate(bexts, uin1_exts));

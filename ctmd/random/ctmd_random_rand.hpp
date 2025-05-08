@@ -83,7 +83,7 @@ inline constexpr void rand(in_t &in,
                     return (in_t::static_extent(Is) * ...);
                 }(std::make_index_sequence<in_t::rank()>{});
 
-            constexpr auto data = mdarray<T, typename in_t::extents_type>{
+            constexpr auto data = ctmd::mdarray<T, typename in_t::extents_type>{
                 detail::uniform_distribution<typename in_t::element_type,
                                              data_size>(0, 1)};
 
@@ -117,7 +117,7 @@ inline constexpr void rand(in_t &in,
 template <typename T, extents_c extents_t>
 [[nodiscard]] inline constexpr auto
 rand(const extents_t &extents = extents_t{}) noexcept {
-    auto out = mdarray<T, extents_t>{extents};
+    auto out = ctmd::mdarray<T, extents_t>{extents};
     rand(out);
     return out;
 }

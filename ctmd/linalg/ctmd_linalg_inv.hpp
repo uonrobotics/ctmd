@@ -119,8 +119,8 @@ inv(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto uout_exts = uin_exts;
 
     auto out_exts = in.extents();
-    auto out =
-        mdarray<typename in_t::element_type, decltype(out_exts)>{out_exts};
+    auto out = ctmd::mdarray<typename in_t::element_type, decltype(out_exts)>{
+        out_exts};
 
     auto bin = core::to_mdspan(in);
     auto bout = core::to_mdspan(out);

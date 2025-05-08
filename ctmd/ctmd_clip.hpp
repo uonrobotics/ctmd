@@ -89,10 +89,10 @@ clip(const in_t &in, const min_t &min, const max_t &max,
             max.extents()));
 
     auto out_exts = core::concatenate(bexts, uout_exts);
-    auto out = mdarray<std::common_type_t<typename in_t::element_type,
-                                          typename min_t::element_type,
-                                          typename max_t::element_type>,
-                       decltype(out_exts)>{out_exts};
+    auto out = ctmd::mdarray<std::common_type_t<typename in_t::element_type,
+                                                typename min_t::element_type,
+                                                typename max_t::element_type>,
+                             decltype(out_exts)>{out_exts};
 
     auto bin = core::broadcast_to(core::to_mdspan(in),
                                   core::concatenate(bexts, uin_exts));
