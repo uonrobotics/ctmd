@@ -18,7 +18,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .docker-cache/docker-cache.tar
-          key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/Dockerfile') }}
+          key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/DockerFile') }}
 
       - name: Load cached Docker image
         if: steps.docker-cache.outputs.cache-hit == 'true'
@@ -27,8 +27,8 @@ jobs:
       - name: Build Docker image (if cache miss)
         if: steps.docker-cache.outputs.cache-hit != 'true'
         run: |
-          # Build the Docker image from the custom Dockerfile
-          docker build -f .devcontainer/Dockerfile -t ctmd-dev:latest .
+          # Build the Docker image from the custom DockerFile
+          docker build -f .devcontainer/DockerFile -t ctmd-dev:latest .
           # Save the built image as a tar archive for caching
           mkdir -p .docker-cache
           docker save -o .docker-cache/docker-cache.tar ctmd-dev:latest
