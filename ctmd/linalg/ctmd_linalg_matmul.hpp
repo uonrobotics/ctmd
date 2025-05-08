@@ -115,8 +115,9 @@ matmul(const in1_t &in1, const in2_t &in2,
     const auto uout_exts =
         extents<std::common_type_t<typename in1_t::index_type,
                                    typename in2_t::index_type>,
-                in1_t::static_extent(0), in2_t::static_extent(1)>{
-            in1.extent(0), in2.extent(1)};
+                decltype(uin1_exts)::static_extent(0),
+                decltype(uin2_exts)::static_extent(1)>{uin1_exts.extent(0),
+                                                       uin2_exts.extent(1)};
 
     const auto bexts = core::broadcast(
         core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
