@@ -5,30 +5,41 @@
 
 namespace ctmd {
 namespace core {
-
 namespace detail {
 
+template <size_t... Is>
+[[nodiscard]] constexpr auto
+full_extents_tuple(std::index_sequence<Is...>) noexcept {
+    return std::tuple{((void)Is, full_extent)...};
+}
+
 template <size_t Count> [[nodiscard]] constexpr auto full_extents() noexcept {
-    return []<size_t... Is>(std::index_sequence<Is...>) {
-        return std::integer_sequence<full_extent_t,
-                                     ((void)Is, full_extent)...>{};
-    }(std::make_index_sequence<Count>{});
+    return full_extents_tuple(std::make_index_sequence<Count>{});
 }
 
-template <md_c in_t, full_extent_t... Extents, typename... SliceSpecifiers>
-[[nodiscard]] inline constexpr auto
-submdspan_from_start_impl(in_t &in,
-                          std::integer_sequence<full_extent_t, Extents...>,
-                          SliceSpecifiers... slices) noexcept {
-    return submdspan(core::to_mdspan(in), slices..., Extents...);
+template <md_c in_t, typename Tuple, typename... SliceSpecifiers>
+[[nodiscard]] constexpr auto
+submdspan_from_start_impl(in_t &in, Tuple &&extents_tail,
+                          SliceSpecifiers &&...slices) {
+    return std::apply(
+        [&](auto &&...tail_slices) {
+            return submdspan(core::to_mdspan(in),
+                             std::forward<SliceSpecifiers>(slices)...,
+                             tail_slices...);
+        },
+        std::forward<Tuple>(extents_tail));
 }
 
-template <md_c in_t, full_extent_t... Extents, typename... SliceSpecifiers>
-[[nodiscard]] inline constexpr auto
-submdspan_from_last_impl(in_t &in,
-                         std::integer_sequence<full_extent_t, Extents...>,
-                         SliceSpecifiers... slices) noexcept {
-    return submdspan(core::to_mdspan(in), Extents..., slices...);
+template <md_c in_t, typename Tuple, typename... SliceSpecifiers>
+[[nodiscard]] constexpr auto
+submdspan_from_last_impl(in_t &in, Tuple &&extents_head,
+                         SliceSpecifiers &&...slices) {
+    return std::apply(
+        [&](auto &&...head_slices) {
+            return submdspan(core::to_mdspan(in), head_slices...,
+                             std::forward<SliceSpecifiers>(slices)...);
+        },
+        std::forward<Tuple>(extents_head));
 }
 
 } // namespace detail
@@ -36,17 +47,19 @@ submdspan_from_last_impl(in_t &in,
 template <md_c in_t, typename... SliceSpecifiers>
 [[nodiscard]] inline constexpr auto
 submdspan_from_start(in_t &in, SliceSpecifiers... slices) noexcept {
+    constexpr size_t rest_rank = in_t::rank() - sizeof...(SliceSpecifiers);
     return detail::submdspan_from_start_impl(
-        in, detail::full_extents<in_t::rank() - sizeof...(SliceSpecifiers)>(),
-        slices...);
+        in, detail::full_extents<rest_rank>(),
+        std::forward<SliceSpecifiers>(slices)...);
 }
 
 template <md_c in_t, typename... SliceSpecifiers>
 [[nodiscard]] inline constexpr auto
 submdspan_from_last(in_t &in, SliceSpecifiers... slices) noexcept {
+    constexpr size_t rest_rank = in_t::rank() - sizeof...(SliceSpecifiers);
     return detail::submdspan_from_last_impl(
-        in, detail::full_extents<in_t::rank() - sizeof...(SliceSpecifiers)>(),
-        slices...);
+        in, detail::full_extents<rest_rank>(),
+        std::forward<SliceSpecifiers>(slices)...);
 }
 
 template <size_t URank, md_c in_t>

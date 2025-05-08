@@ -1,33 +1,25 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-    "name": "Ubuntu 22.04",
-    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
-    // Features to add to the dev container. More info: https://containers.dev/features.
-    "features": {
-        "ghcr.io/balazs23/devcontainers-features/bazel:1": {}
+    "build": {
+        "dockerfile": "Dockerfile",
+        // "dockerfile": "omp_gpu/Dockerfile",
+        "context": ".."
     },
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "bash ./.devcontainer/postCreateCommand.sh",
-    // Configure tool-specific properties.
+    "runArgs": [
+        "--gpus=all"
+    ],
     "customizations": {
-        // Configure properties specific to VS Code.
         "vscode": {
-            // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
+                "ms-azuretools.vscode-docker",
                 "bazelbuild.vscode-bazel",
                 "ms-vscode.cpptools",
                 "ms-vscode.cpptools-extension-pack",
                 "xaver.clang-format",
                 "gruntfuggly.todo-tree",
                 "mhutchie.git-graph",
+                "github.vscode-github-actions",
                 "github.copilot"
             ]
         }
     }
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    // "remoteUser": "root",
 }

@@ -1,23 +1,17 @@
 cc_library(
     name = "ctmd",
     hdrs = glob(["ctmd/**/*.hpp"]),
-    srcs = glob(["ctmd/**/*.cpp"]),
     deps = [
         "@mdspan",
         "@eigen",
     ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
+        "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
     ],
-    linkopts = [
-        "-lgomp",
-    ],    
     visibility = ["//visibility:public"],
 )

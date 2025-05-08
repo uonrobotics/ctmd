@@ -6,35 +6,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epi8mp",
-    srcs = [
-        "source.hpp",
-        "epi8mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -50,35 +25,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epi16mp",
-    srcs = [
-        "source.hpp",
-        "epi16mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -94,35 +44,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epi32mp",
-    srcs = [
-        "source.hpp",
-        "epi32mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -138,35 +63,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epi64mp",
-    srcs = [
-        "source.hpp",
-        "epi64mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -182,35 +82,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epu8mp",
-    srcs = [
-        "source.hpp",
-        "epu8mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -226,35 +101,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epu16mp",
-    srcs = [
-        "source.hpp",
-        "epu16mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -270,35 +120,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "epu32mp",
-    srcs = [
-        "source.hpp",
-        "epu32mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -314,42 +139,16 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
         "//:ctmd",
     ],
 )
-
-cc_binary(
-    name = "epu64mp",
-    srcs = [
-        "source.hpp",
-        "epu64mp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
 
 cc_binary(
     name = "ps",
@@ -359,42 +158,16 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
         "//:ctmd",
     ],
 )
-
-cc_binary(
-    name = "psmp",
-    srcs = [
-        "source.hpp",
-        "psmp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
 
 cc_binary(
     name = "pd",
@@ -404,35 +177,10 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
-    ],
-    deps = [
-        "@com_google_benchmark//:benchmark",
-        "//:ctmd",
-    ],
-)
-
-cc_binary(
-    name = "pdmp",
-    srcs = [
-        "source.hpp",
-        "pdmp.cpp",
-        ],
-    copts = [
-        "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
-        "-fno-rtti",
-        "-Wall",
-        "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",

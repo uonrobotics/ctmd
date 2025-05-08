@@ -1,9 +1,8 @@
 #include "source.hpp"
 
-using TARGET_TYPE = int32_t;
-constexpr bool MULTI_PROCESS = true;
+using TARGET_TYPE = uint8_t;
 
-void bm(benchmark::State &state) { test<TARGET_TYPE>(state, MULTI_PROCESS); }
+void bm(benchmark::State &state) { test<TARGET_TYPE>(state); }
 
 BENCHMARK(bm)
     ->RangeMultiplier(RANGE_MULTIPLIER)

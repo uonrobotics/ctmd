@@ -5,13 +5,10 @@ cc_test(
         ],
     copts = [
         "-O3",
-        "-Ofast",
-        "-unroll-loops",
-        "-fno-exceptions",
+        "-funroll-loops",
         "-fno-rtti",
         "-Wall",
         "-march=native",
-        "-fopenmp",
     ],
     deps = [
         "@gtest//:gtest_main",

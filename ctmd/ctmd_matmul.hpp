@@ -4,18 +4,19 @@
 
 namespace ctmd {
 
-template <md_c A_t, md_c B_t, md_c C_t>
-    requires(A_t::rank() >= 2 && B_t::rank() >= 2 && C_t::rank() >= 2)
-inline constexpr void matmul(const A_t &A, const B_t &B, C_t &C,
-                             const bool multi_process = false) noexcept {
-    linalg::matmul(A, B, C, multi_process);
+template <md_c in1_t, md_c in2_t, md_c out_t>
+    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2 && out_t::rank() >= 2)
+inline constexpr void matmul(const in1_t &in1, const in2_t &in2, out_t &out,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
+    linalg::matmul(in1, in2, out, mpmode);
 }
 
-template <md_c A_t, md_c B_t>
-    requires(A_t::rank() >= 2 && B_t::rank() >= 2)
+template <md_c in1_t, md_c in2_t>
+    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2)
 [[nodiscard]] inline constexpr auto
-matmul(const A_t &A, const B_t &B, const bool multi_process = false) noexcept {
-    return linalg::matmul(A, B, multi_process);
+matmul(const in1_t &in1, const in2_t &in2,
+       const MPMode mpmode = MPMode::NONE) noexcept {
+    return linalg::matmul(in1, in2, mpmode);
 }
 
 } // namespace ctmd
