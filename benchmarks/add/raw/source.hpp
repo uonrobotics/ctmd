@@ -14,7 +14,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto c = std::vector<T>(set_num, 0);
 
     for (auto _ : state) {
-        for (size_t i = 0; i < set_num; ++i) {
+        for (size_t i = 0; i < set_num; i++) {
             c[i] = a[i] + b[i];
         }
     }

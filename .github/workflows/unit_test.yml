@@ -19,6 +19,8 @@ jobs:
         with:
           path: .docker-cache/docker-cache.tar
           key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/DockerFile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
 
       - name: Load cached Docker image
         if: steps.docker-cache.outputs.cache-hit == 'true'
@@ -37,7 +39,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/bazel
-          key: ${{ runner.os }}-bazel-cache
+          key: ${{ runner.os }}-bazel-cache-${{ hashFiles('**/*.bazel') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-cache-
 
       - name: Run Bazel build and tests inside container
         run: |
@@ -53,4 +57,4 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/bazel
-          key: ${{ runner.os }}-bazel-cache
+          key: ${{ runner.os }}-bazel-cache-${{ hashFiles('**/*.bazel') }}

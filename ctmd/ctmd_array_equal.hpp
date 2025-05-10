@@ -11,7 +11,7 @@ template <md_c in1_t, md_c in2_t>
         return false;
     }
 
-    for (size_t i = 0; i < in1_t::rank(); ++i) {
+    for (size_t i = 0; i < in1_t::rank(); i++) {
         if (in1.extent(i) != in2.extent(i)) {
             return false;
         }

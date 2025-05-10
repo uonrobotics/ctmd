@@ -17,13 +17,13 @@ inline constexpr void inv_naive(const in_t &in, const out_t &out) noexcept {
 
     // check in and out are same pointer
     auto in_copy = copy(in);
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = 0; j < n; ++j) {
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
             out[i, j] = (i == j) ? 1 : 0;
         }
     }
 
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; i++) {
         const TO pivot = in_copy[i, i];
 
         if (pivot == TO(0)) {
@@ -32,18 +32,18 @@ inline constexpr void inv_naive(const in_t &in, const out_t &out) noexcept {
         }
 
         // Normalize the pivot row
-        for (size_t j = 0; j < n; ++j) {
+        for (size_t j = 0; j < n; j++) {
             in_copy[i, j] /= pivot;
             out[i, j] /= pivot;
         }
 
         // Eliminate other rows
-        for (size_t j = 0; j < n; ++j) {
+        for (size_t j = 0; j < n; j++) {
             if (i == j)
                 continue;
 
             TO factor = in_copy[j, i];
-            for (size_t k = 0; k < n; ++k) {
+            for (size_t k = 0; k < n; k++) {
                 in_copy[j, k] -= factor * in_copy[i, k];
                 out[j, k] -= factor * out[i, k];
             }

@@ -15,7 +15,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
 
     for (auto _ : state) {
 #pragma omp parallel for
-        for (size_t i = 0; i < set_num; ++i) {
+        for (size_t i = 0; i < set_num; i++) {
             c[i] = a[i] + b[i];
         }
     }
