@@ -12,7 +12,7 @@ allclose(const in1_t &in1, const in2_t &in2, const double rtol = 1e-05,
         return false;
     }
 
-    for (size_t i = 0; i < in1_t::rank(); ++i) {
+    for (size_t i = 0; i < in1_t::rank(); i++) {
         if (in1.extent(i) != in2.extent(i)) {
             return false;
         }
