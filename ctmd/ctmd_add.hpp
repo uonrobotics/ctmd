@@ -67,6 +67,7 @@ inline constexpr void add(const in1_t &in1, const in2_t &in2, out_t &out,
 }
 
 template <md_c in_t, typename val_t, md_c out_t>
+    requires(std::is_arithmetic_v<val_t>)
 inline constexpr void add(const in_t &in, const val_t &val, out_t &out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
     constexpr auto uin_exts = extents<typename in_t::index_type>{};
@@ -158,6 +159,7 @@ add(const in1_t &in1, const in2_t &in2,
 }
 
 template <md_c in_t, typename val_t>
+    requires(std::is_arithmetic_v<val_t>)
 [[nodiscard]] inline constexpr auto
 add(const in_t &in, const val_t &val,
     const MPMode mpmode = MPMode::NONE) noexcept {

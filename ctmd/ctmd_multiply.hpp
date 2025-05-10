@@ -12,6 +12,14 @@ inline constexpr void multiply_impl(const in1_t &in1, const in2_t &in2,
     out[] = in1[] * in2[];
 }
 
+template <mdspan_c in_t, mdspan_c out_t, typename val_t>
+    requires(in_t::rank() == 0 && out_t::rank() == 0 &&
+             std::is_arithmetic_v<val_t>)
+inline constexpr void multiply_impl(const in_t &in, const out_t &out,
+                                    const val_t &val) noexcept {
+    out[] = in[] * val;
+}
+
 } // namespace detail
 
 template <md_c in1_t, md_c in2_t, md_c out_t>
@@ -52,6 +60,45 @@ inline constexpr void multiply(const in1_t &in1, const in2_t &in2, out_t &out,
             detail::multiply_impl<decltype(ubin1), decltype(ubin2),
                                   decltype(ubout)>,
             std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+}
+
+template <md_c in_t, typename val_t, md_c out_t>
+    requires(std::is_arithmetic_v<val_t>)
+inline constexpr void multiply(const in_t &in, const val_t &val, out_t &out,
+                               const MPMode mpmode = MPMode::NONE) noexcept {
+    constexpr auto uin_exts = extents<typename in_t::index_type>{};
+    constexpr auto uout_exts = extents<typename out_t::index_type>{};
+
+    const auto bexts = core::broadcast(
+        core::slice_from_start<in_t::rank() - decltype(uin_exts)::rank()>(
+            in.extents()),
+        core::slice_from_start<out_t::rank() - decltype(uout_exts)::rank()>(
+            out.extents()));
+
+    auto bin = core::broadcast_to(core::to_mdspan(in),
+                                  core::concatenate(bexts, uin_exts));
+    auto bout = core::to_mdspan(out);
+
+    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::multiply_impl<decltype(ubin), decltype(ubout), val_t>,
+            std::tuple{bin, bout}, std::tuple{val});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::multiply_impl<decltype(ubin), decltype(ubout), val_t>,
+            std::tuple{bin, bout}, std::tuple{val});
         break;
 
     default:
@@ -104,6 +151,51 @@ multiply(const in1_t &in1, const in2_t &in2,
             detail::multiply_impl<decltype(ubin1), decltype(ubin2),
                                   decltype(ubout)>,
             std::tuple{bin1, bin2, bout}, std::tuple{});
+        break;
+
+    default:
+        assert(false);
+        break;
+    }
+
+    return out;
+}
+
+template <md_c in_t, typename val_t>
+    requires(std::is_arithmetic_v<val_t>)
+[[nodiscard]] inline constexpr auto
+multiply(const in_t &in, const val_t &val,
+         const MPMode mpmode = MPMode::NONE) noexcept {
+    constexpr auto uin_exts = extents<typename in_t::index_type>{};
+    constexpr auto uout_exts = extents<typename in_t::index_type>{};
+
+    const auto bexts =
+        core::slice_from_start<in_t::rank() - decltype(uin_exts)::rank()>(
+            in.extents());
+
+    auto out_exts = core::concatenate(bexts, uout_exts);
+    auto out =
+        ctmd::mdarray<std::common_type_t<typename in_t::element_type, val_t>,
+                      decltype(out_exts)>{out_exts};
+
+    auto bin = core::broadcast_to(core::to_mdspan(in),
+                                  core::concatenate(bexts, uin_exts));
+    auto bout = core::to_mdspan(out);
+
+    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
+    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
+
+    switch (mpmode) {
+    case MPMode::NONE:
+        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
+            detail::multiply_impl<decltype(ubin), decltype(ubout), val_t>,
+            std::tuple{bin, bout}, std::tuple{val});
+        break;
+
+    case MPMode::CPUMP:
+        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
+            detail::multiply_impl<decltype(ubin), decltype(ubout), val_t>,
+            std::tuple{bin, bout}, std::tuple{val});
         break;
 
     default:
