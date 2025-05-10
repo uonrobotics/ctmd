@@ -23,7 +23,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     for (auto _ : state) {
 #pragma omp target teams distribute parallel for nowait map(                   \
         to : pa[0 : set_num], pb[0 : set_num]) map(from : pc[0 : set_num])
-        for (size_t i = 0; i < set_num; ++i) {
+        for (size_t i = 0; i < set_num; i++) {
             pc[i] = pa[i] + pb[i];
         }
     }
