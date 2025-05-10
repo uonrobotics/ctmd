@@ -146,19 +146,20 @@ broadcast_to(const in_t &in = in_t{},
 
 namespace detail {
 
-template <typename Func, mdspan_c... ins_t, typename... Args, size_t... Is,
+template <typename Func, mdspan_c... ins_t, typename... args_t, size_t... Is,
           size_t... Js>
 inline constexpr void batch_call(Func &&func, const std::tuple<ins_t...> &ins,
-                                 const std::tuple<Args...> &args,
+                                 const std::tuple<args_t...> &args,
                                  const std::index_sequence<Is...> &,
                                  const std::index_sequence<Js...> &) {
     func(std::get<Is>(ins)..., std::get<Js>(args)...);
 }
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t, typename... Args>
+template <size_t BatchRank, typename Func, typename... ins_t,
+          typename... args_t>
 inline constexpr void
 batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
-           const std::tuple<Args...> &args = std::tuple{}) noexcept {
+           const std::tuple<args_t...> &args = std::tuple{}) noexcept {
     using index_type =
         typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
 
@@ -174,7 +175,7 @@ batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
     if constexpr (BatchRank == 0) {
         batch_call(std::move(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<Args...>{});
+                   std::index_sequence_for<args_t...>{});
 
     } else {
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
@@ -186,10 +187,11 @@ batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
 
 #ifdef _OPENMP
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t, typename... Args>
+template <size_t BatchRank, typename Func, mdspan_c... ins_t,
+          typename... args_t>
 inline constexpr void
 batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<Args...> &args = std::tuple{}) noexcept {
+                 const std::tuple<args_t...> &args = std::tuple{}) noexcept {
     using index_type =
         typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
 
@@ -205,7 +207,7 @@ batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
     if constexpr (BatchRank == 0) {
         batch_call(std::move(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<Args...>{});
+                   std::index_sequence_for<args_t...>{});
 
     } else {
 #pragma omp parallel for
@@ -218,10 +220,10 @@ batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 #if false // TODO: fix this
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t, typename... Args>
+template <size_t BatchRank, typename Func, mdspan_c... ins_t, typename... args_t>
 inline constexpr void
 batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<Args...> &args = std::tuple{}) noexcept {
+                 const std::tuple<args_t...> &args = std::tuple{}) noexcept {
     using index_type =
         typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
 
@@ -237,7 +239,7 @@ batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
     if constexpr (BatchRank == 0) {
         batch_call(std::move(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<Args...>{});
+                   std::index_sequence_for<args_t...>{});
 
     } else {
 #pragma omp target teams distribute parallel for
@@ -254,11 +256,11 @@ batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 } // namespace detail
 
-template <size_t BatchRank, MPMode mpmode, typename Func, mdspan_c... ins_t,
-          typename... Args>
+template <size_t BatchRank, MPMode mpmode, typename Func, typename... ins_t,
+          typename... args_t>
 inline constexpr void
 batch(Func &&func, const std::tuple<ins_t...> &ins,
-      const std::tuple<Args...> &args = std::tuple{}) noexcept {
+      const std::tuple<args_t...> &args = std::tuple{}) noexcept {
     if constexpr (mpmode == MPMode::CPUMP) {
         if (!std::is_constant_evaluated()) [[likely]] {
 #ifdef _OPENMP
