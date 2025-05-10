@@ -148,39 +148,43 @@ namespace detail {
 
 template <typename Func, mdspan_c... ins_t, typename... args_t, size_t... Is,
           size_t... Js>
-inline constexpr void batch_call(Func &&func, const std::tuple<ins_t...> &ins,
+inline constexpr void batch_call(const Func &&func,
+                                 const std::tuple<ins_t...> &ins,
                                  const std::tuple<args_t...> &args,
                                  const std::index_sequence<Is...> &,
                                  const std::index_sequence<Js...> &) {
     func(std::get<Is>(ins)..., std::get<Js>(args)...);
 }
 
-template <size_t BatchRank, typename Func, typename... ins_t,
+template <mdspan_c... ins_t>
+[[nodiscard]] inline constexpr auto
+make_submdspan_tuple(const std::tuple<ins_t...> &ins,
+                     const size_t idx) noexcept {
+    return std::apply(
+        [&](auto &&...refs) {
+            return std::tuple{submdspan_from_start(
+                std::forward<decltype(refs)>(refs), idx)...};
+        },
+        ins);
+}
+
+template <size_t BatchRank, typename Func, mdspan_c... ins_t,
           typename... args_t>
 inline constexpr void
-batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
+batch_impl(const Func &&func, const std::tuple<ins_t...> &ins,
            const std::tuple<args_t...> &args = std::tuple{}) noexcept {
-    using index_type =
-        typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
-    const auto make_subtuple = [&](auto &&tuple, index_type i) {
-        return std::apply(
-            [&](auto &&...refs) {
-                return std::tuple{submdspan_from_start(
-                    std::forward<decltype(refs)>(refs), i)...};
-            },
-            std::forward<decltype(tuple)>(tuple));
-    };
-
     if constexpr (BatchRank == 0) {
         batch_call(std::move(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
                    std::index_sequence_for<args_t...>{});
 
     } else {
+        using index_type =
+            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
+
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl<BatchRank - 1>(std::move(func), make_subtuple(ins, i),
-                                      args);
+            batch_impl<BatchRank - 1>(std::move(func),
+                                      make_submdspan_tuple(ins, i), args);
         }
     }
 }
@@ -192,28 +196,19 @@ template <size_t BatchRank, typename Func, mdspan_c... ins_t,
 inline constexpr void
 batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
                  const std::tuple<args_t...> &args = std::tuple{}) noexcept {
-    using index_type =
-        typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
-    const auto make_subtuple = [&](auto &&tuple, index_type i) {
-        return std::apply(
-            [&](auto &&...refs) {
-                return std::tuple{submdspan_from_start(
-                    std::forward<decltype(refs)>(refs), i)...};
-            },
-            std::forward<decltype(tuple)>(tuple));
-    };
-
     if constexpr (BatchRank == 0) {
         batch_call(std::move(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
                    std::index_sequence_for<args_t...>{});
 
     } else {
+        using index_type =
+            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
+
 #pragma omp parallel for
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl<BatchRank - 1>(std::move(func), make_subtuple(ins, i),
-                                      args);
+            batch_impl<BatchRank - 1>(std::move(func),
+                                      make_submdspan_tuple(ins, i), args);
         }
     }
 }
@@ -224,28 +219,19 @@ template <size_t BatchRank, typename Func, mdspan_c... ins_t, typename... args_t
 inline constexpr void
 batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
                  const std::tuple<args_t...> &args = std::tuple{}) noexcept {
-    using index_type =
-        typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
-    const auto make_subtuple = [&](auto &&tuple, index_type i) {
-        return std::apply(
-            [&](auto &&...refs) {
-                return std::tuple{submdspan_from_start(
-                    std::forward<decltype(refs)>(refs), i)...};
-            },
-            std::forward<decltype(tuple)>(tuple));
-    };
-
     if constexpr (BatchRank == 0) {
         batch_call(std::move(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
                    std::index_sequence_for<args_t...>{});
 
     } else {
+        using index_type =
+            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
+
 #pragma omp target teams distribute parallel for
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl<BatchRank - 1>(std::move(func), make_subtuple(ins, i),
-                                      args);
+            batch_impl<BatchRank - 1>(std::move(func),
+                                      make_submdspan_tuple(ins, i), args);
         }
     }
 }
@@ -256,10 +242,10 @@ batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 } // namespace detail
 
-template <size_t BatchRank, MPMode mpmode, typename Func, typename... ins_t,
+template <size_t BatchRank, MPMode mpmode, typename Func, mdspan_c... ins_t,
           typename... args_t>
 inline constexpr void
-batch(Func &&func, const std::tuple<ins_t...> &ins,
+batch(const Func &&func, const std::tuple<ins_t...> &ins,
       const std::tuple<args_t...> &args = std::tuple{}) noexcept {
     if constexpr (mpmode == MPMode::CPUMP) {
         if (!std::is_constant_evaluated()) [[likely]] {
