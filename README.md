@@ -13,8 +13,7 @@
 - **Modern C++ Support**: Fully compatible with C++23 and ready to adopt future features like [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html).
 
 ### Important Notes
-- A single vector has 1D extents, while a single matrix has 2D extents.
-- Broadcasting applies to the leftmost dimensions of the operands, following the rules of [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html) rather than covering all NumPy-like broadcasting scenarios.
+- A single vector has 1D extents, while a single matrix has 2D extents (following the rules of [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html)).
 
 ## Installation
 CTMD is a header-only library, so you can start using it by simply including [ctmd/ctmd.hpp](ctmd/ctmd.hpp) in your project.
