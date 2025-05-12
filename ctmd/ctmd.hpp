@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/ctmd_core.hpp"
 #include "linalg/ctmd_linalg.hpp"
 #include "random/ctmd_random.hpp"
 
