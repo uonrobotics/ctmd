@@ -9,10 +9,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Checkout the repository
       - name: Checkout source
         uses: actions/checkout@v3
 
-      # Restore cached Docker image (if available)
+      # Install Bazel with Bazelisk support and enable cache
+      - name: Set up Bazel
+        uses: bazel-contrib/setup-bazel@v1
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ runner.os }}-bazel-disk-cache
+          repository-cache: true
+
+      # Restore Bazel cache
+      - name: Restore Bazel cache
+        id: bazel-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ runner.os }}-bazel-disk-cache
+            ${{ runner.os }}-bazel-repo-cache
+          key: ${{ runner.os }}-bazel-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-cache-
+
+      # Docker image cache setup
       - name: Set up Docker image cache
         id: docker-cache
         uses: actions/cache@v3
@@ -22,39 +43,45 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-
 
+      # Load Docker image if cache hit
       - name: Load cached Docker image
         if: steps.docker-cache.outputs.cache-hit == 'true'
-        run: docker load -i .docker-cache/docker-cache.tar
+        run: |
+          echo "Docker cache hit, loading image..."
+          docker load -i .docker-cache/docker-cache.tar
 
+      # Build Docker image if cache miss
       - name: Build Docker image (if cache miss)
         if: steps.docker-cache.outputs.cache-hit != 'true'
         run: |
+          echo "Docker cache miss, building image..."
           docker build -f .devcontainer/DockerFile -t ctmd-dev:latest .
           mkdir -p .docker-cache
           docker save -o .docker-cache/docker-cache.tar ctmd-dev:latest
 
-      # Restore Bazel cache (local build cache) if available
-      - name: Restore Bazel cache
-        id: bazel-cache
-        uses: actions/cache@v3
-        with:
-          path: /home/runner/.cache/bazel
-          key: ${{ runner.os }}-bazel-cache
-          restore-keys: |
-            ${{ runner.os }}-bazel-cache-
-
-      - name: Run Bazel build and tests inside container
+      # Bazel build inside Docker container
+      - name: Bazel Build
         run: |
-          # Run the Docker container with the workspace mounted at /workspaces/ctmd
           docker run --rm \
             -v ${{ github.workspace }}:/workspaces/ctmd \
-            -v /home/runner/.cache/bazel:/root/.cache/bazel \
+            -v ${{ runner.os }}-bazel-disk-cache:/root/.cache/bazel \
             ctmd-dev:latest \
-            bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel test //..."
+            bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //..."
 
-      # Save Bazel cache
+      # Run tests inside Docker container
+      - name: Bazel Test
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspaces/ctmd \
+            -v ${{ runner.os }}-bazel-disk-cache:/root/.cache/bazel \
+            ctmd-dev:latest \
+            bash -c "cd /workspaces/ctmd && bazel test //..."
+
+      # Save Bazel cache after build and test
       - name: Save Bazel cache
         uses: actions/cache@v3
         with:
-          path: /home/runner/.cache/bazel
-          key: ${{ runner.os }}-bazel-cache
+          path: |
+            ${{ runner.os }}-bazel-disk-cache
+            ${{ runner.os }}-bazel-repo-cache
+          key: ${{ runner.os }}-bazel-cache-${{ github.sha }}
