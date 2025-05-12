@@ -38,8 +38,8 @@ jobs:
         id: bazel-cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/bazel
-          key: ${{ runner.os }}-bazel-cache-${{ hashFiles('**/*.bazel') }}
+          path: /home/runner/.cache/bazel
+          key: ${{ runner.os }}-bazel-cache
           restore-keys: |
             ${{ runner.os }}-bazel-cache-
 
@@ -50,11 +50,11 @@ jobs:
             -v ${{ github.workspace }}:/workspaces/ctmd \
             -v /home/runner/.cache/bazel:/root/.cache/bazel \
             ctmd-dev:latest \
-            bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //... && bazel test //..."
+            bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel test //..."
 
       # Save Bazel cache
       - name: Save Bazel cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/bazel
-          key: ${{ runner.os }}-bazel-cache-${{ hashFiles('**/*.bazel') }}
+          path: /home/runner/.cache/bazel
+          key: ${{ runner.os }}-bazel-cache

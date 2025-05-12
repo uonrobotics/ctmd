@@ -12,12 +12,12 @@ constexpr size_t RANGE_MULTIPLIER = 10;
 template <typename T> inline void test(benchmark::State &state) noexcept {
     const size_t set_num = state.range(0);
 
-    const auto a = md::full<T, md::dims<1>>(1, md::dims<1>{set_num});
-    const auto b = md::full<T, md::dims<1>>(2, md::dims<1>{set_num});
-    auto c = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
+    const auto in1 = md::full<T, md::dims<1>>(1, md::dims<1>{set_num});
+    const auto in2 = md::full<T, md::dims<1>>(2, md::dims<1>{set_num});
+    auto out = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::add(a, b, c);
+        md::add(in1, in2, out);
     }
 
     state.SetComplexityN(state.range(0));

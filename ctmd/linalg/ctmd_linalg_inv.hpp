@@ -76,8 +76,8 @@ template <md_c in_t, md_c out_t>
     requires(in_t::rank() >= 2 && out_t::rank() >= 2)
 inline constexpr void inv(const in_t &in, out_t &out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
-    const auto rout = core::to_mdspan(out);
+    auto rin = core::to_mdspan(in);
+    auto rout = core::to_mdspan(out);
 
     const auto urin_exts = core::slice_from_last<2>(rin.extents());
     const auto urout_exts = core::slice_from_last<2>(rout.extents());
@@ -92,7 +92,7 @@ template <md_c in_t>
     requires(in_t::rank() >= 2)
 [[nodiscard]] inline constexpr auto
 inv(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
+    auto rin = core::to_mdspan(in);
 
     const auto urin_exts = core::slice_from_last<2>(rin.extents());
     const auto urout_exts = urin_exts;

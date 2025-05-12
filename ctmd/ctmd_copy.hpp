@@ -16,8 +16,8 @@ inline constexpr void copy_impl(const in_t &in, const out_t &out) noexcept {
 template <typename in_t, typename out_t>
 inline constexpr void copy(const in_t &in, out_t &out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
-    const auto rout = core::to_mdspan(out);
+    auto rin = core::to_mdspan(in);
+    auto rout = core::to_mdspan(out);
 
     constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
     constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
@@ -31,7 +31,7 @@ inline constexpr void copy(const in_t &in, out_t &out,
 template <typename in_t>
 [[nodiscard]] inline constexpr auto
 copy(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
+    auto rin = core::to_mdspan(in);
 
     constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
     constexpr auto urout_exts = extents<typename decltype(rin)::index_type>{};

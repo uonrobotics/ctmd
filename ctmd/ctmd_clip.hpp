@@ -19,10 +19,10 @@ template <typename in_t, typename min_t, typename max_t, typename out_t>
 inline constexpr void clip(const in_t &in, const min_t &min, const max_t &max,
                            out_t &out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
-    const auto rmin = core::to_mdspan(min);
-    const auto rmax = core::to_mdspan(max);
-    const auto rout = core::to_mdspan(out);
+    auto rin = core::to_mdspan(in);
+    auto rmin = core::to_mdspan(min);
+    auto rmax = core::to_mdspan(max);
+    auto rout = core::to_mdspan(out);
 
     constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
     constexpr auto urmin_exts = extents<typename decltype(rmin)::index_type>{};

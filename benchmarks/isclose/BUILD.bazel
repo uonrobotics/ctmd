@@ -1,0 +1,113 @@
+cc_binary(
+    name = "epi8",
+    srcs = [
+        "source.hpp",
+        "epi8.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epi16",
+    srcs = [
+        "source.hpp",
+        "epi16.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epi32",
+    srcs = [
+        "source.hpp",
+        "epi32.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "epi64",
+    srcs = [
+        "source.hpp",
+        "epi64.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "ps",
+    srcs = [
+        "source.hpp",
+        "ps.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "pd",
+    srcs = [
+        "source.hpp",
+        "pd.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)

@@ -41,6 +41,7 @@ inline constexpr void vecmat_impl(const in1_t &in1, const in2_t &in2,
         vecmat_naive(in1, in2, out);
 
     } else {
+        // TODO: optimize condition
         if (std::is_constant_evaluated() || out.extent(0) <= 8) [[likely]] {
             vecmat_naive(in1, in2, out);
 
@@ -59,9 +60,9 @@ template <md_c in1_t, md_c in2_t, md_c out_t>
     requires(in1_t::rank() >= 1 && in2_t::rank() >= 2 && out_t::rank() >= 1)
 inline constexpr void vecmat(const in1_t &in1, const in2_t &in2, out_t &out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(in1);
-    const auto rin2 = core::to_mdspan(in2);
-    const auto rout = core::to_mdspan(out);
+    auto rin1 = core::to_mdspan(in1);
+    auto rin2 = core::to_mdspan(in2);
+    auto rout = core::to_mdspan(out);
 
     const auto urin1_exts = core::slice_from_last<1>(rin1.extents());
     const auto urin2_exts = core::slice_from_last<2>(rin2.extents());
@@ -79,8 +80,8 @@ template <md_c in1_t, md_c in2_t>
 [[nodiscard]] inline constexpr auto
 vecmat(const in1_t &in1, const in2_t &in2,
        const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(in1);
-    const auto rin2 = core::to_mdspan(in2);
+    auto rin1 = core::to_mdspan(in1);
+    auto rin2 = core::to_mdspan(in2);
 
     const auto urin1_exts = core::slice_from_last<1>(rin1.extents());
     const auto urin2_exts = core::slice_from_last<2>(rin2.extents());
