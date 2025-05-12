@@ -16,15 +16,15 @@ inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-template <typename in1_t, typename in2_t, typename out_t, arithmetic_c rtol_t,
-          arithmetic_c atol_t>
+template <typename in1_t, typename in2_t, typename out_t,
+          arithmetic_c rtol_t = double, arithmetic_c atol_t = double>
 inline constexpr void isclose(const in1_t &in1, const in2_t &in2, out_t &out,
                               const rtol_t &rtol = 1e-05,
                               const atol_t &atol = 1e-08,
                               const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(in1);
-    const auto rin2 = core::to_mdspan(in2);
-    const auto rout = core::to_mdspan(out);
+    auto rin1 = core::to_mdspan(in1);
+    auto rin2 = core::to_mdspan(in2);
+    auto rout = core::to_mdspan(out);
 
     constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
     constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
@@ -40,14 +40,14 @@ inline constexpr void isclose(const in1_t &in1, const in2_t &in2, out_t &out,
         mpmode);
 }
 
-template <typename in1_t, typename in2_t, arithmetic_c rtol_t,
-          arithmetic_c atol_t>
+template <typename in1_t, typename in2_t, arithmetic_c rtol_t = double,
+          arithmetic_c atol_t = double>
 [[nodiscard]] inline constexpr auto
 isclose(const in1_t &in1, const in2_t &in2, const rtol_t &rtol = 1e-05,
         const atol_t &atol = 1e-08,
         const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(in1);
-    const auto rin2 = core::to_mdspan(in2);
+    auto rin1 = core::to_mdspan(in1);
+    auto rin2 = core::to_mdspan(in2);
 
     constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
     constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
