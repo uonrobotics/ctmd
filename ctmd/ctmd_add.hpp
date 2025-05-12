@@ -17,7 +17,6 @@ inline constexpr void add_impl(const in1_t &in1, const in2_t &in2,
 template <typename in1_t, typename in2_t, typename out_t>
 inline constexpr void add(const in1_t &in1, const in2_t &in2, out_t &out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    // TOCO: check under non-const is faster
     auto rin1 = core::to_mdspan(in1);
     auto rin2 = core::to_mdspan(in2);
     auto rout = core::to_mdspan(out);

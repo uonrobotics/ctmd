@@ -72,7 +72,7 @@ inline constexpr void rand_impl(const in_t &in) noexcept {
 template <typename in_t>
 inline constexpr void rand(in_t &in,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
+    auto rin = core::to_mdspan(in);
 
     if constexpr (decltype(rin)::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {

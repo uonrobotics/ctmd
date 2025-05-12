@@ -22,8 +22,8 @@ template <md_c in_t, typename out_t>
     requires(in_t::rank() >= 1)
 inline constexpr void norm(const in_t &in, out_t &out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
-    const auto rout = core::to_mdspan(out);
+    auto rin = core::to_mdspan(in);
+    auto rout = core::to_mdspan(out);
 
     const auto urin_exts = core::slice_from_last<1>(rin.extents());
     constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
@@ -38,7 +38,7 @@ template <md_c in_t>
     requires(in_t::rank() >= 1)
 [[nodiscard]] inline constexpr auto
 norm(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
+    auto rin = core::to_mdspan(in);
 
     const auto urin_exts = core::slice_from_last<1>(rin.extents());
     constexpr auto urout_exts = extents<typename decltype(rin)::index_type>{};

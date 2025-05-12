@@ -17,9 +17,9 @@ inline constexpr void multiply_impl(const in1_t &in1, const in2_t &in2,
 template <typename in1_t, typename in2_t, typename out_t>
 inline constexpr void multiply(const in1_t &in1, const in2_t &in2, out_t &out,
                                const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(in1);
-    const auto rin2 = core::to_mdspan(in2);
-    const auto rout = core::to_mdspan(out);
+    auto rin1 = core::to_mdspan(in1);
+    auto rin2 = core::to_mdspan(in2);
+    auto rout = core::to_mdspan(out);
 
     constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
     constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
@@ -36,8 +36,8 @@ template <typename in1_t, typename in2_t>
 [[nodiscard]] inline constexpr auto
 multiply(const in1_t &in1, const in2_t &in2,
          const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(in1);
-    const auto rin2 = core::to_mdspan(in2);
+    auto rin1 = core::to_mdspan(in1);
+    auto rin2 = core::to_mdspan(in2);
 
     constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
     constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
