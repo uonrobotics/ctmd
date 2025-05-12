@@ -15,7 +15,7 @@ jobs:
 
       # Install Bazel with Bazelisk support and enable cache
       - name: Set up Bazel
-        uses: bazel-contrib/setup-bazel@v1
+        uses: bazel-contrib/setup-bazel@0.14.0
         with:
           bazelisk-cache: true
           disk-cache: ${{ runner.os }}-bazel-disk-cache
