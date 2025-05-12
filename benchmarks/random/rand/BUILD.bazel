@@ -1,0 +1,37 @@
+cc_binary(
+    name = "ps",
+    srcs = [
+        "source.hpp",
+        "ps.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
+
+cc_binary(
+    name = "pd",
+    srcs = [
+        "source.hpp",
+        "pd.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@com_google_benchmark//:benchmark",
+        "//:ctmd",
+    ],
+)
