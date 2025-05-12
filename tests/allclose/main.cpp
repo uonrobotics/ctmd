@@ -20,7 +20,7 @@ TEST(stack, allclose) {
     ASSERT_TRUE(allclose);
 }
 
-TEST(heap, is_equal) {
+TEST(heap, allclose) {
     using T = double;
     const T scale = 1e-5;
 

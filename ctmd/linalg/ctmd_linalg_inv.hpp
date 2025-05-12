@@ -76,77 +76,31 @@ template <md_c in_t, md_c out_t>
     requires(in_t::rank() >= 2 && out_t::rank() >= 2)
 inline constexpr void inv(const in_t &in, out_t &out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto uin_exts = core::slice_from_last<2>(in.extents());
-    const auto uout_exts = core::slice_from_last<2>(out.extents());
+    const auto rin = core::to_mdspan(in);
+    const auto rout = core::to_mdspan(out);
 
-    const auto bexts = core::broadcast(
-        core::slice_from_start<in_t::rank() - decltype(uin_exts)::rank()>(
-            in.extents()),
-        core::slice_from_start<out_t::rank() - decltype(uout_exts)::rank()>(
-            out.extents()));
+    const auto urin_exts = core::slice_from_last<2>(rin.extents());
+    const auto urout_exts = core::slice_from_last<2>(rout.extents());
 
-    auto bin = core::broadcast_to(core::to_mdspan(in),
-                                  core::concatenate(bexts, uin_exts));
-    auto bout = core::to_mdspan(out);
-
-    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
-    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
-
-    switch (mpmode) {
-    case MPMode::NONE:
-        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
-            detail::inv_impl<decltype(ubin), decltype(ubout)>,
-            std::tuple{bin, bout}, std::tuple{});
-        break;
-
-    case MPMode::CPUMP:
-        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
-            detail::inv_impl<decltype(ubin), decltype(ubout)>,
-            std::tuple{bin, bout}, std::tuple{});
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
+    core::batch(
+        [](const auto &in, const auto &out) { detail::inv_impl(in, out); },
+        std::tuple{rin, rout}, std::tuple{urin_exts, urout_exts}, std::tuple{},
+        mpmode);
 }
 
 template <md_c in_t>
     requires(in_t::rank() >= 2)
 [[nodiscard]] inline constexpr auto
 inv(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto uin_exts = core::slice_from_last<2>(in.extents());
-    const auto uout_exts = uin_exts;
+    const auto rin = core::to_mdspan(in);
 
-    auto out_exts = in.extents();
-    auto out = ctmd::mdarray<typename in_t::element_type, decltype(out_exts)>{
-        out_exts};
+    const auto urin_exts = core::slice_from_last<2>(rin.extents());
+    const auto urout_exts = urin_exts;
 
-    auto bin = core::to_mdspan(in);
-    auto bout = core::to_mdspan(out);
-
-    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
-    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
-
-    switch (mpmode) {
-    case MPMode::NONE:
-        core::batch<in_t::rank() - 2, MPMode::NONE>(
-            detail::inv_impl<decltype(ubin), decltype(ubout)>,
-            std::tuple{bin, bout}, std::tuple{});
-        break;
-
-    case MPMode::CPUMP:
-        core::batch<in_t::rank() - 2, MPMode::CPUMP>(
-            detail::inv_impl<decltype(ubin), decltype(ubout)>,
-            std::tuple{bin, bout}, std::tuple{});
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
-
-    return out;
+    return core::batch(
+        [](const auto &in, const auto &out) { detail::inv_impl(in, out); },
+        std::tuple{rin}, std::tuple{urin_exts, urout_exts}, std::tuple{},
+        mpmode);
 }
 
 } // namespace linalg

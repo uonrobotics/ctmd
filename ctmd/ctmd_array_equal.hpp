@@ -20,18 +20,10 @@ template <md_c in1_t, md_c in2_t>
     if constexpr (in1_t::rank() == 0) {
         return in1[] == in2[];
 
-    } else if constexpr (in1_t::rank() == 1) {
-        for (typename in1_t::size_type i = 0; i < in1.extent(0); i++) {
-            if (in1[i] != in2[i]) {
-                return false;
-            }
-        }
-
     } else {
         for (typename in1_t::size_type i = 0; i < in1.extent(0); i++) {
-            const auto in1_slice = core::submdspan_from_start(in1, i);
-            const auto in2_slice = core::submdspan_from_start(in2, i);
-            if (!array_equal(in1_slice, in2_slice)) {
+            if (!array_equal(core::submdspan_from_start(in1, i),
+                             core::submdspan_from_start(in2, i))) {
                 return false;
             }
         }

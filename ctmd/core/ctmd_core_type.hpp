@@ -45,6 +45,9 @@ concept extents_c =
                            std::make_index_sequence<T::rank()>{}))>);
 
 template <typename T>
+concept arithmetic_c = std::is_arithmetic_v<T>;
+
+template <typename T>
 concept mdspan_c =
     requires {
         typename T::element_type;
@@ -104,5 +107,21 @@ using slice = std::experimental::strided_slice<
     std::integral_constant<size_t, 1>>;
 
 enum class MPMode : uint8_t { NONE, CPUMP };
+
+template <typename T> struct element_type {
+    using type = T;
+};
+
+template <typename T, typename Extents, typename Layout, typename Accessor>
+struct element_type<std::experimental::mdspan<T, Extents, Layout, Accessor>> {
+    using type = T;
+};
+
+template <typename T, typename Extents, typename Layout, typename Container>
+struct element_type<std::experimental::mdarray<T, Extents, Layout, Container>> {
+    using type = T;
+};
+
+template <typename T> using element_type_t = typename element_type<T>::type;
 
 } // namespace ctmd

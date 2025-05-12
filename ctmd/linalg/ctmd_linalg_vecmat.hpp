@@ -59,47 +59,19 @@ template <md_c in1_t, md_c in2_t, md_c out_t>
     requires(in1_t::rank() >= 1 && in2_t::rank() >= 2 && out_t::rank() >= 1)
 inline constexpr void vecmat(const in1_t &in1, const in2_t &in2, out_t &out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto uin1_exts = core::slice_from_last<1>(in1.extents());
-    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
-    const auto uout_exts = core::slice_from_last<1>(out.extents());
+    const auto rin1 = core::to_mdspan(in1);
+    const auto rin2 = core::to_mdspan(in2);
+    const auto rout = core::to_mdspan(out);
 
-    const auto bexts = core::broadcast(
-        core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
-            in1.extents()),
-        core::slice_from_start<in2_t::rank() - decltype(uin2_exts)::rank()>(
-            in2.extents()),
-        core::slice_from_start<out_t::rank() - decltype(uout_exts)::rank()>(
-            out.extents()));
+    const auto urin1_exts = core::slice_from_last<1>(rin1.extents());
+    const auto urin2_exts = core::slice_from_last<2>(rin2.extents());
+    const auto urout_exts = core::slice_from_last<1>(rout.extents());
 
-    auto bin1 = core::broadcast_to(core::to_mdspan(in1),
-                                   core::concatenate(bexts, uin1_exts));
-    auto bin2 = core::broadcast_to(core::to_mdspan(in2),
-                                   core::concatenate(bexts, uin2_exts));
-    auto bout = core::to_mdspan(out);
-
-    const auto ubin1 = core::submdspan_unit<decltype(uin1_exts)::rank()>(bin1);
-    const auto ubin2 = core::submdspan_unit<decltype(uin2_exts)::rank()>(bin2);
-    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
-
-    switch (mpmode) {
-    case MPMode::NONE:
-        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
-            detail::vecmat_impl<decltype(ubin1), decltype(ubin2),
-                                decltype(ubout)>,
-            std::tuple{bin1, bin2, bout}, std::tuple{});
-        break;
-
-    case MPMode::CPUMP:
-        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
-            detail::vecmat_impl<decltype(ubin1), decltype(ubin2),
-                                decltype(ubout)>,
-            std::tuple{bin1, bin2, bout}, std::tuple{});
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
+    core::batch([](const auto &in1, const auto &in2,
+                   const auto &out) { detail::vecmat_impl(in1, in2, out); },
+                std::tuple{rin1, rin2, rout},
+                std::tuple{urin1_exts, urin2_exts, urout_exts}, std::tuple{},
+                mpmode);
 }
 
 template <md_c in1_t, md_c in2_t>
@@ -107,55 +79,22 @@ template <md_c in1_t, md_c in2_t>
 [[nodiscard]] inline constexpr auto
 vecmat(const in1_t &in1, const in2_t &in2,
        const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto uin1_exts = core::slice_from_last<1>(in1.extents());
-    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
-    const auto uout_exts =
-        extents<std::common_type_t<typename in1_t::index_type,
-                                   typename in2_t::index_type>,
-                decltype(uin2_exts)::static_extent(1)>{uin2_exts.extent(1)};
+    const auto rin1 = core::to_mdspan(in1);
+    const auto rin2 = core::to_mdspan(in2);
 
-    const auto bexts = core::broadcast(
-        core::slice_from_start<in1_t::rank() - decltype(uin1_exts)::rank()>(
-            in1.extents()),
-        core::slice_from_start<in2_t::rank() - decltype(uin2_exts)::rank()>(
-            in2.extents()));
+    const auto urin1_exts = core::slice_from_last<1>(rin1.extents());
+    const auto urin2_exts = core::slice_from_last<2>(rin2.extents());
+    const auto urout_exts =
+        extents<std::common_type_t<typename decltype(urin1_exts)::index_type,
+                                   typename decltype(urin2_exts)::index_type>,
+                decltype(urin2_exts)::static_extent(1)>{urin2_exts.extent(1)};
 
-    auto out_exts = core::concatenate(bexts, uout_exts);
-    auto out = ctmd::mdarray<std::common_type_t<typename in1_t::element_type,
-                                                typename in2_t::element_type>,
-                             decltype(out_exts)>{out_exts};
-
-    auto bin1 = core::broadcast_to(core::to_mdspan(in1),
-                                   core::concatenate(bexts, uin1_exts));
-    auto bin2 = core::broadcast_to(core::to_mdspan(in2),
-                                   core::concatenate(bexts, uin2_exts));
-    auto bout = core::to_mdspan(out);
-
-    const auto ubin1 = core::submdspan_unit<decltype(uin1_exts)::rank()>(bin1);
-    const auto ubin2 = core::submdspan_unit<decltype(uin2_exts)::rank()>(bin2);
-    const auto ubout = core::submdspan_unit<decltype(uout_exts)::rank()>(bout);
-
-    switch (mpmode) {
-    case MPMode::NONE:
-        core::batch<decltype(bexts)::rank(), MPMode::NONE>(
-            detail::vecmat_impl<decltype(ubin1), decltype(ubin2),
-                                decltype(ubout)>,
-            std::tuple{bin1, bin2, bout}, std::tuple{});
-        break;
-
-    case MPMode::CPUMP:
-        core::batch<decltype(bexts)::rank(), MPMode::CPUMP>(
-            detail::vecmat_impl<decltype(ubin1), decltype(ubin2),
-                                decltype(ubout)>,
-            std::tuple{bin1, bin2, bout}, std::tuple{});
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
-
-    return out;
+    return core::batch(
+        [](const auto &in1, const auto &in2, const auto &out) {
+            detail::vecmat_impl(in1, in2, out);
+        },
+        std::tuple{rin1, rin2}, std::tuple{urin1_exts, urin2_exts, urout_exts},
+        std::tuple{}, mpmode);
 }
 
 } // namespace linalg

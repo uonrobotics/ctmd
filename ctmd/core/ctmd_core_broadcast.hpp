@@ -96,6 +96,26 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
     }
 }
 
+template <extents_c... ins_t>
+[[nodiscard]] inline constexpr auto
+broadcast(const std::tuple<ins_t...> &ins) noexcept {
+    constexpr size_t ins_num =
+        std::tuple_size_v<std::remove_reference_t<decltype(ins)>>;
+
+    static_assert(ins_num > 0, "broadcast requires at least one input.");
+
+    if constexpr (ins_num == 1) {
+        return std::get<0>(ins);
+
+    } else {
+        return std::apply(
+            [&](auto &&...ins_refs) {
+                return broadcast(std::forward<decltype(ins_refs)>(ins_refs)...);
+            },
+            ins);
+    }
+}
+
 template <mdspan_c in_t, extents_c extents_t>
 [[nodiscard]] inline constexpr auto
 broadcast_to(const in_t &in = in_t{},
@@ -113,6 +133,18 @@ broadcast_to(const in_t &in = in_t{},
                                      ...);
                          }(std::make_index_sequence<in_t::rank()>{})) {
         return core::to_mdspan(in);
+
+    } else if constexpr (in_t::rank() == 0) {
+        auto new_strides =
+            std::array<typename extents_t::size_type, extents_t::rank()>{};
+
+        for (size_t i = 0; i < extents_t::rank(); i++) {
+            new_strides[i] = 0;
+        }
+
+        return mdspan<typename in_t::element_type, extents_t, layout_stride,
+                      typename in_t::accessor_type>{
+            in.data_handle(), layout_stride::mapping{new_extents, new_strides}};
 
     } else {
         auto new_strides =
@@ -240,37 +272,98 @@ batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 #endif
 
+template <typename T, extents_c exts_t>
+[[nodiscard]] inline constexpr auto create_out(const exts_t &exts) noexcept {
+    if constexpr (exts_t::rank() == 0) {
+        return T{};
+
+    } else {
+        return ctmd::mdarray<T, exts_t>{exts};
+    }
+}
+
 } // namespace detail
 
-template <size_t BatchRank, MPMode mpmode, typename Func, mdspan_c... ins_t,
+template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
           typename... args_t>
-inline constexpr void
-batch(const Func &&func, const std::tuple<ins_t...> &ins,
-      const std::tuple<args_t...> &args = std::tuple{}) noexcept {
-    if constexpr (mpmode == MPMode::CPUMP) {
-        if (!std::is_constant_evaluated()) [[likely]] {
-#ifdef _OPENMP
-            detail::batch_impl_cpump<BatchRank>(std::move(func), ins, args);
-#else
-            assert(false);
-#endif
-            return;
-        }
+    requires(sizeof...(ins_t) == sizeof...(uinexts_t))
+inline constexpr void batch(Func &&func, std::tuple<ins_t...> &&ins,
+                            std::tuple<uinexts_t...> &&uinexts,
+                            std::tuple<args_t...> &&args,
+                            const MPMode mpmode) noexcept {
+    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+        return broadcast(std::make_tuple(
+            slice_from_start<
+                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
+                std::get<Is>(ins).extents())...));
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-#if false // TODO: fix this
-        } else if constexpr (mpmode == MPMode::GPUMP) {
-            if (!std::is_constant_evaluated()) [[likely]] {
+    const auto bins = [&ins, &uinexts,
+                       &bexts]<size_t... Is>(std::index_sequence<Is...>) {
+        return std::make_tuple(broadcast_to(
+            std::get<Is>(ins), concatenate(bexts, std::get<Is>(uinexts)))...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
+        detail::batch_impl<decltype(bexts)::rank()>(std::move(func), bins,
+                                                    std::move(args));
+    } else if (mpmode == MPMode::CPUMP) {
 #ifdef _OPENMP
-                detail::batch_impl_gpump<BatchRank>(std::move(func), ins, args);
+        detail::batch_impl_cpump<decltype(bexts)::rank()>(std::move(func), bins,
+                                                          std::move(args));
 #else
-                assert(false);
+        assert(false);
 #endif
-                return;
-            }
+    } else {
+        assert(false);
+    }
+}
+
+template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
+          typename... args_t>
+    requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
+inline constexpr auto batch(Func &&func, std::tuple<ins_t...> &&ins,
+                            std::tuple<uinexts_t...> &&uinexts,
+                            std::tuple<args_t...> &&args,
+                            const MPMode mpmode) noexcept {
+    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+        return broadcast(std::make_tuple(
+            slice_from_start<
+                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
+                std::get<Is>(ins).extents())...));
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    auto out_exts =
+        core::concatenate(bexts, std::get<sizeof...(uinexts_t) - 1>(uinexts));
+    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+
+    auto out = detail::create_out<element_t>(out_exts);
+
+    const auto bins = [&ins, &uinexts, &bexts,
+                       &out]<size_t... Is>(std::index_sequence<Is...>) {
+        return std::make_tuple(
+            broadcast_to(std::get<Is>(ins),
+                         concatenate(bexts, std::get<Is>(uinexts)))...,
+            to_mdspan(out));
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
+        detail::batch_impl<decltype(bexts)::rank()>(std::move(func), bins,
+                                                    std::move(args));
+    } else if (mpmode == MPMode::CPUMP) {
+#ifdef _OPENMP
+        detail::batch_impl_cpump<decltype(bexts)::rank()>(std::move(func), bins,
+                                                          std::move(args));
+#else
+        assert(false);
 #endif
+    } else {
+        assert(false);
     }
 
-    detail::batch_impl<BatchRank>(std::move(func), ins, args);
+    return out;
 }
 
 } // namespace core

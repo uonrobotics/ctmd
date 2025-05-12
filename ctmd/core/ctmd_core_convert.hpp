@@ -5,13 +5,17 @@
 namespace ctmd {
 namespace core {
 
-template <md_c in_t>
+template <typename in_t>
 [[nodiscard]] inline constexpr auto to_mdspan(in_t &in) noexcept {
     if constexpr (mdspan_c<in_t>) {
         return in;
 
     } else if constexpr (mdarray_c<in_t>) {
         return in.to_mdspan();
+
+    } else if constexpr (arithmetic_c<in_t>) {
+        auto exts = extents<size_t>{};
+        return mdspan<in_t, decltype(exts)>{&in, exts};
 
     } else {
         static_assert(false, "Invalid type");

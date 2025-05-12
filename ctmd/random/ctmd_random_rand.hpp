@@ -69,12 +69,12 @@ inline constexpr void rand_impl(const in_t &in) noexcept {
 
 } // namespace detail
 
-template <md_c in_t>
-    requires(in_t::rank() > 0 &&
-             std::is_floating_point_v<typename in_t::element_type>)
+template <typename in_t>
 inline constexpr void rand(in_t &in,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    if constexpr (in_t::rank_dynamic() == 0) {
+    const auto rin = core::to_mdspan(in);
+
+    if constexpr (decltype(rin)::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {
             using T = typename in_t::element_type;
 
@@ -93,25 +93,10 @@ inline constexpr void rand(in_t &in,
         }
     }
 
-    constexpr auto uin_exts = extents<typename in_t::index_type>{};
-    auto bin = core::to_mdspan(in);
-    const auto ubin = core::submdspan_unit<decltype(uin_exts)::rank()>(bin);
+    constexpr auto uin_exts = extents<typename decltype(rin)::index_type>{};
 
-    switch (mpmode) {
-    case MPMode::NONE:
-        core::batch<in_t::rank(), MPMode::NONE>(
-            detail::rand_impl<decltype(ubin)>, std::tuple{bin}, std::tuple{});
-        break;
-
-    case MPMode::CPUMP:
-        core::batch<in_t::rank(), MPMode::CPUMP>(
-            detail::rand_impl<decltype(ubin)>, std::tuple{bin}, std::tuple{});
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
+    core::batch([](const auto &in) { detail::rand_impl(in); }, std::tuple{rin},
+                std::tuple{uin_exts}, std::tuple{}, mpmode);
 }
 
 template <typename T, extents_c extents_t>
