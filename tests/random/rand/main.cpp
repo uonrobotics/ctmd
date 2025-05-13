@@ -4,22 +4,42 @@
 
 namespace md = ctmd;
 
-TEST(stack, rand) {
+TEST(stack, 1) {
     using T = double;
 
-    constexpr auto a = md::random::rand<T, md::extents<size_t, 2, 2>>();
+    constexpr auto out = md::random::rand<T, md::extents<size_t, 2, 2>>();
 
-    std::cout << md::to_string(a) << std::endl;
+    std::cout << md::to_string(out) << std::endl;
 
-    ASSERT_TRUE(!md::allclose(a, md::full<T, md::extents<size_t, 2, 2>>(0)));
+    ASSERT_TRUE(!md::allclose(out, md::full<T, md::extents<size_t, 2, 2>>(0)));
 }
 
-TEST(heap, rand) {
+TEST(stack, 2) {
     using T = double;
 
-    const auto a = md::random::rand<T, md::dims<2>>(md::dims<2>{2, 2});
+    constexpr auto out = md::random::rand<T>();
 
-    std::cout << md::to_string(a) << std::endl;
+    std::cout << md::to_string(out) << std::endl;
 
-    ASSERT_TRUE(!md::allclose(a, md::full<T, md::extents<size_t, 2, 2>>(0)));
+    ASSERT_TRUE(out != 0);
+}
+
+TEST(heap, 1) {
+    using T = double;
+
+    const auto out = md::random::rand<T, md::dims<2>>(md::dims<2>{2, 2});
+
+    std::cout << md::to_string(out) << std::endl;
+
+    ASSERT_TRUE(!md::allclose(out, md::full<T, md::extents<size_t, 2, 2>>(0)));
+}
+
+TEST(heap, 2) {
+    using T = double;
+
+    const auto out = md::random::rand<T>();
+
+    std::cout << md::to_string(out) << std::endl;
+
+    ASSERT_TRUE(out != 0);
 }
