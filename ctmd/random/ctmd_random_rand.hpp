@@ -98,7 +98,7 @@ inline constexpr void rand(in_t &in,
                 std::tuple{uin_exts}, std::tuple{}, mpmode);
 }
 
-template <typename T, extents_c extents_t>
+template <floating_point_c T, extents_c extents_t>
 [[nodiscard]] inline constexpr auto
 rand(const extents_t &extents = extents_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
