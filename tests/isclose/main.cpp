@@ -17,9 +17,9 @@ TEST(stack, isclose) {
         md::mdarray<uint8_t, md::extents<size_t, 2, 2, 2>>{
             std::array<uint8_t, 8>{1, 1, 0, 1, 1, 0, 1, 1}};
 
-    constexpr auto is_allclose = md::allclose(c, c_expect);
+    constexpr auto is_array_equal = md::array_equal(c, c_expect);
 
-    ASSERT_TRUE(is_allclose);
+    ASSERT_TRUE(is_array_equal);
 }
 
 TEST(heap, isclose) {
@@ -34,7 +34,7 @@ TEST(heap, isclose) {
     const auto c_expect = md::mdarray<uint8_t, md::dims<3>>{
         std::vector<uint8_t>{1, 1, 0, 1, 1, 0, 1, 1}, md::dims<3>{2, 2, 2}};
 
-    const auto is_allclose = md::allclose(c, c_expect);
+    const auto is_array_equal = md::array_equal(c, c_expect);
 
-    ASSERT_TRUE(is_allclose);
+    ASSERT_TRUE(is_array_equal);
 }
