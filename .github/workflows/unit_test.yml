@@ -21,17 +21,17 @@ jobs:
           disk-cache: ${{ github.workflow }}
           repository-cache: true
 
-      # Restore Bazel cache
-      - name: Restore Bazel cache
-        id: bazel-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            /home/runner/.cache/bazel
-            /home/runner/.cache/bazelisk
-          key: ${{ runner.os }}-bazel-cache-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-bazel-cache-
+      # # Restore Bazel cache
+      # - name: Restore Bazel cache
+      #   id: bazel-cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       /home/runner/.cache/bazel
+      #       /home/runner/.cache/bazelisk
+      #     key: ${{ runner.os }}-bazel-cache-${{ github.ref_name }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-bazel-cache-
 
       # Docker image cache setup
       - name: Set up Docker image cache
@@ -77,11 +77,11 @@ jobs:
             ctmd-dev:latest \
             bash -c "cd /workspaces/ctmd && bazel test //..."
 
-      # Save Bazel cache after build and test
-      - name: Save Bazel cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            /home/runner/.cache/bazel
-            /home/runner/.cache/bazelisk
-          key: ${{ runner.os }}-bazel-cache-${{ github.ref_name }}
+      # # Save Bazel cache after build and test
+      # - name: Save Bazel cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       /home/runner/.cache/bazel
+      #       /home/runner/.cache/bazelisk
+      #     key: ${{ runner.os }}-bazel-cache-${{ github.ref_name }}
