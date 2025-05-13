@@ -75,18 +75,25 @@ inline constexpr void rand(in_t &in,
 
     if constexpr (decltype(rin)::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {
-            using T = typename in_t::element_type;
+            using T = element_type_t<in_t>;
 
-            constexpr auto data_size =
-                []<size_t... Is>(std::index_sequence<Is...>) {
-                    return (in_t::static_extent(Is) * ...);
-                }(std::make_index_sequence<in_t::rank()>{});
+            if constexpr (decltype(rin)::rank() == 0) {
+                constexpr auto data =
+                    detail::uniform_distribution<T, 1>(0, 1)[0];
+                rin[] = data;
 
-            constexpr auto data = ctmd::mdarray<T, typename in_t::extents_type>{
-                detail::uniform_distribution<typename in_t::element_type,
-                                             data_size>(0, 1)};
+            } else {
+                constexpr auto data_size =
+                    []<size_t... Is>(std::index_sequence<Is...>) {
+                        return (decltype(rin)::static_extent(Is) * ...);
+                    }(std::make_index_sequence<decltype(rin)::rank()>{});
 
-            ctmd::copy(data, in);
+                constexpr auto data =
+                    ctmd::mdarray<T, typename decltype(rin)::extents_type>{
+                        detail::uniform_distribution<T, data_size>(0, 1)};
+
+                ctmd::copy(data, rin);
+            }
 
             return;
         }
@@ -98,13 +105,20 @@ inline constexpr void rand(in_t &in,
                 std::tuple{uin_exts}, std::tuple{}, mpmode);
 }
 
-template <floating_point_c T, extents_c extents_t>
+template <floating_point_c T, extents_c extents_t = extents<size_t>>
 [[nodiscard]] inline constexpr auto
 rand(const extents_t &extents = extents_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
-    auto out = ctmd::mdarray<T, extents_t>{extents};
-    rand(out, mpmode);
-    return out;
+    if constexpr (extents_t::rank() == 0) {
+        T out;
+        rand(out, mpmode);
+        return out;
+
+    } else {
+        auto out = ctmd::mdarray<T, extents_t>{extents};
+        rand(out, mpmode);
+        return out;
+    }
 }
 
 } // namespace random
