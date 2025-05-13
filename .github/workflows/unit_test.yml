@@ -68,13 +68,16 @@ jobs:
       #       bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //..."
 
       # Run tests inside Docker container
+      # - name: Bazel Test
+      #   run: |
+      #     docker run --rm \
+      #       -v ${{ github.workspace }}:/workspaces/ctmd \
+      #       -v /home/runner/.cache/bazel:/root/.cache/bazel \
+      #       ctmd-dev:latest \
+      #       bash -c "cd /workspaces/ctmd && bazel test //..."
+
       - name: Bazel Test
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspaces/ctmd \
-            -v /home/runner/.cache/bazel:/root/.cache/bazel \
-            ctmd-dev:latest \
-            bash -c "cd /workspaces/ctmd && bazel test //..."
+        run: bazelisk test ...
 
       # # Save Bazel cache after build and test
       # - name: Save Bazel cache
