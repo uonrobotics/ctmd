@@ -13,12 +13,12 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
-      # Install Bazel with Bazelisk support and enable cache
+      # Set up Bazel with Bazelisk and enable cache
       - name: Set up Bazel
-        uses: bazel-contrib/setup-bazel@0.14.0
+        uses: bazel-contrib/setup-bazel@v0.14.0
         with:
           bazelisk-cache: true
-          disk-cache: ${{ runner.os }}-bazel-disk-cache
+          disk-cache: ${{ github.workflow }}
           repository-cache: true
 
       # Restore Bazel cache
@@ -27,8 +27,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ runner.os }}-bazel-disk-cache
-            ${{ runner.os }}-bazel-repo-cache
+            /home/runner/.cache/bazel
+            /home/runner/.cache/bazelisk
           key: ${{ runner.os }}-bazel-cache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-bazel-cache-
@@ -64,7 +64,7 @@ jobs:
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/workspaces/ctmd \
-            -v ${{ runner.os }}-bazel-disk-cache:/root/.cache/bazel \
+            -v /home/runner/.cache/bazel:/root/.cache/bazel \
             ctmd-dev:latest \
             bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //..."
 
@@ -73,7 +73,7 @@ jobs:
         run: |
           docker run --rm \
             -v ${{ github.workspace }}:/workspaces/ctmd \
-            -v ${{ runner.os }}-bazel-disk-cache:/root/.cache/bazel \
+            -v /home/runner/.cache/bazel:/root/.cache/bazel \
             ctmd-dev:latest \
             bash -c "cd /workspaces/ctmd && bazel test //..."
 
@@ -82,6 +82,6 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ${{ runner.os }}-bazel-disk-cache
-            ${{ runner.os }}-bazel-repo-cache
+            /home/runner/.cache/bazel
+            /home/runner/.cache/bazelisk
           key: ${{ runner.os }}-bazel-cache-${{ github.sha }}
