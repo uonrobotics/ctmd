@@ -15,7 +15,7 @@ jobs:
 
       # Set up Bazel with Bazelisk and enable cache
       - name: Set up Bazel
-        uses: bazel-contrib/setup-bazel@v0.14.0
+        uses: bazel-contrib/setup-bazel@0.14.0
         with:
           bazelisk-cache: true
           disk-cache: ${{ github.workflow }}
