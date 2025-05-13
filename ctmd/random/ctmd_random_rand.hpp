@@ -54,8 +54,7 @@ template <typename T, std::size_t sz>
 }
 
 template <mdspan_c in_t>
-    requires(in_t::rank() == 0 &&
-             std::is_floating_point_v<typename in_t::element_type>)
+    requires(in_t::rank() == 0 && floating_point_c<typename in_t::element_type>)
 inline constexpr void rand_impl(const in_t &in) noexcept {
     using T = typename in_t::element_type;
     using dist_t = std::uniform_real_distribution<T>;

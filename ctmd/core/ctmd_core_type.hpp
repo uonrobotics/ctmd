@@ -48,6 +48,9 @@ template <typename T>
 concept arithmetic_c = std::is_arithmetic_v<T>;
 
 template <typename T>
+concept floating_point_c = std::is_floating_point_v<T>;
+
+template <typename T>
 concept mdspan_c =
     requires {
         typename T::element_type;
