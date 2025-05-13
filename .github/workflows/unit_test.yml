@@ -13,6 +13,31 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v3
 
+      # Docker image cache setup
+      - name: Set up Docker image cache
+        id: docker-cache
+        uses: actions/cache@v3
+        with:
+          path: .docker-cache/docker-cache.tar
+          key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/DockerFile') }}
+          restore-keys: ${{ runner.os }}-docker-
+
+      # Load Docker image if cache hit
+      - name: Load cached Docker image
+        if: steps.docker-cache.outputs.cache-hit == 'true'
+        run: |
+          echo "Docker cache hit, loading image..."
+          docker load -i .docker-cache/docker-cache.tar
+
+      # Build Docker image if cache miss
+      - name: Build Docker image (if cache miss)
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          echo "Docker cache miss, building image..."
+          docker build -f .devcontainer/DockerFile -t ctmd-dev:latest .
+          mkdir -p .docker-cache
+          docker save -o .docker-cache/docker-cache.tar ctmd-dev:latest
+
       # Set up Bazel with Bazelisk and enable cache
       - name: Set up Bazel
         uses: bazel-contrib/setup-bazel@0.14.0
@@ -33,40 +58,14 @@ jobs:
       #     restore-keys: |
       #       ${{ runner.os }}-bazel-cache-
 
-      # Docker image cache setup
-      - name: Set up Docker image cache
-        id: docker-cache
-        uses: actions/cache@v3
-        with:
-          path: .docker-cache/docker-cache.tar
-          key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/DockerFile') }}
-          restore-keys: |
-            ${{ runner.os }}-docker-
-
-      # Load Docker image if cache hit
-      - name: Load cached Docker image
-        if: steps.docker-cache.outputs.cache-hit == 'true'
-        run: |
-          echo "Docker cache hit, loading image..."
-          docker load -i .docker-cache/docker-cache.tar
-
-      # Build Docker image if cache miss
-      - name: Build Docker image (if cache miss)
-        if: steps.docker-cache.outputs.cache-hit != 'true'
-        run: |
-          echo "Docker cache miss, building image..."
-          docker build -f .devcontainer/DockerFile -t ctmd-dev:latest .
-          mkdir -p .docker-cache
-          docker save -o .docker-cache/docker-cache.tar ctmd-dev:latest
-
-      # Bazel build inside Docker container
-      - name: Bazel Build
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspaces/ctmd \
-            -v /home/runner/.cache/bazel:/root/.cache/bazel \
-            ctmd-dev:latest \
-            bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //..."
+      # # Bazel build inside Docker container
+      # - name: Bazel Build
+      #   run: |
+      #     docker run --rm \
+      #       -v ${{ github.workspace }}:/workspaces/ctmd \
+      #       -v /home/runner/.cache/bazel:/root/.cache/bazel \
+      #       ctmd-dev:latest \
+      #       bash -c "cd /workspaces/ctmd && pwd && ls -la && bazel build //..."
 
       # Run tests inside Docker container
       - name: Bazel Test
