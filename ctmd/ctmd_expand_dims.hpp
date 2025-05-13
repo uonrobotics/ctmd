@@ -5,7 +5,7 @@
 namespace ctmd {
 
 template <int64_t Axis, md_c in_t>
-[[nodiscard]] inline auto expand_dims(in_t &in) noexcept {
+[[nodiscard]] inline constexpr auto expand_dims(in_t &in) noexcept {
     constexpr size_t axis =
         static_cast<size_t>(((Axis % (in_t::rank() + 1)) + (in_t::rank() + 1)) %
                             (in_t::rank() + 1));
