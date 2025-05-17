@@ -13,5 +13,6 @@ cc_library(
         "-Wall",
         "-march=native",
     ],
+    # defines = ["USE_EIGEN"],
     visibility = ["//visibility:public"],
 )

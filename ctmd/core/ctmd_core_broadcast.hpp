@@ -6,23 +6,27 @@
 namespace ctmd {
 namespace core {
 
-template <size_t Rank, extents_c in_t>
+template <size_t SliceRank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
 slice_from_start(const in_t &in = in_t{}) noexcept {
+    static_assert(SliceRank <= in_t::rank(), "SliceRank exceeds rank.");
+
     return [&in]<size_t... Is>(std::index_sequence<Is...>) {
         return extents<typename in_t::index_type, in_t::static_extent(Is)...>{
             in.extent(Is)...};
-    }(std::make_index_sequence<Rank>{});
+    }(std::make_index_sequence<SliceRank>{});
 }
 
-template <size_t Rank, extents_c in_t>
+template <size_t SliceRank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
 slice_from_last(const in_t &in = in_t{}) noexcept {
+    static_assert(SliceRank <= in_t::rank(), "SliceRank exceeds rank.");
+
     return [&in]<size_t... Is>(std::index_sequence<Is...>) {
         return extents<typename in_t::index_type,
-                       in_t::static_extent(in_t::rank() - Rank + Is)...>{
-            in.extent(in_t::rank() - Rank + Is)...};
-    }(std::make_index_sequence<Rank>{});
+                       in_t::static_extent(in_t::rank() - SliceRank + Is)...>{
+            in.extent(in_t::rank() - SliceRank + Is)...};
+    }(std::make_index_sequence<SliceRank>{});
 }
 
 template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
@@ -180,8 +184,7 @@ namespace detail {
 
 template <typename Func, mdspan_c... ins_t, typename... args_t, size_t... Is,
           size_t... Js>
-inline constexpr void batch_call(const Func &&func,
-                                 const std::tuple<ins_t...> &ins,
+inline constexpr void batch_call(Func &&func, const std::tuple<ins_t...> &ins,
                                  const std::tuple<args_t...> &args,
                                  const std::index_sequence<Is...> &,
                                  const std::index_sequence<Js...> &) {
@@ -193,20 +196,19 @@ template <mdspan_c... ins_t>
 make_submdspan_tuple(const std::tuple<ins_t...> &ins,
                      const size_t idx) noexcept {
     return std::apply(
-        [&](auto &&...refs) {
-            return std::tuple{submdspan_from_start(
-                std::forward<decltype(refs)>(refs), idx)...};
+        [&](auto &&...elems) {
+            return std::make_tuple(submdspan_from_start(
+                std::forward<decltype(elems)>(elems), idx)...);
         },
         ins);
 }
 
 template <size_t BatchRank, typename Func, mdspan_c... ins_t,
           typename... args_t>
-inline constexpr void
-batch_impl(const Func &&func, const std::tuple<ins_t...> &ins,
-           const std::tuple<args_t...> &args = std::tuple{}) noexcept {
+inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
+                                 const std::tuple<args_t...> &args) noexcept {
     if constexpr (BatchRank == 0) {
-        batch_call(std::move(func), ins, args,
+        batch_call(std::forward<Func>(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
                    std::index_sequence_for<args_t...>{});
 
@@ -215,7 +217,7 @@ batch_impl(const Func &&func, const std::tuple<ins_t...> &ins,
             typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
 
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl<BatchRank - 1>(std::move(func),
+            batch_impl<BatchRank - 1>(std::forward<Func>(func),
                                       make_submdspan_tuple(ins, i), args);
         }
     }
@@ -227,9 +229,9 @@ template <size_t BatchRank, typename Func, mdspan_c... ins_t,
           typename... args_t>
 inline constexpr void
 batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<args_t...> &args = std::tuple{}) noexcept {
+                 const std::tuple<args_t...> &args) noexcept {
     if constexpr (BatchRank == 0) {
-        batch_call(std::move(func), ins, args,
+        batch_call(std::forward<Func>(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
                    std::index_sequence_for<args_t...>{});
 
@@ -239,7 +241,7 @@ batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 #pragma omp parallel for
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl<BatchRank - 1>(std::move(func),
+            batch_impl<BatchRank - 1>(std::forward<Func>(func),
                                       make_submdspan_tuple(ins, i), args);
         }
     }
@@ -247,12 +249,13 @@ batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 #if false // TODO: fix this
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t, typename... args_t>
+template <size_t BatchRank, typename Func, mdspan_c... ins_t,
+          typename... args_t>
 inline constexpr void
 batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<args_t...> &args = std::tuple{}) noexcept {
+                 const std::tuple<args_t...> &args) noexcept {
     if constexpr (BatchRank == 0) {
-        batch_call(std::move(func), ins, args,
+        batch_call(std::forward<Func>(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
                    std::index_sequence_for<args_t...>{});
 
@@ -262,7 +265,7 @@ batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 #pragma omp target teams distribute parallel for
         for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl<BatchRank - 1>(std::move(func),
+            batch_impl<BatchRank - 1>(std::forward<Func>(func),
                                       make_submdspan_tuple(ins, i), args);
         }
     }
@@ -287,9 +290,9 @@ template <typename T, extents_c exts_t>
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
           typename... args_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t))
-inline constexpr void batch(Func &&func, std::tuple<ins_t...> &&ins,
-                            std::tuple<uinexts_t...> &&uinexts,
-                            std::tuple<args_t...> &&args,
+inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
+                            const std::tuple<uinexts_t...> &uinexts,
+                            const std::tuple<args_t...> &args,
                             const MPMode mpmode) noexcept {
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
         return broadcast(std::make_tuple(
@@ -306,15 +309,19 @@ inline constexpr void batch(Func &&func, std::tuple<ins_t...> &&ins,
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
     if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
-        detail::batch_impl<decltype(bexts)::rank()>(std::move(func), bins,
-                                                    std::move(args));
+        detail::batch_impl<decltype(bexts)::rank()>(std::forward<Func>(func),
+                                                    bins, args);
+
     } else if (mpmode == MPMode::CPUMP) {
 #ifdef _OPENMP
-        detail::batch_impl_cpump<decltype(bexts)::rank()>(std::move(func), bins,
-                                                          std::move(args));
+        detail::batch_impl_cpump<decltype(bexts)::rank()>(
+            std::forward<Func>(func), bins, args);
+
 #else
         assert(false);
+
 #endif
+
     } else {
         assert(false);
     }
@@ -323,9 +330,9 @@ inline constexpr void batch(Func &&func, std::tuple<ins_t...> &&ins,
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
           typename... args_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
-inline constexpr auto batch(Func &&func, std::tuple<ins_t...> &&ins,
-                            std::tuple<uinexts_t...> &&uinexts,
-                            std::tuple<args_t...> &&args,
+inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
+                            const std::tuple<uinexts_t...> &uinexts,
+                            const std::tuple<args_t...> &args,
                             const MPMode mpmode) noexcept {
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
         return broadcast(std::make_tuple(
@@ -335,7 +342,7 @@ inline constexpr auto batch(Func &&func, std::tuple<ins_t...> &&ins,
                 std::get<Is>(ins).extents())...));
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    auto out_exts =
+    const auto out_exts =
         core::concatenate(bexts, std::get<sizeof...(uinexts_t) - 1>(uinexts));
     using element_t = std::common_type_t<element_type_t<ins_t>...>;
 
@@ -350,15 +357,19 @@ inline constexpr auto batch(Func &&func, std::tuple<ins_t...> &&ins,
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
     if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
-        detail::batch_impl<decltype(bexts)::rank()>(std::move(func), bins,
-                                                    std::move(args));
+        detail::batch_impl<decltype(bexts)::rank()>(std::forward<Func>(func),
+                                                    bins, args);
+
     } else if (mpmode == MPMode::CPUMP) {
 #ifdef _OPENMP
-        detail::batch_impl_cpump<decltype(bexts)::rank()>(std::move(func), bins,
-                                                          std::move(args));
+        detail::batch_impl_cpump<decltype(bexts)::rank()>(
+            std::forward<Func>(func), bins, args);
+
 #else
         assert(false);
+
 #endif
+
     } else {
         assert(false);
     }

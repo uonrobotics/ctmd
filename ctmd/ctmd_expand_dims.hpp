@@ -5,8 +5,8 @@
 namespace ctmd {
 
 template <int64_t Axis, typename in_t>
-[[nodiscard]] inline constexpr auto expand_dims(in_t &in) noexcept {
-    auto rin = core::to_mdspan(in);
+[[nodiscard]] inline constexpr auto expand_dims(in_t &&in) noexcept {
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
     using rin_t = decltype(rin);
 
     constexpr size_t rank = rin_t::rank();

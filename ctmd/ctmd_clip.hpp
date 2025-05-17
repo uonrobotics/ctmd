@@ -10,19 +10,19 @@ template <mdspan_c in_t, mdspan_c min_t, mdspan_c max_t, mdspan_c out_t>
              out_t::rank() == 0)
 inline constexpr void clip_impl(const in_t &in, const min_t &min,
                                 const max_t &max, const out_t &out) noexcept {
-    out[] = std::clamp(in[], min[], max[]);
+    out[] = std::clamp(in[], static_cast<decltype(in[])>(min[]),
+                       static_cast<decltype(in[])>(max[]));
 }
 
 } // namespace detail
 
 template <typename in_t, typename min_t, typename max_t, typename out_t>
-inline constexpr void clip(const in_t &in, const min_t &min, const max_t &max,
-                           out_t &out,
+inline constexpr void clip(in_t &&in, min_t &&min, max_t &&max, out_t &&out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
-    auto rmin = core::to_mdspan(min);
-    auto rmax = core::to_mdspan(max);
-    auto rout = core::to_mdspan(out);
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
+    const auto rmin = core::to_mdspan(std::forward<min_t>(min));
+    const auto rmax = core::to_mdspan(std::forward<max_t>(max));
+    const auto rout = core::to_mdspan(std::forward<out_t>(out));
 
     constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
     constexpr auto urmin_exts = extents<typename decltype(rmin)::index_type>{};
@@ -38,11 +38,11 @@ inline constexpr void clip(const in_t &in, const min_t &min, const max_t &max,
 
 template <typename in_t, typename min_t, typename max_t>
 [[nodiscard]] inline constexpr auto
-clip(const in_t &in, const min_t &min, const max_t &max,
+clip(in_t &&in, min_t &&min, max_t &&max,
      const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(in);
-    const auto rmin = core::to_mdspan(min);
-    const auto rmax = core::to_mdspan(max);
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
+    const auto rmin = core::to_mdspan(std::forward<min_t>(min));
+    const auto rmax = core::to_mdspan(std::forward<max_t>(max));
 
     constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
     constexpr auto urmin_exts = extents<typename decltype(rmin)::index_type>{};

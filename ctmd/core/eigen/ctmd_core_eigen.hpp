@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 
+#include "../ctmd_core_convert.hpp"
 #include "../ctmd_core_type.hpp"
 
 namespace ctmd {
@@ -24,22 +25,21 @@ namespace detail {
 
 } // namespace detail
 
-template <md_c in_t> [[nodiscard]] inline constexpr bool can_map() noexcept {
-    return (std::is_same_v<typename in_t::layout_type, layout_right> ||
-            std::is_same_v<typename in_t::layout_type, layout_left>) &&
-           in_t::rank() == 2 && in_t::is_always_unique() &&
-           in_t::is_always_exhaustive() && in_t::is_always_strided();
-}
+template <typename T>
+concept eigen_mappable_mdspan_c =
+    (mdspan_c<T> &&
+     (std::is_same_v<typename T::layout_type, layout_right> ||
+      std::is_same_v<typename T::layout_type, layout_left>) &&
+     T::rank() == 2 && T::is_always_unique() && T::is_always_exhaustive() &&
+     T::is_always_strided());
 
-template <md_c in_t>
-[[nodiscard]] inline constexpr auto to_eigen(in_t &in) noexcept {
+template <eigen_mappable_mdspan_c in_t>
+[[nodiscard]] inline constexpr auto to_eigen(const in_t &in) noexcept {
     const auto in_span = core::to_mdspan(in);
     using in_span_t = decltype(in_span);
 
     using Scalar = typename in_span_t::element_type;
     using Lay = typename in_span_t::layout_type;
-
-    static_assert(can_map<in_span_t>());
 
     constexpr int RowsAtCompileTime =
         detail::ext_to_dyn(in_span_t::static_extent(0));
@@ -58,7 +58,7 @@ template <md_c in_t>
             return Eigen::ColMajor;
 
         } else {
-            assert(false);
+            static_assert(false, "Invalid layout type for Eigen mapping");
         }
     }();
 

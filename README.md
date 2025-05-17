@@ -66,7 +66,7 @@ To integrate CTMD into a Bazel project, add it as a dependency in your WORKSPACE
 ## Tests and Benchmarks
 CTMD uses [GoogleTest](https://github.com/google/googletest) for unit tests, located in the tests/ directory. Run all tests using Bazel:
 ```bash
-bazel test ...
+bazel test tests/...
 ```
 
 Benchmarks (in benchmarks/) are written using [GoogleBenchmark](https://github.com/google/benchmark). To run a benchmark (e.g., matrix addition in double precision):

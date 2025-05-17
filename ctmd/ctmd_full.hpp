@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/ctmd_core.hpp"
 #include "ctmd_fill.hpp"
 
 namespace ctmd {

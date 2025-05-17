@@ -6,19 +6,21 @@ namespace ctmd {
 namespace core {
 
 template <typename in_t>
-[[nodiscard]] inline constexpr auto to_mdspan(in_t &in) noexcept {
-    if constexpr (mdspan_c<in_t>) {
+[[nodiscard]] inline constexpr auto to_mdspan(in_t &&in) noexcept {
+    using base_t = std::remove_reference_t<in_t>;
+
+    if constexpr (mdspan_c<base_t>) {
         return in;
 
-    } else if constexpr (mdarray_c<in_t>) {
+    } else if constexpr (mdarray_c<base_t>) {
         return in.to_mdspan();
 
-    } else if constexpr (arithmetic_c<in_t>) {
+    } else if constexpr (arithmetic_c<base_t>) {
         auto exts = extents<size_t>{};
-        return mdspan<in_t, decltype(exts)>{&in, exts};
+        return mdspan<base_t, decltype(exts)>{&in, exts};
 
     } else {
-        static_assert(false, "Invalid type");
+        static_assert(std::false_type::value, "Invalid type");
     }
 }
 

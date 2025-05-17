@@ -6,24 +6,26 @@ namespace ctmd {
 
 template <md_c in_t>
 [[nodiscard]] inline std::string to_string(const in_t &in) noexcept {
+    const auto rin = core::to_mdspan(in);
+
     std::string str = "[";
 
     if constexpr (in_t::rank() == 0) {
         // do nothing
 
     } else if constexpr (in_t::rank() == 1) {
-        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-            str += std::to_string(in[i]);
-            if (i < in.extent(0) - 1) {
+        for (typename in_t::size_type i = 0; i < rin.extent(0); i++) {
+            str += std::to_string(rin[i]);
+            if (i < rin.extent(0) - 1) {
                 str += ", ";
             }
         }
 
     } else {
-        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-            const auto in_slice = core::submdspan_from_start(in, i);
+        for (typename in_t::size_type i = 0; i < rin.extent(0); i++) {
+            const auto in_slice = core::submdspan_from_start(rin, i);
             str += to_string(in_slice);
-            if (i < in.extent(0) - 1) {
+            if (i < rin.extent(0) - 1) {
                 str += ", ";
             }
         }

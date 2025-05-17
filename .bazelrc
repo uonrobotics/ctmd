@@ -1,3 +1,7 @@
-build --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
-run --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
-test --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
+build --action_env=BAZEL_CXXOPTS="-std=c++23"
+run --action_env=BAZEL_CXXOPTS="-std=c++23"
+test --action_env=BAZEL_CXXOPTS="-std=c++23"
+
+# build --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
+# run --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
+# test --action_env=BAZEL_CXXOPTS="-std=c++23" --compilation_mode=opt
