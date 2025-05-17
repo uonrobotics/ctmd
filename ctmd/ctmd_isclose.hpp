@@ -5,12 +5,12 @@
 namespace ctmd {
 namespace detail {
 
-template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
+template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t,
+          arithmetic_c rtol_t = double, arithmetic_c atol_t = double>
     requires(in1_t::rank() == 0 && in2_t::rank() == 0 && out_t::rank() == 0)
-inline constexpr void
-isclose_impl(const in1_t &in1, const in2_t &in2, const out_t &out,
-             const typename in2_t::element_type &rtol,
-             const typename in2_t::element_type &atol) noexcept {
+inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
+                                   const out_t &out, const rtol_t &rtol,
+                                   const atol_t &atol) noexcept {
     out[] = std::abs(in1[] - in2[]) <= (atol + rtol * std::abs(in2[]));
 }
 
