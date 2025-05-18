@@ -55,7 +55,7 @@ template <typename T, std::size_t sz>
 
 template <mdspan_c in_t>
     requires(in_t::rank() == 0 && floating_point_c<typename in_t::element_type>)
-inline constexpr void rand_impl(const in_t &in) noexcept {
+inline void rand_impl(const in_t &in) noexcept {
     using T = typename in_t::element_type;
     using dist_t = std::uniform_real_distribution<T>;
 
@@ -63,7 +63,7 @@ inline constexpr void rand_impl(const in_t &in) noexcept {
     thread_local static auto gen = std::mt19937(rd());
     static auto dist = dist_t{0, 1};
 
-    in[] = dist(gen);
+    in() = dist(gen);
 }
 
 } // namespace detail
@@ -80,7 +80,7 @@ inline constexpr void rand(in_t &in,
             if constexpr (decltype(rin)::rank() == 0) {
                 constexpr auto data =
                     detail::uniform_distribution<T, 1>(0, 1)[0];
-                rin[] = data;
+                rin() = data;
 
             } else {
                 constexpr auto data_size =

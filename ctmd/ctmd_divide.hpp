@@ -9,7 +9,7 @@ template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
     requires(in1_t::rank() == 0 && in2_t::rank() == 0 && out_t::rank() == 0)
 inline constexpr void divide_impl(const in1_t &in1, const in2_t &in2,
                                   const out_t &out) noexcept {
-    out[] = in1[] / in2[];
+    out() = in1() / in2();
 }
 
 } // namespace detail

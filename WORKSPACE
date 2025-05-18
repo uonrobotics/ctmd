@@ -86,7 +86,7 @@ cc_library(
     hdrs = glob(["include/**/*"]),
     srcs = [],
     includes = ["include/"],
-    defines = ["MDSPAN_USE_BRACKET_OPERATOR=1"],
+    defines = ["MDSPAN_USE_BRACKET_OPERATOR=0"], # NOTE: For C++20 compatibility
     visibility = ["//visibility:public"],
 )
 """

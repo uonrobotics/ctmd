@@ -8,7 +8,7 @@ namespace detail {
 template <mdspan_c in_t, arithmetic_c val_t>
     requires(in_t::rank() == 0)
 inline constexpr void fill_impl(const in_t &in, const val_t &val) noexcept {
-    in[] = val;
+    in() = val;
 }
 
 } // namespace detail

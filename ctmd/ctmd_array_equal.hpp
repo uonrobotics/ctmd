@@ -23,7 +23,7 @@ template <typename in1_t, typename in2_t>
     }
 
     if constexpr (rint1_t::rank() == 0) {
-        return rin1[] == rin2[];
+        return rin1() == rin2();
 
     } else {
         for (typename rint1_t::size_type i = 0; i < rin1.extent(0); i++) {

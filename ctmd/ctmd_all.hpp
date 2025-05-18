@@ -14,7 +14,7 @@ template <typename in_t>
 
     } else {
         if constexpr (rin_t::rank() == 0) {
-            return static_cast<bool>(rin[]);
+            return static_cast<bool>(rin());
 
         } else {
             for (typename rin_t::size_type i = 0; i < rin.extent(0); i++) {
