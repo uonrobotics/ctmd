@@ -45,25 +45,29 @@ template <mdspan_c in_t, typename heads_t, typename... slices_t>
 template <typename in_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
 submdspan_from_start(in_t &&in, slices_t... slices) noexcept {
-    const auto rin = to_mdspan(std::forward<in_t>(in));
+    // NOTE: use non-const rin to avoid unnecessary copies
+    auto rin = to_mdspan(std::forward<in_t>(in));
 
-    return detail::submdspan_from_start_impl(
-        rin,
+    constexpr auto full_exts =
         detail::full_extents_tuple<decltype(rin)::rank() -
-                                   sizeof...(slices_t)>(),
-        std::forward<slices_t>(slices)...);
+                                   sizeof...(slices_t)>();
+
+    return detail::submdspan_from_start_impl(rin, full_exts,
+                                             std::forward<slices_t>(slices)...);
 }
 
 template <typename in_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
 submdspan_from_last(in_t &&in, slices_t... slices) noexcept {
-    const auto rin = to_mdspan(std::forward<in_t>(in));
+    // NOTE: use non-const rin to avoid unnecessary copies
+    auto rin = to_mdspan(std::forward<in_t>(in));
 
-    return detail::submdspan_from_last_impl(
-        rin,
+    constexpr auto full_exts =
         detail::full_extents_tuple<decltype(rin)::rank() -
-                                   sizeof...(slices_t)>(),
-        std::forward<slices_t>(slices)...);
+                                   sizeof...(slices_t)>();
+
+    return detail::submdspan_from_last_impl(rin, full_exts,
+                                            std::forward<slices_t>(slices)...);
 }
 
 } // namespace core
