@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef USE_EIGEN
+
 #include <Eigen/Dense>
 
 #include "../ctmd_core_convert.hpp"
@@ -77,3 +79,5 @@ template <eigen_mappable_mdspan_c in_t>
 } // namespace eigen
 } // namespace core
 } // namespace ctmd
+
+#endif
