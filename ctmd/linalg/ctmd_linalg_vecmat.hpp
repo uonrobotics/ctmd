@@ -35,34 +35,32 @@ template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
     requires(in1_t::rank() == 1 && in2_t::rank() == 2 && out_t::rank() == 1)
 inline constexpr void vecmat_impl(const in1_t &in1, const in2_t &in2,
                                   const out_t &out) noexcept {
-    if constexpr (!core::eigen::can_map<in1_t>() ||
-                  !core::eigen::can_map<in2_t>() ||
-                  !core::eigen::can_map<out_t>()) {
-        vecmat_naive(in1, in2, out);
-
-    } else {
-        // TODO: optimize condition
-        if (std::is_constant_evaluated() || out.extent(0) <= 8) [[likely]] {
-            vecmat_naive(in1, in2, out);
-
-        } else [[unlikely]] {
-            const auto A_eigen = core::eigen::to_eigen(in1);
-            const auto B_eigen = core::eigen::to_eigen(in2);
-            auto C_eigen = core::eigen::to_eigen(out);
-            C_eigen = A_eigen * B_eigen;
+#ifdef USE_EIGEN
+    if constexpr (core::eigen::eigen_mappable_mdspan_c<in1_t> &&
+                  core::eigen::eigen_mappable_mdspan_c<in2_t> &&
+                  core::eigen::eigen_mappable_mdspan_c<out_t>) {
+        if (!std::is_constant_evaluated() && 8 < out.extent(0)) [[likely]] {
+            const auto ein1 = core::eigen::to_eigen(in1);
+            const auto ein2 = core::eigen::to_eigen(in2);
+            auto eout = core::eigen::to_eigen(out);
+            eout = ein1 * ein2;
+            return;
         }
     }
+
+#endif
+
+    vecmat_naive(in1, in2, out);
 }
 
 } // namespace detail
 
-template <md_c in1_t, md_c in2_t, md_c out_t>
-    requires(in1_t::rank() >= 1 && in2_t::rank() >= 2 && out_t::rank() >= 1)
-inline constexpr void vecmat(const in1_t &in1, const in2_t &in2, out_t &out,
+template <typename in1_t, typename in2_t, typename out_t>
+inline constexpr void vecmat(in1_t &&in1, in2_t &&in2, out_t &&out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin1 = core::to_mdspan(in1);
-    auto rin2 = core::to_mdspan(in2);
-    auto rout = core::to_mdspan(out);
+    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
+    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
+    const auto rout = core::to_mdspan(std::forward<out_t>(out));
 
     const auto urin1_exts = core::slice_from_last<1>(rin1.extents());
     const auto urin2_exts = core::slice_from_last<2>(rin2.extents());
@@ -75,13 +73,11 @@ inline constexpr void vecmat(const in1_t &in1, const in2_t &in2, out_t &out,
                 mpmode);
 }
 
-template <md_c in1_t, md_c in2_t>
-    requires(in1_t::rank() >= 1 && in2_t::rank() >= 2)
+template <typename in1_t, typename in2_t>
 [[nodiscard]] inline constexpr auto
-vecmat(const in1_t &in1, const in2_t &in2,
-       const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin1 = core::to_mdspan(in1);
-    auto rin2 = core::to_mdspan(in2);
+vecmat(in1_t &&in1, in2_t &&in2, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
+    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
 
     const auto urin1_exts = core::slice_from_last<1>(rin1.extents());
     const auto urin2_exts = core::slice_from_last<2>(rin2.extents());

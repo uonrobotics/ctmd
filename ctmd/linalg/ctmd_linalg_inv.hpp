@@ -54,30 +54,29 @@ inline constexpr void inv_naive(const in_t &in, const out_t &out) noexcept {
 template <mdspan_c in_t, mdspan_c out_t>
     requires(in_t::rank() == 2 && out_t::rank() == 2)
 inline constexpr void inv_impl(const in_t &in, const out_t &out) noexcept {
-    if constexpr (!core::eigen::can_map<in_t>() ||
-                  !core::eigen::can_map<out_t>()) {
-        inv_naive(in, out);
-
-    } else {
-        if (std::is_constant_evaluated()) [[unlikely]] {
-            inv_naive(in, out);
-
-        } else [[likely]] {
-            const auto A_eigen = core::eigen::to_eigen(in);
-            auto A_inv_eigen = core::eigen::to_eigen(out);
-            A_inv_eigen = A_eigen.inverse();
+#ifdef USE_EIGEN
+    if constexpr (core::eigen::eigen_mappable_mdspan_c<in_t> &&
+                  core::eigen::eigen_mappable_mdspan_c<out_t>) {
+        if (!std::is_constant_evaluated()) [[likely]] {
+            const auto ein = core::eigen::to_eigen(in);
+            auto eout = core::eigen::to_eigen(out);
+            eout = ein.inverse();
+            return;
         }
     }
+
+#endif
+
+    inv_naive(in, out);
 }
 
 } // namespace detail
 
-template <md_c in_t, md_c out_t>
-    requires(in_t::rank() >= 2 && out_t::rank() >= 2)
-inline constexpr void inv(const in_t &in, out_t &out,
+template <typename in_t, typename out_t>
+inline constexpr void inv(in_t &&in, out_t &&out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
-    auto rout = core::to_mdspan(out);
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
+    const auto rout = core::to_mdspan(std::forward<out_t>(out));
 
     const auto urin_exts = core::slice_from_last<2>(rin.extents());
     const auto urout_exts = core::slice_from_last<2>(rout.extents());
@@ -88,11 +87,10 @@ inline constexpr void inv(const in_t &in, out_t &out,
         mpmode);
 }
 
-template <md_c in_t>
-    requires(in_t::rank() >= 2)
+template <typename in_t>
 [[nodiscard]] inline constexpr auto
-inv(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
+inv(in_t &&in, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
 
     const auto urin_exts = core::slice_from_last<2>(rin.extents());
     const auto urout_exts = urin_exts;

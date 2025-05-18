@@ -14,9 +14,9 @@ inline constexpr void fill_impl(const in_t &in, const val_t &val) noexcept {
 } // namespace detail
 
 template <typename in_t, arithmetic_c val_t>
-inline constexpr void fill(in_t &in, const val_t &val,
+inline constexpr void fill(in_t &&in, const val_t &val,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
 
     constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
 

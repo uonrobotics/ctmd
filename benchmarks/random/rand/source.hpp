@@ -1,7 +1,7 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/ctmd.hpp"
+#include "ctmd/random/ctmd_random_rand.hpp"
 
 namespace md = ctmd;
 

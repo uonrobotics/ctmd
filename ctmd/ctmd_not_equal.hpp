@@ -15,11 +15,11 @@ inline constexpr void not_equal_impl(const in1_t &in1, const in2_t &in2,
 } // namespace detail
 
 template <typename in1_t, typename in2_t, typename out_t>
-inline constexpr void not_equal(const in1_t &in1, const in2_t &in2, out_t &out,
+inline constexpr void not_equal(in1_t &&in1, in2_t &&in2, out_t &&out,
                                 const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin1 = core::to_mdspan(in1);
-    auto rin2 = core::to_mdspan(in2);
-    auto rout = core::to_mdspan(out);
+    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
+    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
+    const auto rout = core::to_mdspan(std::forward<out_t>(out));
 
     constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
     constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
@@ -32,13 +32,12 @@ inline constexpr void not_equal(const in1_t &in1, const in2_t &in2, out_t &out,
                 mpmode);
 }
 
-template <typename in1_t, typename in2_t, arithmetic_c rtol_t = double,
-          arithmetic_c atol_t = double>
+template <typename in1_t, typename in2_t>
 [[nodiscard]] inline constexpr auto
-not_equal(const in1_t &in1, const in2_t &in2,
+not_equal(in1_t &&in1, in2_t &&in2,
           const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin1 = core::to_mdspan(in1);
-    auto rin2 = core::to_mdspan(in2);
+    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
+    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
 
     constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
     constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};

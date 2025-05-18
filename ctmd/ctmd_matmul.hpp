@@ -4,19 +4,18 @@
 
 namespace ctmd {
 
-template <md_c in1_t, md_c in2_t, md_c out_t>
-    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2 && out_t::rank() >= 2)
-inline constexpr void matmul(const in1_t &in1, const in2_t &in2, out_t &out,
+template <typename in1_t, typename in2_t, typename out_t>
+inline constexpr void matmul(in1_t &&in1, in2_t &&in2, out_t &&out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    linalg::matmul(in1, in2, out, mpmode);
+    linalg::matmul(std::forward<in1_t>(in1), std::forward<in2_t>(in2),
+                   std::forward<out_t>(out), mpmode);
 }
 
-template <md_c in1_t, md_c in2_t>
-    requires(in1_t::rank() >= 2 && in2_t::rank() >= 2)
+template <typename in1_t, typename in2_t>
 [[nodiscard]] inline constexpr auto
-matmul(const in1_t &in1, const in2_t &in2,
-       const MPMode mpmode = MPMode::NONE) noexcept {
-    return linalg::matmul(in1, in2, mpmode);
+matmul(in1_t &&in1, in2_t &&in2, const MPMode mpmode = MPMode::NONE) noexcept {
+    return linalg::matmul(std::forward<in1_t>(in1), std::forward<in2_t>(in2),
+                          mpmode);
 }
 
 } // namespace ctmd

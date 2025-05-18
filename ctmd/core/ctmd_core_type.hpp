@@ -125,6 +125,7 @@ struct element_type<std::experimental::mdarray<T, Extents, Layout, Container>> {
     using type = T;
 };
 
-template <typename T> using element_type_t = typename element_type<T>::type;
+template <typename T>
+using element_type_t = typename element_type<std::remove_cvref_t<T>>::type;
 
 } // namespace ctmd

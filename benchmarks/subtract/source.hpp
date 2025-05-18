@@ -1,7 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/ctmd.hpp"
+#include "ctmd/ctmd_full.hpp"
+#include "ctmd/ctmd_subtract.hpp"
 
 namespace md = ctmd;
 

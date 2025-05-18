@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "../core/ctmd_core.hpp"
 
 namespace ctmd {
@@ -18,12 +20,11 @@ inline constexpr void norm_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <md_c in_t, typename out_t>
-    requires(in_t::rank() >= 1)
-inline constexpr void norm(const in_t &in, out_t &out,
+template <typename in_t, typename out_t>
+inline constexpr void norm(in_t &&in, out_t &&out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
-    auto rout = core::to_mdspan(out);
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
+    const auto rout = core::to_mdspan(std::forward<out_t>(out));
 
     const auto urin_exts = core::slice_from_last<1>(rin.extents());
     constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
@@ -34,11 +35,10 @@ inline constexpr void norm(const in_t &in, out_t &out,
         mpmode);
 }
 
-template <md_c in_t>
-    requires(in_t::rank() >= 1)
+template <typename in_t>
 [[nodiscard]] inline constexpr auto
-norm(const in_t &in, const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
+norm(in_t &&in, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto rin = core::to_mdspan(std::forward<in_t>(in));
 
     const auto urin_exts = core::slice_from_last<1>(rin.extents());
     constexpr auto urout_exts = extents<typename decltype(rin)::index_type>{};
