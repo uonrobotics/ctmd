@@ -21,6 +21,7 @@
 #include "ctmd_multiply.hpp"
 #include "ctmd_negative.hpp"
 #include "ctmd_not_equal.hpp"
+#include "ctmd_sin.hpp"
 #include "ctmd_subtract.hpp"
 #include "ctmd_to_string.hpp"
 #include "ctmd_vecmat.hpp"
