@@ -167,19 +167,14 @@ template <mdspan_c in_t, extents_c extents_t>
 [[nodiscard]] inline constexpr auto
 broadcast_to(const in_t &in = in_t{},
              const extents_t &new_extents = extents_t{}) noexcept {
-    if constexpr (extents_t::rank() == 0) {
-        return mdspan<typename in_t::element_type, extents_t, layout_right,
-                      typename in_t::accessor_type>{in.data_handle()};
-
-    } else if constexpr (in_t::rank() == extents_t::rank() &&
-                         in_t::rank_dynamic() == 0 &&
-                         extents_t::rank_dynamic() == 0 &&
-                         []<size_t... Is>(std::index_sequence<Is...>) {
-                             return ((in_t::static_extent(Is) ==
-                                      extents_t::static_extent(Is)) &&
-                                     ...);
-                         }(std::make_index_sequence<in_t::rank()>{})) {
-        return core::to_mdspan(in);
+    if constexpr (in_t::rank() == extents_t::rank() &&
+                  in_t::rank_dynamic() == 0 && extents_t::rank_dynamic() == 0 &&
+                  []<size_t... Is>(std::index_sequence<Is...>) {
+                      return ((in_t::static_extent(Is) ==
+                               extents_t::static_extent(Is)) &&
+                              ...);
+                  }(std::make_index_sequence<in_t::rank()>{})) {
+        return in;
 
     } else if constexpr (in_t::rank() == 0) {
         auto new_strides =

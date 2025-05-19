@@ -6,7 +6,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        "-Ofast",
+        # "-Ofast",
         "-funroll-loops",
         "-fno-rtti",
         "-Wall",
