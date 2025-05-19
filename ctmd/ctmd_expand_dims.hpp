@@ -18,7 +18,8 @@ template <int64_t Axis, typename in_t>
 
     } else {
         constexpr size_t axis = static_cast<size_t>(
-            ((Axis % (rank + 1)) + (rank + 1)) % (rank + 1));
+            ((Axis % static_cast<int64_t>(rank + 1)) + (rank + 1)) %
+            (rank + 1));
 
         const auto new_extents =
             [&rin]<size_t... Is>(std::index_sequence<Is...>) {
