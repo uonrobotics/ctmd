@@ -19,8 +19,8 @@ TEST(stack, clip) {
     for (size_t i = 0; i < a.extent(0); i++) {
         for (size_t j = 0; j < a.extent(1); j++) {
             for (size_t k = 0; k < a.extent(2); k++) {
-                ASSERT_TRUE((a_min[0] <= a_clip[i, j, k] &&
-                             a_clip[i, j, k] <= a_max[0]));
+                ASSERT_TRUE((a_min(0) <= a_clip(i, j, k) &&
+                             a_clip(i, j, k) <= a_max(0)));
             }
         }
     }
@@ -39,7 +39,7 @@ TEST(stack, clip_scalar) {
         for (size_t j = 0; j < a.extent(1); j++) {
             for (size_t k = 0; k < a.extent(2); k++) {
                 ASSERT_TRUE(
-                    (a_min <= a_clip[i, j, k] && a_clip[i, j, k] <= a_max));
+                    (a_min <= a_clip(i, j, k) && a_clip(i, j, k) <= a_max));
             }
         }
     }
@@ -59,8 +59,8 @@ TEST(heap, clip) {
     for (size_t i = 0; i < a.extent(0); i++) {
         for (size_t j = 0; j < a.extent(1); j++) {
             for (size_t k = 0; k < a.extent(2); k++) {
-                ASSERT_TRUE((a_min[0] <= a_clip[i, j, k] &&
-                             a_clip[i, j, k] <= a_max[0]));
+                ASSERT_TRUE((a_min(0) <= a_clip(i, j, k) &&
+                             a_clip(i, j, k) <= a_max(0)));
             }
         }
     }
@@ -79,7 +79,7 @@ TEST(heap, clip_scalar) {
         for (size_t j = 0; j < a.extent(1); j++) {
             for (size_t k = 0; k < a.extent(2); k++) {
                 ASSERT_TRUE(
-                    (a_min <= a_clip[i, j, k] && a_clip[i, j, k] <= a_max));
+                    (a_min <= a_clip(i, j, k) && a_clip(i, j, k) <= a_max));
             }
         }
     }

@@ -11,7 +11,7 @@ template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t,
 inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
                                    const out_t &out, const rtol_t &rtol,
                                    const atol_t &atol) noexcept {
-    out[] = std::abs(in1[] - in2[]) <= (atol + rtol * std::abs(in2[]));
+    out() = std::abs(in1() - in2()) <= (atol + rtol * std::abs(in2()));
 }
 
 } // namespace detail

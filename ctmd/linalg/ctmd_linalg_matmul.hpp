@@ -17,9 +17,9 @@ inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
             core::to_mdspan(out).data_handle()) [[likely]] {
         for (typename out_t::size_type i = 0; i < out.extent(0); i++) {
             for (typename out_t::size_type j = 0; j < out.extent(1); j++) {
-                out[i, j] = 0;
+                out(i, j) = 0;
                 for (typename in1_t::size_type k = 0; k < in1.extent(1); k++) {
-                    out[i, j] += in1[i, k] * in2[k, j];
+                    out(i, j) += in1(i, k) * in2(k, j);
                 }
             }
         }

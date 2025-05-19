@@ -8,7 +8,7 @@ namespace detail {
 template <mdspan_c in_t, mdspan_c out_t>
     requires(in_t::rank() == 0 && out_t::rank() == 0)
 inline constexpr void copy_impl(const in_t &in, const out_t &out) noexcept {
-    out[] = in[];
+    out() = in();
 }
 
 } // namespace detail

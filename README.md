@@ -10,10 +10,19 @@
 - **Compile-Time Computation**: Enables compile-time operations when possible for maximum efficiency.
 - **Flexibility**: Seamlessly supports constexpr and non-constexpr contexts, diverse data types, and both static and dynamic extents.
 - **High Performance**: Optimized for fast execution, leveraging modern C++ and hardware acceleration.
-- **Modern C++ Support**: Fully compatible with C++23 and ready to adopt future features like [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html).
+- **Modern C++ Support**: Fully compatible with C++23 and ready to adopt future features like [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html) in C++26.
 
 ### Important Notes
-- A single vector has 1D extents, while a single matrix has 2D extents (following the rules of [std::linalg](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p1673r12.html)).
+- C++ Version Compatibility:
+  - CTMD requires **C++20** or higher for full functionality.
+  - [std::mdspan](https://en.cppreference.com/w/cpp/container/mdspan) (C++23), [std::mdarray](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1684r2.html) (C++26), [std::submdspan](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html) (C++26) are sourced from the [Reference mdspan implementation](https://github.com/kokkos/mdspan).
+- Extent Conventions:
+  - **Scalar (0D mdspan)**: Data stored as an **arithmetic type** (e.g., int, float, double).
+  - **Vector (1D mdspan)**: Data stored as a **1D mdarray**.
+  - **Matrix (2D mdspan)**: Data stored as a **2D mdarray**.
+- Acceleration:
+  - Using **Eigen**: Define the macro "USE_EIGEN" during build.
+  - Using **OpenMP**: Add the -fopenmp flag during compilation and link with the OpenMP library (-lgomp).
 
 ## Installation
 CTMD is a header-only library, so you can start using it by simply including [ctmd/ctmd.hpp](ctmd/ctmd.hpp) in your project.
