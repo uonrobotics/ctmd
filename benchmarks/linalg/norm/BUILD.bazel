@@ -158,6 +158,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
+        # "-Ofast",
         "-funroll-loops",
         "-fno-rtti",
         "-Wall",
@@ -177,6 +178,7 @@ cc_binary(
         ],
     copts = [
         "-O3",
+        # "-Ofast",
         "-funroll-loops",
         "-fno-rtti",
         "-Wall",

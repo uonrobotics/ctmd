@@ -358,23 +358,17 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                 std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
                 std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
 
-            if (mpmode == MPMode::NONE || std::is_constant_evaluated())
-                [[likely]] {
-                detail::batch_impl<brank>(std::forward<Func>(func), ins, args);
-
-            } else if (mpmode == MPMode::CPUMP) {
+            if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
                 detail::batch_impl_cpump<brank>(std::forward<Func>(func), ins,
                                                 args);
-
+                return;
 #else
                 assert(false);
-
 #endif
-            } else {
-                assert(false);
             }
 
+            detail::batch_impl<brank>(std::forward<Func>(func), ins, args);
             return;
         }
     }
@@ -395,21 +389,16 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
             std::get<Is>(ins), concatenate(bexts, std::get<Is>(uinexts)))...};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
-        detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
-
-    } else if (mpmode == MPMode::CPUMP) {
+    if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
         detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins, args);
-
+        return;
 #else
         assert(false);
-
 #endif
-
-    } else {
-        assert(false);
     }
+
+    detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
 }
 
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
@@ -460,24 +449,17 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
                 return std::tuple{std::get<Is>(ins)..., to_mdspan(out)};
             }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-            if (mpmode == MPMode::NONE || std::is_constant_evaluated())
-                [[likely]] {
-                detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
-
-            } else if (mpmode == MPMode::CPUMP) {
+            if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
                 detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins,
                                                 args);
-
+                return out;
 #else
                 assert(false);
-
 #endif
-
-            } else {
-                assert(false);
             }
 
+            detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
             return out;
         }
     }
@@ -490,22 +472,16 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
             to_mdspan(out)};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
-        detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
-
-    } else if (mpmode == MPMode::CPUMP) {
+    if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
         detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins, args);
-
+        return out;
 #else
         assert(false);
-
 #endif
-
-    } else {
-        assert(false);
     }
 
+    detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
     return out;
 }
 
@@ -563,24 +539,17 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
                            std::tuple_size_v<decltype(outs)>>{});
             }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-            if (mpmode == MPMode::NONE || std::is_constant_evaluated())
-                [[likely]] {
-                detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
-
-            } else if (mpmode == MPMode::CPUMP) {
+            if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
                 detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins,
                                                 args);
-
+                return outs;
 #else
                 assert(false);
-
 #endif
-
-            } else {
-                assert(false);
             }
 
+            detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
             return outs;
         }
     }
@@ -596,22 +565,16 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
         }(std::make_index_sequence<std::tuple_size_v<decltype(outs)>>{});
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    if (mpmode == MPMode::NONE || std::is_constant_evaluated()) [[likely]] {
-        detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
-
-    } else if (mpmode == MPMode::CPUMP) {
+    if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
         detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins, args);
-
+        return outs;
 #else
         assert(false);
-
 #endif
-
-    } else {
-        assert(false);
     }
 
+    detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
     return outs;
 }
 
