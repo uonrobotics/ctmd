@@ -419,10 +419,10 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
           typename... args_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
-inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
-                            const std::tuple<uinexts_t...> &uinexts,
-                            const std::tuple<args_t...> &args,
-                            const MPMode mpmode) noexcept {
+[[nodiscard]] inline constexpr auto
+batch(Func &&func, const std::tuple<ins_t...> &ins,
+      const std::tuple<uinexts_t...> &uinexts,
+      const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
     constexpr bool possibly_not_bcast = []<size_t... Is>(
                                             std::index_sequence<Is...>) {
         constexpr size_t ref =
@@ -503,10 +503,10 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
           typename... args_t>
     requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
-inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
-                            const std::tuple<uinexts_t...> &uinexts,
-                            const std::tuple<args_t...> &args,
-                            const MPMode mpmode) noexcept {
+[[nodiscard]] inline constexpr auto
+batch(Func &&func, const std::tuple<ins_t...> &ins,
+      const std::tuple<uinexts_t...> &uinexts,
+      const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
     constexpr bool possibly_not_bcast = []<size_t... Is>(
                                             std::index_sequence<Is...>) {
         constexpr size_t ref =
