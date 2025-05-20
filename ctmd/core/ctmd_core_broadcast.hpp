@@ -332,73 +332,88 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                             const std::tuple<uinexts_t...> &uinexts,
                             const std::tuple<args_t...> &args,
                             const MPMode mpmode) noexcept {
-    constexpr bool same_brank = []<size_t... Is>(std::index_sequence<Is...>) {
-        constexpr size_t ref_rank_diff =
-            std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
-            std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
-        return (
-            (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank() ==
-             ref_rank_diff) &&
-            ...);
+    constexpr bool need_batch = []<size_t... Is>(std::index_sequence<Is...>) {
+        return ((std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() !=
+                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()) ||
+                ...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    if constexpr (same_brank) {
-        const bool need_bcast = [&ins]<size_t... Is>(
-                                    std::index_sequence<Is...>) {
-            return need_broadcast(std::make_tuple(
+    if constexpr (!need_batch) {
+        // Pass directly to the function
+        detail::batch_impl<0>(std::forward<Func>(func), ins, args);
+
+    } else {
+        constexpr bool possibly_not_bcast = []<size_t... Is>(
+                                                std::index_sequence<Is...>) {
+            constexpr size_t ref =
+                std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
+                std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
+            return (
+                (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+                     std::tuple_element_t<Is,
+                                          std::tuple<uinexts_t...>>::rank() ==
+                 ref) &&
+                ...);
+        }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+        if constexpr (possibly_not_bcast) {
+            // Pass without broadcasting (simd friendly)
+            constexpr size_t brank =
+                std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
+                std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
+
+            const bool need_bcast = [&ins]<size_t... Is>(
+                                        std::index_sequence<Is...>) {
+                return need_broadcast(std::make_tuple(
+                    slice_from_start<brank>(std::get<Is>(ins).extents())...));
+            }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+            if (!need_bcast) [[likely]] {
+                if (mpmode == MPMode::CPUMP) [[unlikely]] {
+#ifdef _OPENMP
+                    detail::batch_impl_cpump<brank>(std::forward<Func>(func),
+                                                    ins, args);
+                    return;
+#else
+                    assert(false);
+#endif
+                }
+
+                detail::batch_impl<brank>(std::forward<Func>(func), ins, args);
+                return;
+            }
+        }
+
+        // Broadcasting
+        const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+            return broadcast(std::make_tuple(
                 slice_from_start<
                     std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                     std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
                     std::get<Is>(ins).extents())...));
         }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-        if (!need_bcast) [[likely]] {
-            constexpr size_t brank =
-                std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
+        constexpr size_t brank = decltype(bexts)::rank();
 
-            if (mpmode == MPMode::CPUMP) [[unlikely]] {
+        const auto bins = [&ins, &uinexts,
+                           &bexts]<size_t... Is>(std::index_sequence<Is...>) {
+            return std::tuple{
+                broadcast_to(std::get<Is>(ins),
+                             concatenate(bexts, std::get<Is>(uinexts)))...};
+        }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+        if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
-                detail::batch_impl_cpump<brank>(std::forward<Func>(func), ins,
-                                                args);
-                return;
-#else
-                assert(false);
-#endif
-            }
-
-            detail::batch_impl<brank>(std::forward<Func>(func), ins, args);
+            detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins,
+                                            args);
             return;
-        }
-    }
-
-    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
-            slice_from_start<
-                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
-    }(std::make_index_sequence<sizeof...(ins_t)>{});
-
-    constexpr size_t brank = decltype(bexts)::rank();
-
-    const auto bins = [&ins, &uinexts,
-                       &bexts]<size_t... Is>(std::index_sequence<Is...>) {
-        return std::tuple{broadcast_to(
-            std::get<Is>(ins), concatenate(bexts, std::get<Is>(uinexts)))...};
-    }(std::make_index_sequence<sizeof...(ins_t)>{});
-
-    if (mpmode == MPMode::CPUMP) [[unlikely]] {
-#ifdef _OPENMP
-        detail::batch_impl_cpump<brank>(std::forward<Func>(func), bins, args);
-        return;
 #else
-        assert(false);
+            assert(false);
 #endif
-    }
+        }
 
-    detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
+        detail::batch_impl<brank>(std::forward<Func>(func), bins, args);
+    }
 }
 
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
@@ -408,14 +423,15 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
                             const std::tuple<uinexts_t...> &uinexts,
                             const std::tuple<args_t...> &args,
                             const MPMode mpmode) noexcept {
-    constexpr bool same_brank = []<size_t... Is>(std::index_sequence<Is...>) {
-        constexpr size_t ref_rank_diff =
+    constexpr bool possibly_not_bcast = []<size_t... Is>(
+                                            std::index_sequence<Is...>) {
+        constexpr size_t ref =
             std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
             std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
         return (
             (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                  std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank() ==
-             ref_rank_diff) &&
+             ref) &&
             ...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
@@ -433,15 +449,13 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
     auto out = detail::create_out<element_t>(
         core::concatenate(bexts, std::get<sizeof...(ins_t)>(uinexts)));
 
-    if constexpr (same_brank) {
-        const bool need_bcast = [&ins]<size_t... Is>(
-                                    std::index_sequence<Is...>) {
-            return need_broadcast(std::make_tuple(
-                slice_from_start<
-                    std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                    std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                    std::get<Is>(ins).extents())...));
-        }(std::make_index_sequence<sizeof...(ins_t)>{});
+    if constexpr (possibly_not_bcast) {
+        // Pass without broadcasting (simd friendly)
+        const bool need_bcast =
+            [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+                return need_broadcast(std::make_tuple(
+                    slice_from_start<brank>(std::get<Is>(ins).extents())...));
+            }(std::make_index_sequence<sizeof...(ins_t)>{});
 
         if (!need_bcast) [[likely]] {
             const auto bins = [&ins,
@@ -464,6 +478,7 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
         }
     }
 
+    // Broadcasting
     const auto bins = [&ins, &uinexts, &bexts,
                        &out]<size_t... Is>(std::index_sequence<Is...>) {
         return std::tuple{
@@ -492,14 +507,15 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
                             const std::tuple<uinexts_t...> &uinexts,
                             const std::tuple<args_t...> &args,
                             const MPMode mpmode) noexcept {
-    constexpr bool same_brank = []<size_t... Is>(std::index_sequence<Is...>) {
-        constexpr size_t ref_rank_diff =
+    constexpr bool possibly_not_bcast = []<size_t... Is>(
+                                            std::index_sequence<Is...>) {
+        constexpr size_t ref =
             std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
             std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
         return (
             (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                  std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank() ==
-             ref_rank_diff) &&
+             ref) &&
             ...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
@@ -519,15 +535,13 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
             bexts, std::get<sizeof...(ins_t) + Is>(uinexts)))...};
     }(std::make_index_sequence<sizeof...(uinexts_t) - sizeof...(ins_t)>{});
 
-    if constexpr (same_brank) {
-        const bool need_bcast = [&ins]<size_t... Is>(
-                                    std::index_sequence<Is...>) {
-            return need_broadcast(std::make_tuple(
-                slice_from_start<
-                    std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                    std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                    std::get<Is>(ins).extents())...));
-        }(std::make_index_sequence<sizeof...(ins_t)>{});
+    if constexpr (possibly_not_bcast) {
+        // Pass without broadcasting (simd friendly)
+        const bool need_bcast =
+            [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+                return need_broadcast(std::make_tuple(
+                    slice_from_start<brank>(std::get<Is>(ins).extents())...));
+            }(std::make_index_sequence<sizeof...(ins_t)>{});
 
         if (!need_bcast) [[likely]] {
             const auto bins = [&ins, &outs]<size_t... Is>(
@@ -554,6 +568,7 @@ inline constexpr auto batch(Func &&func, const std::tuple<ins_t...> &ins,
         }
     }
 
+    // Broadcasting
     const auto bins = [&ins, &uinexts, &bexts,
                        &outs]<size_t... Is>(std::index_sequence<Is...>) {
         return [&ins, &uinexts, &bexts,
