@@ -109,7 +109,11 @@ using slice = std::experimental::strided_slice<
     std::integral_constant<size_t, end - start>,
     std::integral_constant<size_t, 1>>;
 
-enum class MPMode : uint8_t { NONE, CPUMP };
+enum class MPMode : uint8_t {
+    NONE,
+    SIMD, // NOTE: Testing
+    CPUMP,
+};
 
 template <typename T> struct element_type {
     using type = T;

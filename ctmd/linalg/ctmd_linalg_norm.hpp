@@ -3,6 +3,9 @@
 #include <cmath>
 
 #include "../core/ctmd_core.hpp"
+#include "../ctmd_multiply.hpp"
+#include "../ctmd_sqrt.hpp"
+#include "../ctmd_sum.hpp"
 
 namespace ctmd {
 namespace linalg {
@@ -23,30 +26,44 @@ inline constexpr void norm_impl(const in_t &in, const out_t &out) noexcept {
 template <typename in_t, typename out_t>
 inline constexpr void norm(in_t &&in, out_t &&out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-    const auto rout = core::to_mdspan(std::forward<out_t>(out));
+    if (mpmode == MPMode::SIMD) [[unlikely]] {
+        const auto pow = ctmd::multiply(in, in);
+        ctmd::sum<-1>(pow, out);
+        ctmd::sqrt(out, out);
 
-    const auto urin_exts = core::slice_from_last<1>(rin.extents());
-    constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
+    } else {
+        const auto rin = core::to_mdspan(std::forward<in_t>(in));
+        const auto rout = core::to_mdspan(std::forward<out_t>(out));
 
-    core::batch(
-        [](const auto &in, const auto &out) { detail::norm_impl(in, out); },
-        std::tuple{rin, rout}, std::tuple{urin_exts, urout_exts}, std::tuple{},
-        mpmode);
+        const auto urin_exts = core::slice_from_last<1>(rin.extents());
+        constexpr auto urout_exts =
+            extents<typename decltype(rout)::index_type>{};
+
+        core::batch(
+            [](const auto &in, const auto &out) { detail::norm_impl(in, out); },
+            std::tuple{rin, rout}, std::tuple{urin_exts, urout_exts},
+            std::tuple{}, mpmode);
+    }
 }
 
 template <typename in_t>
 [[nodiscard]] inline constexpr auto
 norm(in_t &&in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
+    if (mpmode == MPMode::SIMD) [[unlikely]] {
+        return ctmd::sqrt(ctmd::sum<-1>(ctmd::multiply(in, in)));
 
-    const auto urin_exts = core::slice_from_last<1>(rin.extents());
-    constexpr auto urout_exts = extents<typename decltype(rin)::index_type>{};
+    } else {
+        const auto rin = core::to_mdspan(std::forward<in_t>(in));
 
-    return core::batch(
-        [](const auto &in, const auto &out) { detail::norm_impl(in, out); },
-        std::tuple{rin}, std::tuple{urin_exts, urout_exts}, std::tuple{},
-        mpmode);
+        const auto urin_exts = core::slice_from_last<1>(rin.extents());
+        constexpr auto urout_exts =
+            extents<typename decltype(rin)::index_type>{};
+
+        return core::batch(
+            [](const auto &in, const auto &out) { detail::norm_impl(in, out); },
+            std::tuple{rin}, std::tuple{urin_exts, urout_exts}, std::tuple{},
+            mpmode);
+    }
 }
 
 } // namespace linalg
