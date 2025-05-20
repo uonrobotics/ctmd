@@ -27,9 +27,9 @@ template <typename in_t, typename out_t>
 inline constexpr void norm(in_t &&in, out_t &&out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
     if (mpmode == MPMode::SIMD) [[unlikely]] {
-        const auto pow = ctmd::multiply(in, in);
-        ctmd::sum<-1>(pow, out);
-        ctmd::sqrt(out, out);
+        const auto pow = ctmd::multiply(in, in, mpmode);
+        ctmd::sum<-1>(pow, out, mpmode);
+        ctmd::sqrt(out, out, mpmode);
 
     } else {
         const auto rin = core::to_mdspan(std::forward<in_t>(in));
@@ -50,7 +50,8 @@ template <typename in_t>
 [[nodiscard]] inline constexpr auto
 norm(in_t &&in, const MPMode mpmode = MPMode::NONE) noexcept {
     if (mpmode == MPMode::SIMD) [[unlikely]] {
-        return ctmd::sqrt(ctmd::sum<-1>(ctmd::multiply(in, in)));
+        return ctmd::sqrt(ctmd::sum<-1>(ctmd::multiply(in, in, mpmode), mpmode),
+                          mpmode);
 
     } else {
         const auto rin = core::to_mdspan(std::forward<in_t>(in));
