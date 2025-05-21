@@ -15,33 +15,31 @@ inline constexpr void tan_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <typename in_t, typename out_t>
-inline constexpr void tan(in_t &&in, out_t &&out,
+template <typename InType, typename OutType>
+inline constexpr void tan(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-    const auto rout = core::to_mdspan(std::forward<out_t>(out));
-
-    constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
-    constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
-        [](const auto &in, const auto &out) { detail::tan_impl(in, out); },
-        std::tuple{rin, rout}, std::tuple{urin_exts, urout_exts}, std::tuple{},
-        mpmode);
+        [](auto &&...elems) {
+            detail::tan_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in, out}, std::tuple{extents<uint8_t>{}, extents<uint8_t>{}},
+        std::tuple{}, mpmode);
 }
 
-template <typename in_t>
+template <typename InType>
 [[nodiscard]] inline constexpr auto
-tan(in_t &&in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-
-    constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
-    constexpr auto urout_exts = extents<typename decltype(rin)::index_type>{};
+tan(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in = core::to_mdspan(std::forward<InType>(In));
 
     return core::batch(
-        [](const auto &in, const auto &out) { detail::tan_impl(in, out); },
-        std::tuple{rin}, std::tuple{urin_exts, urout_exts}, std::tuple{},
-        mpmode);
+        [](auto &&...elems) {
+            detail::tan_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in}, std::tuple{extents<uint8_t>{}, extents<uint8_t>{}},
+        std::tuple{}, mpmode);
 }
 
 } // namespace ctmd

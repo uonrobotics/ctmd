@@ -4,21 +4,21 @@
 
 namespace ctmd {
 
-template <typename in_t>
-[[nodiscard]] inline constexpr bool all(in_t &&in) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-    using rin_t = decltype(rin);
+template <typename InType>
+[[nodiscard]] inline constexpr bool all(InType &&In) noexcept {
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+    using in_t = decltype(in);
 
-    if constexpr (!mdspan_c<rin_t>) {
+    if constexpr (!mdspan_c<in_t>) {
         return static_cast<bool>(in);
 
     } else {
-        if constexpr (rin_t::rank() == 0) {
-            return static_cast<bool>(rin());
+        if constexpr (in_t::rank() == 0) {
+            return static_cast<bool>(in());
 
         } else {
-            for (typename rin_t::size_type i = 0; i < rin.extent(0); i++) {
-                if (!all(core::submdspan_from_start(rin, i))) {
+            for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+                if (!all(core::submdspan_from_start(in, i))) {
                     return false;
                 }
             }
