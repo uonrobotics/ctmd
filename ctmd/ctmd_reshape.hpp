@@ -33,17 +33,12 @@ reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
         assert(in.is_unique());
         assert(in.is_exhaustive());
         assert(in.is_strided());
-
-        const size_t in_size = [&in]<size_t... Is>(std::index_sequence<Is...>) {
+        assert([&in]<size_t... Is>(std::index_sequence<Is...>) {
             return ((in.extent(Is) * ...));
-        }(std::make_index_sequence<in_t::rank()>{});
-
-        const size_t new_size =
-            [&new_extents]<size_t... Is>(std::index_sequence<Is...>) {
-                return ((new_extents.extent(Is) * ...));
-            }(std::make_index_sequence<extents_t::rank()>{});
-
-        assert(in_size == new_size);
+        }(std::make_index_sequence<in_t::rank()>{}) ==
+               [&new_extents]<size_t... Is>(std::index_sequence<Is...>) {
+                   return ((new_extents.extent(Is) * ...));
+               }(std::make_index_sequence<extents_t::rank()>{}));
 
         return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
                                                               new_extents};
