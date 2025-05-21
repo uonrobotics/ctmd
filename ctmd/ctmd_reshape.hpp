@@ -13,14 +13,8 @@ reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
     if constexpr (in_t::is_always_unique() && in_t::is_always_exhaustive() &&
                   in_t::is_always_strided() && in_t::rank_dynamic() == 0 &&
                   extents_t::rank_dynamic() == 0) {
-        constexpr size_t in_size =
-            []<size_t... Is>(std::index_sequence<Is...>) {
-                return ((in_t::static_extent(Is) * ...));
-            }(std::make_index_sequence<in_t::rank()>{});
-        constexpr size_t new_size =
-            []<size_t... Is>(std::index_sequence<Is...>) {
-                return ((extents_t::static_extent(Is) * ...));
-            }(std::make_index_sequence<extents_t::rank()>{});
+        constexpr size_t in_size = core::size<typename in_t::extents_type>();
+        constexpr size_t new_size = core::size<extents_t>();
 
         static_assert(in_size == new_size,
                       "The number of elements in the input and output "
@@ -33,12 +27,7 @@ reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
         assert(in.is_unique());
         assert(in.is_exhaustive());
         assert(in.is_strided());
-        assert([&in]<size_t... Is>(std::index_sequence<Is...>) {
-            return ((in.extent(Is) * ...));
-        }(std::make_index_sequence<in_t::rank()>{}) ==
-               [&new_extents]<size_t... Is>(std::index_sequence<Is...>) {
-                   return ((new_extents.extent(Is) * ...));
-               }(std::make_index_sequence<extents_t::rank()>{}));
+        assert(core::size(in) == core::size(new_extents));
 
         return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
                                                               new_extents};

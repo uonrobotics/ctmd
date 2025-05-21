@@ -6,6 +6,25 @@
 namespace ctmd {
 namespace core {
 
+template <extents_c in_t>
+[[nodiscard]] inline constexpr auto size(const in_t &in = in_t{}) noexcept {
+    if constexpr (in_t::rank_dynamic() == 0) {
+        return []<size_t... Is>(std::index_sequence<Is...>) {
+            return ((in_t::static_extent(Is) * ...));
+        }(std::make_index_sequence<in_t::rank()>{});
+
+    } else {
+        return [&in]<size_t... Is>(std::index_sequence<Is...>) {
+            return ((in.extent(Is) * ...));
+        }(std::make_index_sequence<in_t::rank()>{});
+    }
+}
+
+template <typename InType>
+[[nodiscard]] inline constexpr auto size(InType &&In) noexcept {
+    return size(core::to_mdspan(std::forward<InType>(In)).extents());
+}
+
 template <size_t SliceRank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
 slice_from_start(const in_t &in = in_t{}) noexcept {
