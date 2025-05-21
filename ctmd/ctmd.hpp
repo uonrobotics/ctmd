@@ -23,6 +23,7 @@
 #include "ctmd_multiply.hpp"
 #include "ctmd_negative.hpp"
 #include "ctmd_not_equal.hpp"
+#include "ctmd_reshape.hpp"
 #include "ctmd_sin.hpp"
 #include "ctmd_sqrt.hpp"
 #include "ctmd_subtract.hpp"
