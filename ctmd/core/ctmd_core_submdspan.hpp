@@ -44,7 +44,7 @@ template <mdspan_c in_t, typename heads_t, typename... slices_t>
 
 template <typename in_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
-submdspan_from_start(in_t &&in, slices_t... slices) noexcept {
+submdspan_from_start(in_t &&in, slices_t &&...slices) noexcept {
     // NOTE: use non-const rin to avoid unnecessary copies
     auto rin = to_mdspan(std::forward<in_t>(in));
 
@@ -58,7 +58,7 @@ submdspan_from_start(in_t &&in, slices_t... slices) noexcept {
 
 template <typename in_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
-submdspan_from_last(in_t &&in, slices_t... slices) noexcept {
+submdspan_from_last(in_t &&in, slices_t &&...slices) noexcept {
     // NOTE: use non-const rin to avoid unnecessary copies
     auto rin = to_mdspan(std::forward<in_t>(in));
 

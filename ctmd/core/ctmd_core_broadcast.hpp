@@ -229,14 +229,15 @@ inline constexpr void batch_call(Func &&func, const std::tuple<ins_t...> &ins,
     func(std::get<Is>(ins)..., std::get<Js>(args)...);
 }
 
-template <mdspan_c... ins_t>
+template <mdspan_c... ins_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
 make_submdspan_tuple(const std::tuple<ins_t...> &ins,
-                     const size_t idx) noexcept {
+                     slices_t &&...slices) noexcept {
     return std::apply(
         [&](auto &&...elems) {
-            return std::tuple{submdspan_from_start(
-                std::forward<decltype(elems)>(elems), idx)...};
+            return std::tuple{
+                submdspan_from_start(std::forward<decltype(elems)>(elems),
+                                     std::forward<slices_t>(slices)...)...};
         },
         ins);
 }
