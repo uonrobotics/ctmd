@@ -50,36 +50,11 @@ reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
     const auto in = to_mdspan(std::forward<InType>(In));
     using in_t = decltype(in);
 
-    if constexpr (is_always_reshapable<in_t>() && in_t::rank_dynamic() == 0 &&
-                  extents_t::rank_dynamic() == 0) {
-        constexpr size_t in_size =
-            []<size_t... Is>(std::index_sequence<Is...>) {
-                return ((in_t::static_extent(Is) * ...));
-            }(std::make_index_sequence<in_t::rank()>{});
-        constexpr size_t new_size =
-            []<size_t... Is>(std::index_sequence<Is...>) {
-                return ((extents_t::static_extent(Is) * ...));
-            }(std::make_index_sequence<extents_t::rank()>{});
+    assert(is_reshapable(in));
+    assert(size(in) == size(new_extents));
 
-        static_assert(in_size == new_size,
-                      "The number of elements in the input and output "
-                      "mdspan must be the same.");
-
-        return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
-                                                              new_extents};
-
-    } else {
-        assert(is_reshapable(in));
-        assert([&in]<size_t... Is>(std::index_sequence<Is...>) {
-            return ((in.extent(Is) * ...));
-        }(std::make_index_sequence<in_t::rank()>{}) ==
-               [&new_extents]<size_t... Is>(std::index_sequence<Is...>) {
-                   return ((new_extents.extent(Is) * ...));
-               }(std::make_index_sequence<extents_t::rank()>{}));
-
-        return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
-                                                              new_extents};
-    }
+    return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
+                                                          new_extents};
 }
 
 } // namespace core
