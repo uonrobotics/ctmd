@@ -5,12 +5,12 @@
 
 namespace ctmd {
 
-template <typename in1_t, typename in2_t>
+template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr bool
-array_equiv(in1_t &&in1, in2_t &&in2,
+array_equiv(In1Type &&In1, In2Type &&In2,
             const MPMode mpmode = MPMode::NONE) noexcept {
-    return ctmd::all(ctmd::equal(std::forward<in1_t>(in1),
-                                 std::forward<in2_t>(in2), mpmode));
+    return ctmd::all(ctmd::equal(std::forward<In1Type>(In1),
+                                 std::forward<In2Type>(In2), mpmode));
 }
 
 } // namespace ctmd

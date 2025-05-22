@@ -8,7 +8,7 @@ namespace ctmd {
 namespace detail {
 
 template <mdspan_c in_t, mdspan_c out_t>
-    requires(in_t::rank() - out_t::rank() == 1)
+    requires(in_t::rank() == out_t::rank() + 1)
 inline constexpr void sum_impl(const in_t &in, const out_t &out) noexcept {
     ctmd::fill(out, 0);
 
@@ -19,46 +19,47 @@ inline constexpr void sum_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <int64_t Axis, typename in_t, typename out_t>
-inline constexpr void sum(in_t &&in, out_t &&out,
+template <int64_t Axis, typename InType, typename OutType>
+inline constexpr void sum(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-    const auto rout = core::to_mdspan(std::forward<out_t>(out));
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
-    constexpr size_t urin_rank =
-        rin.rank() -
+    constexpr size_t in_rank = decltype(in)::rank();
+    constexpr size_t rin_rank =
+        in_rank -
         static_cast<size_t>(
-            ((Axis % static_cast<int64_t>(rin.rank())) + (rin.rank())) %
-            (rin.rank()));
-
-    const auto urin_exts = core::slice_from_start<urin_rank>(rin.extents());
-    const auto urout_exts =
-        core::slice_from_start<urin_rank - 1>(rout.extents());
+            ((Axis % static_cast<int64_t>(in_rank)) + (in_rank)) % in_rank);
 
     core::batch(
-        [](const auto &in, const auto &out) { detail::sum_impl(in, out); },
-        std::tuple{rin, rout}, std::tuple{urin_exts, urout_exts}, std::tuple{},
-        mpmode);
+        [](auto &&...elems) {
+            detail::sum_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in, out},
+        std::tuple{core::slice_from_last<rin_rank>(in.extents()),
+                   core::slice_from_last<rin_rank - 1>(out.extents())},
+        std::tuple{}, mpmode);
 }
 
-template <int64_t Axis, typename in_t>
+template <int64_t Axis, typename InType>
 [[nodiscard]] inline constexpr auto
-sum(in_t &&in, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
+sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in = core::to_mdspan(std::forward<InType>(In));
 
-    constexpr size_t urin_rank =
-        rin.rank() -
+    constexpr size_t in_rank = decltype(in)::rank();
+    constexpr size_t rin_rank =
+        in_rank -
         static_cast<size_t>(
-            ((Axis % static_cast<int64_t>(rin.rank())) + (rin.rank())) %
-            (rin.rank()));
-
-    const auto urin_exts = core::slice_from_start<urin_rank>(rin.extents());
-    const auto urout_exts = core::slice_from_last<urin_rank - 1>(urin_exts);
+            ((Axis % static_cast<int64_t>(in_rank)) + (in_rank)) % in_rank);
 
     return core::batch(
-        [](const auto &in, const auto &out) { detail::sum_impl(in, out); },
-        std::tuple{rin}, std::tuple{urin_exts, urout_exts}, std::tuple{},
-        mpmode);
+        [](auto &&...elems) {
+            detail::sum_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in},
+        std::tuple{core::slice_from_last<rin_rank>(in.extents()),
+                   core::slice_from_last<rin_rank - 1>(in.extents())},
+        std::tuple{}, mpmode);
 }
 
 } // namespace ctmd

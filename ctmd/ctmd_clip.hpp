@@ -18,49 +18,41 @@ inline constexpr void clip_impl(const in_t &in, const min_t &min,
 
 } // namespace detail
 
-template <typename in_t, typename min_t, typename max_t, typename out_t>
-inline constexpr void clip(in_t &&in, min_t &&min, max_t &&max, out_t &&out,
+template <typename InType, typename MinType, typename MaxType, typename OutType>
+inline constexpr void clip(InType &&In, MinType &&Min, MaxType &&Max,
+                           OutType &&Out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-    const auto rmin = core::to_mdspan(std::forward<min_t>(min));
-    const auto rmax = core::to_mdspan(std::forward<max_t>(max));
-    const auto rout = core::to_mdspan(std::forward<out_t>(out));
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto min = core::to_mdspan(std::forward<MinType>(Min));
+    const auto max = core::to_mdspan(std::forward<MaxType>(Max));
+    const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
-    constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
-    constexpr auto urmin_exts = extents<typename decltype(rmin)::index_type>{};
-    constexpr auto urmax_exts = extents<typename decltype(rmax)::index_type>{};
-    constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
-
-    core::batch([](const auto &in, const auto &min, const auto &max,
-                   const auto &out) { detail::clip_impl(in, min, max, out); },
-                std::tuple{rin, rmin, rmax, rout},
-                std::tuple{urin_exts, urmin_exts, urmax_exts, urout_exts},
-                std::tuple{}, mpmode);
+    core::batch(
+        [](auto &&...elems) {
+            detail::clip_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in, min, max, out},
+        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
+                   extents<uint8_t>{}},
+        std::tuple{}, mpmode);
 }
 
-template <typename in_t, typename min_t, typename max_t>
+template <typename InType, typename MinType, typename MaxType>
 [[nodiscard]] inline constexpr auto
-clip(in_t &&in, min_t &&min, max_t &&max,
+clip(InType &&In, MinType &&Min, MaxType &&Max,
      const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin = core::to_mdspan(std::forward<in_t>(in));
-    const auto rmin = core::to_mdspan(std::forward<min_t>(min));
-    const auto rmax = core::to_mdspan(std::forward<max_t>(max));
-
-    constexpr auto urin_exts = extents<typename decltype(rin)::index_type>{};
-    constexpr auto urmin_exts = extents<typename decltype(rmin)::index_type>{};
-    constexpr auto urmax_exts = extents<typename decltype(rmax)::index_type>{};
-    constexpr auto urout_exts =
-        extents<std::common_type_t<typename decltype(rin)::index_type,
-                                   typename decltype(rmin)::index_type,
-                                   typename decltype(rmax)::index_type>>{};
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto min = core::to_mdspan(std::forward<MinType>(Min));
+    const auto max = core::to_mdspan(std::forward<MaxType>(Max));
 
     return core::batch(
-        [](const auto &in, const auto &min, const auto &max, const auto &out) {
-            detail::clip_impl(in, min, max, out);
+        [](auto &&...elems) {
+            detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{rin, rmin, rmax},
-        std::tuple{urin_exts, urmin_exts, urmax_exts, urout_exts}, std::tuple{},
-        mpmode);
+        std::tuple{in, min, max},
+        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
+                   extents<uint8_t>{}},
+        std::tuple{}, mpmode);
 }
 
 } // namespace ctmd

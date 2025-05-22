@@ -5,19 +5,19 @@
 namespace ctmd {
 namespace core {
 
-template <typename in_t>
-[[nodiscard]] inline constexpr auto to_mdspan(in_t &&in) noexcept {
-    using base_t = std::remove_reference_t<in_t>;
+template <typename InType>
+[[nodiscard]] inline constexpr auto to_mdspan(InType &&In) noexcept {
+    using BaseType = std::remove_reference_t<InType>;
 
-    if constexpr (mdspan_c<base_t>) {
-        return in;
+    if constexpr (mdspan_c<BaseType>) {
+        return In;
 
-    } else if constexpr (mdarray_c<base_t>) {
-        return in.to_mdspan();
+    } else if constexpr (mdarray_c<BaseType>) {
+        return In.to_mdspan();
 
-    } else if constexpr (arithmetic_c<base_t>) {
+    } else if constexpr (arithmetic_c<BaseType>) {
         auto exts = extents<size_t>{};
-        return mdspan<base_t, decltype(exts)>{&in, exts};
+        return mdspan<BaseType, decltype(exts)>{&In, exts};
 
     } else {
         static_assert(std::false_type::value, "Invalid type");
@@ -34,21 +34,51 @@ template <mdspan_c in_t>
 }
 
 template <mdspan_c in_t>
-[[nodiscard]] inline constexpr auto to_layout_stride(const in_t &in) noexcept {
-    if constexpr (std::is_same_v<typename in_t::layout_type, layout_stride>) {
-        return in;
+[[nodiscard]] inline constexpr bool is_always_reshapable() noexcept {
+    return in_t::is_always_unique() && in_t::is_always_exhaustive() &&
+           in_t::is_always_strided();
+}
+
+template <mdspan_c in_t>
+[[nodiscard]] inline constexpr bool is_reshapable(const in_t &in) noexcept {
+    return in.is_unique() && in.is_exhaustive() && in.is_strided();
+}
+
+template <typename InType, extents_c extents_t>
+[[nodiscard]] inline constexpr auto
+reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
+    const auto in = to_mdspan(std::forward<InType>(In));
+    using in_t = decltype(in);
+
+    if constexpr (is_always_reshapable<in_t>() && in_t::rank_dynamic() == 0 &&
+                  extents_t::rank_dynamic() == 0) {
+        constexpr size_t in_size =
+            []<size_t... Is>(std::index_sequence<Is...>) {
+                return ((in_t::static_extent(Is) * ...));
+            }(std::make_index_sequence<in_t::rank()>{});
+        constexpr size_t new_size =
+            []<size_t... Is>(std::index_sequence<Is...>) {
+                return ((extents_t::static_extent(Is) * ...));
+            }(std::make_index_sequence<extents_t::rank()>{});
+
+        static_assert(in_size == new_size,
+                      "The number of elements in the input and output "
+                      "mdspan must be the same.");
+
+        return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
+                                                              new_extents};
 
     } else {
-        const auto new_strides =
-            [&in]<size_t... Is>(std::index_sequence<Is...>) {
-                return std::array<typename in_t::size_type, in_t::rank()>{
-                    in.stride(Is)...};
-            }(std::make_index_sequence<in_t::rank()>{});
+        assert(is_reshapable(in));
+        assert([&in]<size_t... Is>(std::index_sequence<Is...>) {
+            return ((in.extent(Is) * ...));
+        }(std::make_index_sequence<in_t::rank()>{}) ==
+               [&new_extents]<size_t... Is>(std::index_sequence<Is...>) {
+                   return ((new_extents.extent(Is) * ...));
+               }(std::make_index_sequence<extents_t::rank()>{}));
 
-        return mdspan<typename in_t::element_type, typename in_t::extents_type,
-                      layout_stride, typename in_t::accessor_type>{
-            in.data_handle(),
-            layout_stride::mapping{in.extents(), new_strides}};
+        return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
+                                                              new_extents};
     }
 }
 

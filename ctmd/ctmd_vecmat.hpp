@@ -4,18 +4,19 @@
 
 namespace ctmd {
 
-template <typename in1_t, typename in2_t, typename out_t>
-inline constexpr void vecmat(in1_t &&in1, in2_t &&in2, out_t &&out,
+template <typename In1Type, typename In2Type, typename OutType>
+inline constexpr void vecmat(In1Type &&In1, In2Type &&In2, OutType &&Out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    linalg::vecmat(std::forward<in1_t>(in1), std::forward<in2_t>(in2),
-                   std::forward<out_t>(out), mpmode);
+    linalg::vecmat(std::forward<In1Type>(In1), std::forward<In2Type>(In2),
+                   std::forward<OutType>(Out), mpmode);
 }
 
-template <typename in1_t, typename in2_t>
+template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
-vecmat(in1_t &&in1, in2_t &&in2, const MPMode mpmode = MPMode::NONE) noexcept {
-    return linalg::vecmat(std::forward<in1_t>(in1), std::forward<in2_t>(in2),
-                          mpmode);
+vecmat(In1Type &&In1, In2Type &&In2,
+       const MPMode mpmode = MPMode::NONE) noexcept {
+    return linalg::vecmat(std::forward<In1Type>(In1),
+                          std::forward<In2Type>(In2), mpmode);
 }
 
 } // namespace ctmd

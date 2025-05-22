@@ -55,42 +55,43 @@ inline constexpr void matvec_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-template <typename in1_t, typename in2_t, typename out_t>
-inline constexpr void matvec(in1_t &&in1, in2_t &&in2, out_t &&out,
+template <typename In1Type, typename In2Type, typename OutType>
+inline constexpr void matvec(In1Type &&In1, In2Type &&In2, OutType &&Out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
-    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
-    const auto rout = core::to_mdspan(std::forward<out_t>(out));
+    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
-    const auto urin1_exts = core::slice_from_last<2>(rin1.extents());
-    const auto urin2_exts = core::slice_from_last<1>(rin2.extents());
-    const auto urout_exts = core::slice_from_last<1>(rout.extents());
-
-    core::batch([](const auto &in1, const auto &in2,
-                   const auto &out) { detail::matvec_impl(in1, in2, out); },
-                std::tuple{rin1, rin2, rout},
-                std::tuple{urin1_exts, urin2_exts, urout_exts}, std::tuple{},
-                mpmode);
+    core::batch(
+        [](auto &&...elems) {
+            detail::matvec_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in1, in2, out},
+        std::tuple{core::slice_from_last<2>(in1.extents()),
+                   core::slice_from_last<1>(in2.extents()),
+                   core::slice_from_last<1>(out.extents())},
+        std::tuple{}, mpmode);
 }
 
-template <typename in1_t, typename in2_t>
+template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
-matvec(in1_t &&in1, in2_t &&in2, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
-    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
+matvec(In1Type &&In1, In2Type &&In2,
+       const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
 
-    const auto urin1_exts = core::slice_from_last<2>(rin1.extents());
-    const auto urin2_exts = core::slice_from_last<1>(rin2.extents());
-    const auto urout_exts =
-        extents<std::common_type_t<typename decltype(urin1_exts)::index_type,
-                                   typename decltype(urin2_exts)::index_type>,
-                decltype(urin1_exts)::static_extent(0)>{urin1_exts.extent(0)};
+    const auto uin1_exts = core::slice_from_last<2>(in1.extents());
+    const auto uin2_exts = core::slice_from_last<1>(in2.extents());
+    const auto uout_exts =
+        extents<std::common_type_t<typename decltype(uin1_exts)::index_type,
+                                   typename decltype(uin2_exts)::index_type>,
+                decltype(uin1_exts)::static_extent(0)>{uin1_exts.extent(0)};
 
     return core::batch(
-        [](const auto &in1, const auto &in2, const auto &out) {
-            detail::matvec_impl(in1, in2, out);
+        [](auto &&...elems) {
+            detail::matvec_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{rin1, rin2}, std::tuple{urin1_exts, urin2_exts, urout_exts},
+        std::tuple{in1, in2}, std::tuple{uin1_exts, uin2_exts, uout_exts},
         std::tuple{}, mpmode);
 }
 

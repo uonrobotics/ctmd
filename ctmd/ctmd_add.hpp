@@ -14,41 +14,35 @@ inline constexpr void add_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-template <typename in1_t, typename in2_t, typename out_t>
-inline constexpr void add(in1_t &&in1, in2_t &&in2, out_t &&out,
+template <typename In1Type, typename In2Type, typename OutType>
+inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
-    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
-    const auto rout = core::to_mdspan(std::forward<out_t>(out));
+    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
-    constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
-    constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
-    constexpr auto urout_exts = extents<typename decltype(rout)::index_type>{};
-
-    core::batch([](const auto &in1, const auto &in2,
-                   const auto &out) { detail::add_impl(in1, in2, out); },
-                std::tuple{rin1, rin2, rout},
-                std::tuple{urin1_exts, urin2_exts, urout_exts}, std::tuple{},
-                mpmode);
+    core::batch(
+        [](auto &&...elems) {
+            detail::add_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in1, in2, out},
+        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
+        std::tuple{}, mpmode);
 }
 
-template <typename in1_t, typename in2_t>
+template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
-add(in1_t &&in1, in2_t &&in2, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto rin1 = core::to_mdspan(std::forward<in1_t>(in1));
-    const auto rin2 = core::to_mdspan(std::forward<in2_t>(in2));
+add(In1Type &&In1, In2Type &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
 
-    constexpr auto urin1_exts = extents<typename decltype(rin1)::index_type>{};
-    constexpr auto urin2_exts = extents<typename decltype(rin2)::index_type>{};
-    constexpr auto urout_exts =
-        extents<std::common_type_t<typename decltype(rin1)::index_type,
-                                   typename decltype(rin2)::index_type>>{};
-
-    return core::batch([](const auto &in1, const auto &in2,
-                          const auto &out) { detail::add_impl(in1, in2, out); },
-                       std::tuple{rin1, rin2},
-                       std::tuple{urin1_exts, urin2_exts, urout_exts},
-                       std::tuple{}, mpmode);
+    return core::batch(
+        [](auto &&...elems) {
+            detail::add_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in1, in2},
+        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
+        std::tuple{}, mpmode);
 }
 
 } // namespace ctmd

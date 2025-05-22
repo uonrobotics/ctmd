@@ -79,28 +79,97 @@ concept mdarray_c =
 template <typename T>
 concept md_c = mdspan_c<T> || mdarray_c<T>;
 
-namespace detail {
-
-template <extents_c extent_t>
-[[nodiscard]] inline constexpr size_t static_mdarray_size() noexcept {
-    if constexpr (extent_t::rank() == 0) {
+template <extents_c exts_t>
+[[nodiscard]] inline constexpr size_t static_size() noexcept {
+    if constexpr (exts_t::rank() == 0) {
         return 0;
 
-    } else {
+    } else if constexpr (exts_t::rank_dynamic() == 0) {
         return []<size_t... Is>(std::index_sequence<Is...>) {
-            return (extent_t::static_extent(Is) * ...);
-        }(std::make_index_sequence<extent_t::rank()>{});
+            return (exts_t::static_extent(Is) * ...);
+        }(std::make_index_sequence<exts_t::rank()>{});
+
+    } else {
+        return dyn;
     }
 }
 
-} // namespace detail
+template <extents_c exts_t>
+[[nodiscard]] inline constexpr size_t
+size(const exts_t &exts = exts_t{}) noexcept {
+    if constexpr (exts_t::rank() == 0) {
+        return 0;
+
+    } else if constexpr (exts_t::rank_dynamic() == 0) {
+        return []<size_t... Is>(std::index_sequence<Is...>) {
+            return (exts_t::static_extent(Is) * ...);
+        }(std::make_index_sequence<exts_t::rank()>{});
+
+    } else {
+        return [&exts]<size_t... Is>(std::index_sequence<Is...>) {
+            return (exts.extent(Is) * ...);
+        }(std::make_index_sequence<exts_t::rank()>{});
+    }
+}
+
+template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
+[[nodiscard]] inline constexpr bool same(const in1_t &in1 = in1_t{},
+                                         const in2_t &in2 = in2_t{},
+                                         const ins_t &...ins) noexcept {
+    if constexpr (in1_t::rank() != in2_t::rank()) {
+        return false;
+
+    } else if constexpr (in1_t::rank_dynamic() == 0 &&
+                         in2_t::rank_dynamic() == 0 &&
+                         []<size_t... Is>(std::index_sequence<Is...>) {
+                             return ((in1_t::static_extent(Is) !=
+                                      in2_t::static_extent(Is)) ||
+                                     ...);
+                         }(std::make_index_sequence<in1_t::rank()>{})) {
+        return false;
+
+    } else {
+        for (size_t i = 0; i < in1_t::rank(); i++) {
+            if (in1.extent(i) != in2.extent(i)) {
+                return false;
+            }
+        }
+    }
+
+    if constexpr (sizeof...(ins_t) != 0) {
+        return same(in2, ins...);
+
+    } else {
+        return true;
+    }
+}
+
+template <extents_c... ins_t>
+[[nodiscard]] inline constexpr bool
+same(const std::tuple<ins_t...> &ins) noexcept {
+    constexpr size_t ins_num =
+        std::tuple_size_v<std::remove_reference_t<decltype(ins)>>;
+
+    if constexpr (ins_num == 0) {
+        return true;
+
+    } else if constexpr (ins_num == 1) {
+        return true;
+
+    } else {
+        return std::apply(
+            [&](auto &&...elems) {
+                return same(std::forward<decltype(elems)>(elems)...);
+            },
+            ins);
+    }
+}
 
 template <typename T, extents_c extent_t>
 using mdarray = std::conditional_t<
     extent_t::rank_dynamic() == 0,
-    std::experimental::mdarray<
-        T, extent_t, layout_right,
-        std::array<T, detail::static_mdarray_size<extent_t>()>>,
+    std::experimental::mdarray<T, extent_t, layout_right,
+                               std::array<T, static_size<extent_t>()>>,
     std::experimental::mdarray<T, extent_t, layout_right, std::vector<T>>>;
 
 template <size_t start, size_t end>

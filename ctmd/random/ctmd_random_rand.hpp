@@ -68,57 +68,52 @@ inline void rand_impl(const in_t &in) noexcept {
 
 } // namespace detail
 
-template <typename in_t>
-inline constexpr void rand(in_t &in,
+template <typename InType>
+inline constexpr void rand(InType &&In,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    auto rin = core::to_mdspan(in);
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+    using in_t = decltype(in);
 
-    if constexpr (decltype(rin)::rank_dynamic() == 0) {
+    if constexpr (in_t::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {
             using T = element_type_t<in_t>;
 
-            if constexpr (decltype(rin)::rank() == 0) {
+            if constexpr (in_t::rank() == 0) {
                 constexpr auto data =
                     detail::uniform_distribution<T, 1>(0, 1)[0];
-                rin() = data;
+                in() = data;
 
             } else {
                 constexpr auto data_size =
                     []<size_t... Is>(std::index_sequence<Is...>) {
-                        return (decltype(rin)::static_extent(Is) * ...);
-                    }(std::make_index_sequence<decltype(rin)::rank()>{});
+                        return (in_t::static_extent(Is) * ...);
+                    }(std::make_index_sequence<in_t::rank()>{});
 
                 constexpr auto data =
-                    ctmd::mdarray<T, typename decltype(rin)::extents_type>{
+                    ctmd::mdarray<T, typename in_t::extents_type>{
                         detail::uniform_distribution<T, data_size>(0, 1)};
 
-                ctmd::copy(data, rin);
+                ctmd::copy(data, in);
             }
 
             return;
         }
     }
 
-    constexpr auto uin_exts = extents<typename decltype(rin)::index_type>{};
-
-    core::batch([](const auto &in) { detail::rand_impl(in); }, std::tuple{rin},
-                std::tuple{uin_exts}, std::tuple{}, mpmode);
+    core::batch(
+        [](auto &&...elems) {
+            detail::rand_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::tuple{in}, std::tuple{extents<uint8_t>{}}, std::tuple{}, mpmode);
 }
 
-template <floating_point_c T, extents_c extents_t = extents<size_t>>
+template <floating_point_c T, extents_c exts_t = extents<size_t>>
 [[nodiscard]] inline constexpr auto
-rand(const extents_t &extents = extents_t{},
+rand(const exts_t &exts = exts_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
-    if constexpr (extents_t::rank() == 0) {
-        T out;
-        rand(out, mpmode);
-        return out;
-
-    } else {
-        auto out = ctmd::mdarray<T, extents_t>{extents};
-        rand(out, mpmode);
-        return out;
-    }
+    auto out = core::detail::create_out<T>(exts);
+    rand(out, mpmode);
+    return out;
 }
 
 } // namespace random
