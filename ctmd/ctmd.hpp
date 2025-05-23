@@ -13,6 +13,8 @@
 #include "ctmd_copy.hpp"
 #include "ctmd_cos.hpp"
 #include "ctmd_divide.hpp"
+#include "ctmd_empty.hpp"
+#include "ctmd_empty_like.hpp"
 #include "ctmd_equal.hpp"
 #include "ctmd_expand_dims.hpp"
 #include "ctmd_fill.hpp"

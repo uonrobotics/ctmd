@@ -1,0 +1,27 @@
+#include <gtest/gtest.h>
+
+#include "ctmd/ctmd_empty.hpp"
+
+namespace md = ctmd;
+
+TEST(stack, 1) {
+    using T = double;
+
+    constexpr auto x = md::empty<T>(md::extents<size_t, 1, 2, 3>{});
+
+    constexpr auto is_same_extents =
+        md::same(x.extents(), md::extents<size_t, 1, 2, 3>{});
+
+    ASSERT_TRUE(is_same_extents);
+}
+
+TEST(stack, 2) {
+    using T = double;
+
+    const auto x = md::empty<T>(md::dims<3>{1, 2, 3});
+
+    const auto is_same_extents =
+        md::same(x.extents(), md::extents<size_t, 1, 2, 3>{});
+
+    ASSERT_TRUE(is_same_extents);
+}
