@@ -32,7 +32,7 @@ template <int64_t Axis, typename InType>
                                : (Is == axis ? 1 : in.extent(Is - 1)))...};
             }(std::make_index_sequence<rank + 1>{});
 
-        return reshape(std::forward<InType>(In), new_extents);
+        return ctmd::reshape(std::forward<InType>(In), new_extents);
     }
 }
 

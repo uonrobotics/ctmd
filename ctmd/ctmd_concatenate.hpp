@@ -88,7 +88,7 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
             auto mds = core::to_mdspan(std::get<Is>(Ins));
             if constexpr (mds.rank() == 0) {
                 // if the input is a scalar, expand it to a 1D mdspan.
-                return expand_dims<-1>(mds);
+                return ctmd::expand_dims<-1>(mds);
 
             } else {
                 return mds;
@@ -113,7 +113,7 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
         return std::common_type_t<
             element_type_t<std::tuple_element_t<Is, ins_t>>...>{};
     }(std::make_index_sequence<num_ins>{}));
-    auto out = empty<T>(out_extents);
+    auto out = ctmd::empty<T>(out_extents);
 
     // concatenate
     [&ins, &out]<size_t... Is>(std::index_sequence<Is...>) {

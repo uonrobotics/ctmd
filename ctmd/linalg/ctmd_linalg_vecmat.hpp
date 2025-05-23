@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../core/ctmd_core.hpp"
 #include "../ctmd_copy.hpp"
 
 namespace ctmd {
@@ -27,7 +26,7 @@ inline constexpr void vecmat_naive(const in1_t &in1, const in2_t &in2,
             ctmd::mdarray<typename out_t::element_type,
                           typename out_t::extents_type>{out.extents()};
         vecmat_naive(in1, in2, out_tmp.to_mdspan());
-        copy(out_tmp, out);
+        ctmd::copy(out_tmp, out);
     }
 }
 

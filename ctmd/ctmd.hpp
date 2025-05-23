@@ -18,6 +18,7 @@
 #include "ctmd_empty_like.hpp"
 #include "ctmd_equal.hpp"
 #include "ctmd_expand_dims.hpp"
+#include "ctmd_eye.hpp"
 #include "ctmd_fill.hpp"
 #include "ctmd_full.hpp"
 #include "ctmd_isclose.hpp"

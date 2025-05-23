@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../core/ctmd_core.hpp"
 #include "../core/eigen/ctmd_core_eigen.hpp"
 #include "../ctmd_copy.hpp"
 
@@ -16,7 +15,7 @@ inline constexpr void inv_naive(const in_t &in, const out_t &out) noexcept {
     const index_type n = in.extent(0);
 
     // check in and out are same pointer
-    auto in_copy = copy(in);
+    auto in_copy = ctmd::copy(in);
     for (index_type i = 0; i < n; i++) {
         for (index_type j = 0; j < n; j++) {
             out(i, j) = (i == j) ? 1 : 0;
