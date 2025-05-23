@@ -16,7 +16,7 @@ TEST(stack, 1) {
     ASSERT_TRUE(is_same_extents);
 }
 
-TEST(stack, 2) {
+TEST(heap, 2) {
     using T = double;
 
     const auto x = md::empty<T>(md::dims<3>{1, 2, 3});
