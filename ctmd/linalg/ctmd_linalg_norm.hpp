@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-#include "../core/ctmd_core.hpp"
 #include "../ctmd_multiply.hpp"
 #include "../ctmd_sqrt.hpp"
 #include "../ctmd_sum.hpp"

@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <random>
 
-#include "../core/ctmd_core.hpp"
 #include "../ctmd_copy.hpp"
 
 namespace ctmd {
