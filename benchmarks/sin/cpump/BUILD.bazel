@@ -16,6 +16,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -40,6 +41,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",

@@ -6,7 +6,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -16,6 +15,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -30,7 +30,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -40,6 +39,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -54,7 +54,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -64,6 +63,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -78,7 +78,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -88,6 +87,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -102,7 +102,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -112,6 +111,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -126,7 +126,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -136,6 +135,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -150,7 +150,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -160,6 +159,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -174,7 +174,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -184,6 +183,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -197,8 +197,7 @@ cc_binary(
         "ps.cpp",
         ],
     copts = [
-        "-O3",
-        
+        "-O3",        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -208,6 +207,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",
@@ -222,7 +222,6 @@ cc_binary(
         ],
     copts = [
         "-O3",
-        
         "-funroll-loops",
         "-fno-exceptions",
         "-fno-rtti",
@@ -232,6 +231,7 @@ cc_binary(
     ],
     linkopts = [
         "-lgomp",
+        "-L/usr/lib/llvm-17/lib",
     ],
     deps = [
         "@com_google_benchmark//:benchmark",

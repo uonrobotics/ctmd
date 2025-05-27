@@ -36,14 +36,15 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
     using index_t = std::common_type_t<typename in1_t::index_type,
                                        typename in2_t::index_type>;
 
-    const auto cexts = [&in1, &in2]<size_t... Is>(std::index_sequence<Is...>) {
-        return [&in1, &in2]<size_t... Js>(std::index_sequence<Js...>) {
+    const auto cexts =
+        [&in1, &in2]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
+                                                 std::index_sequence<Js...>) {
             return extents<index_t, in1_t::static_extent(Is)...,
                            in2_t::static_extent(Js)...>{
                 static_cast<index_t>(in1.extent(Is))...,
                 static_cast<index_t>(in2.extent(Js))...};
-        }(std::make_index_sequence<in2_t::rank()>());
-    }(std::make_index_sequence<in1_t::rank()>());
+        }(std::make_index_sequence<in1_t::rank()>{},
+          std::make_index_sequence<in2_t::rank()>{});
 
     if constexpr (sizeof...(ins_t) == 0) {
         return cexts;
@@ -53,6 +54,26 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
     }
 }
 
+namespace detail {
+
+template <typename in1_t, typename in2_t, size_t Is, size_t brank>
+constexpr size_t broadcast_static_extent() {
+    constexpr size_t e1 =
+        (Is < brank - in1_t::rank()
+             ? 1
+             : in1_t::static_extent(Is - (brank - in1_t::rank())));
+    constexpr size_t e2 =
+        (Is < brank - in2_t::rank()
+             ? 1
+             : in2_t::static_extent(Is - (brank - in2_t::rank())));
+    static_assert(e1 == e2 || e1 == 1 || e1 == dyn || e2 == 1 || e2 == dyn,
+                  "incompatible extents for broadcasting.");
+
+    return std::max(e1, e2);
+}
+
+} // namespace detail
+
 template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 [[nodiscard]] inline constexpr auto broadcast(const in1_t &in1 = in1_t{},
                                               const in2_t &in2 = in2_t{},
@@ -61,24 +82,10 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
                                        typename in2_t::index_type>;
     constexpr size_t brank = std::max(in1_t::rank(), in2_t::rank());
 
-    const auto bexts = [&brank, &in1,
-                        &in2]<size_t... Is>(std::index_sequence<Is...>) {
-        return extents<index_t, [&brank]() {
-            constexpr size_t x1 =
-                (Is < brank - in1_t::rank()
-                     ? 1
-                     : in1_t::static_extent(Is - (brank - in1_t::rank())));
-            constexpr size_t x2 =
-                (Is < brank - in2_t::rank()
-                     ? 1
-                     : in2_t::static_extent(Is - (brank - in2_t::rank())));
-
-            static_assert(x1 == x2 || x1 == 1 || x1 == dyn || x2 == 1 ||
-                              x2 == dyn,
-                          "Incompatible extents for broadcasting.");
-
-            return std::max(x1, x2);
-        }()...>{[&brank, &in1, &in2]() {
+    const auto bexts = [&in1, &in2]<size_t... Is>(std::index_sequence<Is...>) {
+        return extents<index_t, detail::broadcast_static_extent<
+                                    in1_t, in2_t, Is, brank>()...>{[&in1,
+                                                                    &in2]() {
             const size_t x1 = (Is < brank - in1_t::rank()
                                    ? 1
                                    : in1.extent(Is - (brank - in1_t::rank())));
@@ -224,9 +231,8 @@ batch_impl_none(Func &&func, const std::tuple<ins_t...> &ins,
 
 template <size_t BatchRank, typename Func, mdspan_c... ins_t,
           typename... args_t>
-inline constexpr void
-batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<args_t...> &args) noexcept {
+inline void batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
+                             const std::tuple<args_t...> &args) noexcept {
     if constexpr (BatchRank == 0) {
         batch_call(std::forward<Func>(func), ins, args,
                    std::index_sequence_for<ins_t...>{},
@@ -248,7 +254,7 @@ batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 template <size_t BatchRank, typename Func, mdspan_c... ins_t,
           typename... args_t>
-inline constexpr void
+inline  void
 batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
                  const std::tuple<args_t...> &args) noexcept {
     if constexpr (BatchRank == 0) {
@@ -277,14 +283,16 @@ template <size_t BatchRank, typename Func, mdspan_c... ins_t,
 inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
                                  const std::tuple<args_t...> &args,
                                  const MPMode mpmode) noexcept {
-    if (mpmode == MPMode::CPUMP) [[unlikely]] {
+    if (!std::is_constant_evaluated()) [[likely]] {
+        if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
-        detail::batch_impl_cpump<BatchRank>(std::forward<Func>(func), ins,
-                                            args);
-        return;
+            detail::batch_impl_cpump<BatchRank>(std::forward<Func>(func), ins,
+                                                args);
+            return;
 #else
-        assert(false);
+            assert(false);
 #endif
+        }
     }
 
     detail::batch_impl_none<BatchRank>(std::forward<Func>(func), ins, args);

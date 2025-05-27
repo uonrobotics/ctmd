@@ -7,6 +7,21 @@
 namespace ctmd {
 namespace detail {
 
+template <typename in1_t, typename in2_t, size_t Is, size_t axis>
+constexpr size_t concatenate_static_extent() {
+    constexpr size_t e1 = in1_t::static_extent(Is);
+    constexpr size_t e2 = in2_t::static_extent(Is);
+
+    if constexpr (Is == axis) {
+        return (e1 != dyn && e2 != dyn) ? (e1 + e2) : dyn;
+
+    } else {
+        static_assert(e1 == e2 || e1 == dyn || e2 == dyn,
+                      "Incompatible extents for concatenate.");
+        return (e1 != dyn && e2 != dyn) ? e1 : dyn;
+    }
+}
+
 template <int64_t Axis, extents_c in1_t, extents_c in2_t, extents_c... ins_t>
     requires(in1_t::rank() == in2_t::rank())
 [[nodiscard]] inline constexpr auto
@@ -20,30 +35,20 @@ concatenate_extents(const in1_t &in1 = in1_t{}, const in2_t &in2 = in2_t{},
                                        typename in2_t::index_type>;
 
     const auto exts = [&in1, &in2]<size_t... Is>(std::index_sequence<Is...>) {
-        return extents<index_t, []() {
-            constexpr size_t e1 = in1_t::static_extent(Is);
-            constexpr size_t e2 = in2_t::static_extent(Is);
+        return extents<index_t,
+                       concatenate_static_extent<in1_t, in2_t, Is, axis>()...>{
+            [&in1, &in2]() {
+                const size_t e1 = in1.extent(Is);
+                const size_t e2 = in2.extent(Is);
 
-            if constexpr (Is == axis) {
-                return (e1 != dyn && e2 != dyn) ? (e1 + e2) : dyn;
+                if constexpr (Is == axis) {
+                    return e1 + e2;
 
-            } else {
-                static_assert(e1 == e2 || e1 == dyn || e2 == dyn,
-                              "Incompatible extents for concatenate.");
-                return (e1 != dyn && e2 != dyn) ? e1 : dyn;
-            }
-        }()...>{[&in1, &in2]() {
-            const size_t e1 = in1.extent(Is);
-            const size_t e2 = in2.extent(Is);
-
-            if constexpr (Is == axis) {
-                return e1 + e2;
-
-            } else {
-                assert(e1 == e2);
-                return e1;
-            }
-        }()...};
+                } else {
+                    assert(e1 == e2);
+                    return e1;
+                }
+            }()...};
     }(std::make_index_sequence<rank>{});
 
     if constexpr (sizeof...(ins_t) != 0) {
@@ -129,8 +134,7 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
                             [&](auto &&...heads) {
                                 return core::submdspan_from_start(
                                     out, heads...,
-                                    ctmd::strided_slice{
-                                        .offset = a, .extent = b, .stride = 1});
+                                    ctmd::strided_slice{a, b, 1});
                             },
                             core::detail::full_extents_tuple<axis>()));
          })(),

@@ -3,6 +3,7 @@
 #include "linalg/ctmd_linalg.hpp"
 #include "random/ctmd_random.hpp"
 
+#include "ctmd_abs.hpp"
 #include "ctmd_add.hpp"
 #include "ctmd_all.hpp"
 #include "ctmd_allclose.hpp"
