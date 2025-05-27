@@ -1,3 +1,11 @@
-build --action_env=BAZEL_CXXOPTS="-std=c++20" --compilation_mode=opt
-run --action_env=BAZEL_CXXOPTS="-std=c++20" --compilation_mode=opt
-test --action_env=BAZEL_CXXOPTS="-std=c++20" --compilation_mode=opt
+build --action_env=BAZEL_CXXOPTS="-std=c++20"
+run --action_env=BAZEL_CXXOPTS="-std=c++20"
+test --action_env=BAZEL_CXXOPTS="-std=c++20"
+
+# build --repo_env=CC=clang
+# run --repo_env=CC=clang
+# test --repo_env=CC=clang
+
+build --compilation_mode=opt
+run --compilation_mode=opt
+test --compilation_mode=opt

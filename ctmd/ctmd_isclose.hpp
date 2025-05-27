@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/ctmd_core.hpp"
+#include "ctmd_abs.hpp"
 
 namespace ctmd {
 namespace detail {
@@ -11,7 +11,8 @@ inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
                                    const out_t &out, const double &rtol,
                                    const double &atol) noexcept {
     using T = std::remove_cvref_t<decltype(in2())>;
-    out() = std::abs(in1() - in2()) <= ((T)atol + (T)rtol * std::abs(in2()));
+    out() = ctmd::abs(in1() - in2()) <=
+            (static_cast<T>(atol) + static_cast<T>(rtol) * ctmd::abs(in2()));
 }
 
 } // namespace detail

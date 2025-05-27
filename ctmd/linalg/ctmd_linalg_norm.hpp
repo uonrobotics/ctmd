@@ -17,7 +17,7 @@ inline constexpr void norm_impl(const in_t &in, const out_t &out) noexcept {
     for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
         out() += in[i] * in[i];
     }
-    out() = std::sqrt(out());
+    out() = ctmd::sqrt(out());
 }
 
 } // namespace detail

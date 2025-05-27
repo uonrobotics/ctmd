@@ -20,6 +20,10 @@ namespace ctmd {
 
 using namespace std::experimental;
 
+#if defined(__GNUC__) && !defined(__llvm__) && !defined(__INTEL_COMPILER)
+#define REAL_GCC __GNUC__ // probably
+#endif
+
 namespace detail {
 
 template <typename T> struct make_extents_impl {

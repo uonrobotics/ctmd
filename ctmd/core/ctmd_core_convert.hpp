@@ -51,7 +51,7 @@ reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
     using in_t = decltype(in);
 
     assert(is_reshapable(in));
-    assert(size(in) == size(new_extents));
+    assert(ctmd::size(in.extents()) == ctmd::size(new_extents));
 
     return mdspan<typename in_t::element_type, extents_t>{in.data_handle(),
                                                           new_extents};
