@@ -10,10 +10,27 @@ template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
     requires(in1_t::rank() == 2 && in2_t::rank() == 1 && out_t::rank() == 1)
 inline constexpr void matvec_naive(const in1_t &in1, const in2_t &in2,
                                    const out_t &out) noexcept {
-    if (core::to_mdspan(in1).data_handle() !=
-            core::to_mdspan(out).data_handle() &&
-        core::to_mdspan(in2).data_handle() !=
-            core::to_mdspan(out).data_handle()) [[likely]] {
+    bool need_copy = false;
+
+    if constexpr (std::is_same_v<
+                      std::remove_cvref_t<typename in1_t::element_type>,
+                      std::remove_cvref_t<typename out_t::element_type>>) {
+        if (core::to_mdspan(in1).data_handle() ==
+            core::to_mdspan(out).data_handle()) [[unlikely]] {
+            need_copy = true;
+        }
+
+    } else if constexpr (std::is_same_v<
+                             std::remove_cvref_t<typename in2_t::element_type>,
+                             std::remove_cvref_t<
+                                 typename out_t::element_type>>) {
+        if (core::to_mdspan(in2).data_handle() ==
+            core::to_mdspan(out).data_handle()) [[unlikely]] {
+            need_copy = true;
+        }
+    }
+
+    if (!need_copy) [[likely]] {
         for (typename out_t::size_type i = 0; i < out.extent(0); i++) {
             out(i) = 0;
             for (typename in1_t::size_type j = 0; j < in1.extent(1); j++) {
