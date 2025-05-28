@@ -8,7 +8,8 @@ namespace ctmd {
 namespace detail {
 
 template <mdspan_c in_t, mdspan_c out_t>
-    requires(in_t::rank() == 0 && out_t::rank() == 0)
+    requires(in_t::rank() == 0 && out_t::rank() == 0 &&
+             floating_point_c<typename out_t::element_type>)
 inline constexpr void sin_impl(const in_t &in, const out_t &out) noexcept {
     out() = std::sin(in());
 }
@@ -35,10 +36,13 @@ sin(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_mdspan(std::forward<InType>(In));
 
     return core::batch(
-        [](auto &&...elems) {
+        [](auto &&, // dummy to make out at least float
+           auto &&...elems) {
             detail::sin_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in}, std::tuple{extents<uint8_t>{}, extents<uint8_t>{}},
+        std::tuple{core::to_mdspan(0.0f), in},
+        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
         std::tuple{}, mpmode);
 }
+
 } // namespace ctmd
