@@ -12,18 +12,20 @@ inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
                                    const out_t &out) noexcept {
     bool need_copy = false;
 
-    if constexpr (std::is_same_v<
-                      std::remove_cvref_t<typename in1_t::element_type>,
-                      std::remove_cvref_t<typename out_t::element_type>>) {
+    if constexpr (requires {
+                      core::to_mdspan(in1).data_handle() ==
+                          core::to_mdspan(out).data_handle();
+                  }) {
         if (core::to_mdspan(in1).data_handle() ==
             core::to_mdspan(out).data_handle()) [[unlikely]] {
             need_copy = true;
         }
+    }
 
-    } else if constexpr (std::is_same_v<
-                             std::remove_cvref_t<typename in2_t::element_type>,
-                             std::remove_cvref_t<
-                                 typename out_t::element_type>>) {
+    if constexpr (requires {
+                      core::to_mdspan(in2).data_handle() ==
+                          core::to_mdspan(out).data_handle();
+                  }) {
         if (core::to_mdspan(in2).data_handle() ==
             core::to_mdspan(out).data_handle()) [[unlikely]] {
             need_copy = true;
