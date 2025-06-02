@@ -17,8 +17,8 @@ inline constexpr void add_impl(const in1_t &in1, const in2_t &in2,
 template <typename In1Type, typename In2Type, typename OutType>
 inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
@@ -33,8 +33,8 @@ inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
 template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 add(In1Type &&In1, In2Type &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
     return core::batch(
         [](auto &&...elems) {

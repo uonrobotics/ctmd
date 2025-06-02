@@ -33,6 +33,11 @@ template <mdspan_c in_t>
                                                      in.mapping(), {});
 }
 
+template <typename InType>
+[[nodiscard]] inline constexpr auto to_const_mdspan(InType &&In) noexcept {
+    return to_const(to_mdspan(std::forward<InType>(In)));
+}
+
 template <mdspan_c in_t>
 [[nodiscard]] inline constexpr bool is_always_reshapable() noexcept {
     return in_t::is_always_unique() && in_t::is_always_exhaustive() &&

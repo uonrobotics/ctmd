@@ -22,7 +22,7 @@ inline constexpr void sum_impl(const in_t &in, const out_t &out) noexcept {
 template <int64_t Axis, typename InType, typename OutType>
 inline constexpr void sum(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     constexpr size_t in_rank = decltype(in)::rank();
@@ -44,7 +44,7 @@ inline constexpr void sum(InType &&In, OutType &&Out,
 template <int64_t Axis, typename InType>
 [[nodiscard]] inline constexpr auto
 sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
 
     constexpr size_t in_rank = decltype(in)::rank();
     constexpr size_t rin_rank =

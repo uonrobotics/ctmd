@@ -23,8 +23,8 @@ inline constexpr void isclose(In1Type &&In1, In2Type &&In2, OutType &&Out,
                               const double &rtol = 1e-05,
                               const double &atol = 1e-08,
                               const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
@@ -41,8 +41,8 @@ template <typename In1Type, typename In2Type>
 isclose(In1Type &&In1, In2Type &&In2, const double &rtol = 1e-05,
         const double &atol = 1e-08,
         const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
     return core::batch(
         [](auto &&...elems) {

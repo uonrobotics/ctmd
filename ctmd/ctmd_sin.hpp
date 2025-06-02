@@ -19,7 +19,7 @@ inline constexpr void sin_impl(const in_t &in, const out_t &out) noexcept {
 template <typename InType, typename OutType>
 inline constexpr void sin(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
@@ -33,14 +33,14 @@ inline constexpr void sin(InType &&In, OutType &&Out,
 template <typename InType>
 [[nodiscard]] inline constexpr auto
 sin(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
 
     return core::batch(
         [](auto &&, // dummy to make out at least float
            auto &&...elems) {
             detail::sin_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{core::to_mdspan(0.0f), in},
+        std::tuple{core::to_const_mdspan(0.0f), in},
         std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
         std::tuple{}, mpmode);
 }

@@ -74,7 +74,7 @@ inline constexpr void inv_impl(const in_t &in, const out_t &out) noexcept {
 template <typename InType, typename OutType>
 inline constexpr void inv(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
@@ -90,7 +90,7 @@ inline constexpr void inv(InType &&In, OutType &&Out,
 template <typename InType>
 [[nodiscard]] inline constexpr auto
 inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
 
     return core::batch(
         [](auto &&...elems) {

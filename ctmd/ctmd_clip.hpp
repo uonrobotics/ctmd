@@ -22,9 +22,9 @@ template <typename InType, typename MinType, typename MaxType, typename OutType>
 inline constexpr void clip(InType &&In, MinType &&Min, MaxType &&Max,
                            OutType &&Out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
-    const auto min = core::to_mdspan(std::forward<MinType>(Min));
-    const auto max = core::to_mdspan(std::forward<MaxType>(Max));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+    const auto min = core::to_const_mdspan(std::forward<MinType>(Min));
+    const auto max = core::to_const_mdspan(std::forward<MaxType>(Max));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
@@ -41,9 +41,9 @@ template <typename InType, typename MinType, typename MaxType>
 [[nodiscard]] inline constexpr auto
 clip(InType &&In, MinType &&Min, MaxType &&Max,
      const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
-    const auto min = core::to_mdspan(std::forward<MinType>(Min));
-    const auto max = core::to_mdspan(std::forward<MaxType>(Max));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+    const auto min = core::to_const_mdspan(std::forward<MinType>(Min));
+    const auto max = core::to_const_mdspan(std::forward<MaxType>(Max));
 
     return core::batch(
         [](auto &&...elems) {

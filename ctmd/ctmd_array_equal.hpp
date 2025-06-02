@@ -7,8 +7,8 @@ namespace ctmd {
 template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr bool array_equal(In1Type &&In1,
                                                 In2Type &&In2) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
     using in1_t = decltype(in1);
     using in2_t = decltype(in2);
 

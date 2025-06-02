@@ -13,20 +13,20 @@ inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
     bool need_copy = false;
 
     if constexpr (requires {
-                      core::to_mdspan(in1).data_handle() ==
+                      core::to_const_mdspan(in1).data_handle() ==
                           core::to_mdspan(out).data_handle();
                   }) {
-        if (core::to_mdspan(in1).data_handle() ==
+        if (core::to_const_mdspan(in1).data_handle() ==
             core::to_mdspan(out).data_handle()) [[unlikely]] {
             need_copy = true;
         }
     }
 
     if constexpr (requires {
-                      core::to_mdspan(in2).data_handle() ==
+                      core::to_const_mdspan(in2).data_handle() ==
                           core::to_mdspan(out).data_handle();
                   }) {
-        if (core::to_mdspan(in2).data_handle() ==
+        if (core::to_const_mdspan(in2).data_handle() ==
             core::to_mdspan(out).data_handle()) [[unlikely]] {
             need_copy = true;
         }
@@ -79,8 +79,8 @@ inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
 template <typename In1Type, typename In2Type, typename OutType>
 inline constexpr void matmul(In1Type &&In1, In2Type &&In2, OutType &&Out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
     core::batch(
@@ -98,8 +98,8 @@ template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 matmul(In1Type &&In1, In2Type &&In2,
        const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
+    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
     const auto uin1_exts = core::slice_from_last<2>(in1.extents());
     const auto uin2_exts = core::slice_from_last<2>(in2.extents());

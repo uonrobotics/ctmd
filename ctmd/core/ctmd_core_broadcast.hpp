@@ -310,6 +310,46 @@ template <typename T, extents_c exts_t>
 
 } // namespace detail
 
+template <mdspan_c... ins_t, extents_c... uinexts_t>
+    requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
+[[nodiscard]] inline constexpr auto
+create_out(const std::tuple<ins_t...> &ins,
+           const std::tuple<uinexts_t...> &uinexts) noexcept {
+    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+
+    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+        return broadcast(std::make_tuple(
+            slice_from_start<
+                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
+                std::get<Is>(ins).extents())...));
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    return detail::create_out<element_t>(
+        core::concatenate(bexts, std::get<sizeof...(ins_t)>(uinexts)));
+}
+
+template <mdspan_c... ins_t, extents_c... uinexts_t>
+    requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
+[[nodiscard]] inline constexpr auto
+create_out(const std::tuple<ins_t...> &ins,
+           const std::tuple<uinexts_t...> &uinexts) noexcept {
+    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+
+    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
+        return broadcast(std::make_tuple(
+            slice_from_start<
+                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
+                std::get<Is>(ins).extents())...));
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    return [&uinexts, &bexts]<size_t... Is>(std::index_sequence<Is...>) {
+        return std::tuple{detail::create_out<element_t>(core::concatenate(
+            bexts, std::get<sizeof...(ins_t) + Is>(uinexts)))...};
+    }(std::make_index_sequence<sizeof...(uinexts_t) - sizeof...(ins_t)>{});
+}
+
 template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
           typename... args_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t))
@@ -416,21 +456,8 @@ template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
 batch(Func &&func, const std::tuple<ins_t...> &ins,
       const std::tuple<uinexts_t...> &uinexts,
       const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
-    // generate out
-    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+    auto out = create_out(ins, uinexts);
 
-    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
-            slice_from_start<
-                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
-    }(std::make_index_sequence<sizeof...(ins_t)>{});
-
-    auto out = detail::create_out<element_t>(
-        core::concatenate(bexts, std::get<sizeof...(ins_t)>(uinexts)));
-
-    // batch
     batch(std::forward<Func>(func),
           std::tuple_cat(ins, std::make_tuple(to_mdspan(out))), uinexts, args,
           mpmode);
@@ -445,23 +472,8 @@ template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
 batch(Func &&func, const std::tuple<ins_t...> &ins,
       const std::tuple<uinexts_t...> &uinexts,
       const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
-    // generate out
-    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+    auto outs = create_out(ins, uinexts);
 
-    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
-            slice_from_start<
-                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
-    }(std::make_index_sequence<sizeof...(ins_t)>{});
-
-    auto outs = [&uinexts, &bexts]<size_t... Is>(std::index_sequence<Is...>) {
-        return std::tuple{detail::create_out<element_t>(core::concatenate(
-            bexts, std::get<sizeof...(ins_t) + Is>(uinexts)))...};
-    }(std::make_index_sequence<sizeof...(uinexts_t) - sizeof...(ins_t)>{});
-
-    // batch
     [&func, &ins, &outs, &uinexts, &args,
      &mpmode]<size_t... Is>(std::index_sequence<Is...>) {
         batch(std::forward<Func>(func),

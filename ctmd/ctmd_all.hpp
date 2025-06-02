@@ -6,7 +6,7 @@ namespace ctmd {
 
 template <typename InType>
 [[nodiscard]] inline constexpr bool all(InType &&In) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
     using in_t = decltype(in);
 
     if constexpr (!mdspan_c<in_t>) {

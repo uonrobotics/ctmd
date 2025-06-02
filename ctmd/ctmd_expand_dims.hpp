@@ -6,7 +6,7 @@ namespace ctmd {
 
 template <int64_t Axis, typename InType>
 [[nodiscard]] inline constexpr auto expand_dims(InType &&In) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
     using in_t = decltype(in);
 
     constexpr size_t rank = in_t::rank();

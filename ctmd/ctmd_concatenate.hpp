@@ -90,7 +90,7 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
     // generate input mdspans
     const auto ins = [&Ins]<size_t... Is>(std::index_sequence<Is...>) {
         return std::make_tuple([&Ins]() {
-            auto mds = core::to_mdspan(std::get<Is>(Ins));
+            auto mds = core::to_const_mdspan(std::get<Is>(Ins));
             if constexpr (mds.rank() == 0) {
                 // if the input is a scalar, expand it to a 1D mdspan.
                 return ctmd::expand_dims<-1>(mds);

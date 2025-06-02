@@ -6,7 +6,7 @@ namespace ctmd {
 
 template <md_c in_t>
 [[nodiscard]] inline std::string to_string(const in_t &in) noexcept {
-    const auto rin = core::to_mdspan(in);
+    const auto rin = core::to_const_mdspan(in);
 
     std::string str = "[";
 
