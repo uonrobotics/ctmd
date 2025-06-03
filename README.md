@@ -14,7 +14,7 @@
 
 ### Important Notes
 - C++ Version Compatibility:
-  - CTMD requires **C++20** or higher for full functionality.
+  - CTMD requires **C++23** for full functionality.
   - [std::mdspan](https://en.cppreference.com/w/cpp/container/mdspan) (C++23), [std::mdarray](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1684r2.html) (C++26), [std::submdspan](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2630r4.html) (C++26) are sourced from the [Reference mdspan implementation](https://github.com/kokkos/mdspan).
 - Extent Conventions:
   - **Scalar (0D mdspan)**: Data stored as an **arithmetic type** (e.g., int, float, double).
