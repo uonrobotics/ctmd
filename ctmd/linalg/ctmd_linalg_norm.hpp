@@ -17,7 +17,14 @@ inline constexpr void norm_impl(const in_t &in, const out_t &out) noexcept {
     for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
         out() += in[i] * in[i];
     }
+
+#ifdef REAL_GCC
+    out() = std::sqrt(out());
+
+#else
     out() = ctmd::sqrt(out());
+
+#endif
 }
 
 } // namespace detail
@@ -54,7 +61,7 @@ norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
                           mpmode);
 
     } else {
-        return core::batch(
+        return core::batch_out(
             [](auto &&...elems) {
                 detail::norm_impl(std::forward<decltype(elems)>(elems)...);
             },

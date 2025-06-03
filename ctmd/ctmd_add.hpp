@@ -36,7 +36,7 @@ add(In1Type &&In1, In2Type &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
     const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::add_impl(std::forward<decltype(elems)>(elems)...);
         },

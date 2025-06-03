@@ -105,7 +105,7 @@ vecmat(In1Type &&In1, In2Type &&In2,
                                    typename decltype(uin2_exts)::index_type>,
                 decltype(uin2_exts)::static_extent(1)>{uin2_exts.extent(1)};
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::vecmat_impl(std::forward<decltype(elems)>(elems)...);
         },

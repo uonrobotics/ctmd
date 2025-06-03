@@ -45,7 +45,7 @@ clip(InType &&In, MinType &&Min, MaxType &&Max,
     const auto min = core::to_const_mdspan(std::forward<MinType>(Min));
     const auto max = core::to_const_mdspan(std::forward<MaxType>(Max));
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },

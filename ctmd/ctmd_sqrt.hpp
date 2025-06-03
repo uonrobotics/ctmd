@@ -68,7 +68,7 @@ template <typename InType>
 sqrt(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::sqrt_impl(std::forward<decltype(elems)>(elems)...);
         },

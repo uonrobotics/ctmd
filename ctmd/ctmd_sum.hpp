@@ -52,7 +52,7 @@ sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
         static_cast<size_t>(
             ((Axis % static_cast<int64_t>(in_rank)) + (in_rank)) % in_rank);
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::sum_impl(std::forward<decltype(elems)>(elems)...);
         },

@@ -32,7 +32,7 @@ template <typename InType>
 negative(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::negative_impl(std::forward<decltype(elems)>(elems)...);
         },

@@ -1,6 +1,6 @@
-build --action_env=BAZEL_CXXOPTS="-std=c++20"
-run --action_env=BAZEL_CXXOPTS="-std=c++20"
-test --action_env=BAZEL_CXXOPTS="-std=c++20"
+build --action_env=BAZEL_CXXOPTS="-std=c++23"
+run --action_env=BAZEL_CXXOPTS="-std=c++23"
+test --action_env=BAZEL_CXXOPTS="-std=c++23"
 
 # build --repo_env=CC=clang
 # run --repo_env=CC=clang

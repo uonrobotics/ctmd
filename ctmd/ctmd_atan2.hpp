@@ -43,14 +43,12 @@ atan2(In1Type &&In1, In2Type &&In2,
     const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
     const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
-    return core::batch(
-        [](auto &&, // dummy to make out at least float
-           auto &&...elems) {
+    return core::batch_out<float>(
+        [](auto &&...elems) {
             detail::atan2_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{core::to_const_mdspan(0.0f), in1, in2},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
-                   extents<uint8_t>{}},
+        std::tuple{in1, in2},
+        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
         std::tuple{}, mpmode);
 }
 

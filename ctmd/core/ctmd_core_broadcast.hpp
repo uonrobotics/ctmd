@@ -310,12 +310,12 @@ template <typename T, extents_c exts_t>
 
 } // namespace detail
 
-template <mdspan_c... ins_t, extents_c... uinexts_t>
+template <typename T = int8_t, mdspan_c... ins_t, extents_c... uinexts_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
 [[nodiscard]] inline constexpr auto
 create_out(const std::tuple<ins_t...> &ins,
            const std::tuple<uinexts_t...> &uinexts) noexcept {
-    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+    using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
 
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
         return broadcast(std::make_tuple(
@@ -329,12 +329,12 @@ create_out(const std::tuple<ins_t...> &ins,
         core::concatenate(bexts, std::get<sizeof...(ins_t)>(uinexts)));
 }
 
-template <mdspan_c... ins_t, extents_c... uinexts_t>
+template <typename T = int8_t, mdspan_c... ins_t, extents_c... uinexts_t>
     requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
 [[nodiscard]] inline constexpr auto
 create_out(const std::tuple<ins_t...> &ins,
            const std::tuple<uinexts_t...> &uinexts) noexcept {
-    using element_t = std::common_type_t<element_type_t<ins_t>...>;
+    using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
 
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
         return broadcast(std::make_tuple(
@@ -449,14 +449,14 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
     }
 }
 
-template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
-          typename... args_t>
+template <typename T = int8_t, typename Func, mdspan_c... ins_t,
+          extents_c... uinexts_t, typename... args_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
 [[nodiscard]] inline constexpr auto
-batch(Func &&func, const std::tuple<ins_t...> &ins,
-      const std::tuple<uinexts_t...> &uinexts,
-      const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
-    auto out = create_out(ins, uinexts);
+batch_out(Func &&func, const std::tuple<ins_t...> &ins,
+          const std::tuple<uinexts_t...> &uinexts,
+          const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
+    auto out = create_out<T>(ins, uinexts);
 
     batch(std::forward<Func>(func),
           std::tuple_cat(ins, std::make_tuple(to_mdspan(out))), uinexts, args,
@@ -465,14 +465,14 @@ batch(Func &&func, const std::tuple<ins_t...> &ins,
     return out;
 }
 
-template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
-          typename... args_t>
+template <typename T = int8_t, typename Func, mdspan_c... ins_t,
+          extents_c... uinexts_t, typename... args_t>
     requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
 [[nodiscard]] inline constexpr auto
-batch(Func &&func, const std::tuple<ins_t...> &ins,
-      const std::tuple<uinexts_t...> &uinexts,
-      const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
-    auto outs = create_out(ins, uinexts);
+batch_out(Func &&func, const std::tuple<ins_t...> &ins,
+          const std::tuple<uinexts_t...> &uinexts,
+          const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
+    auto outs = create_out<T>(ins, uinexts);
 
     [&func, &ins, &outs, &uinexts, &args,
      &mpmode]<size_t... Is>(std::index_sequence<Is...>) {

@@ -105,7 +105,7 @@ matvec(In1Type &&In1, In2Type &&In2,
                                    typename decltype(uin2_exts)::index_type>,
                 decltype(uin1_exts)::static_extent(0)>{uin1_exts.extent(0)};
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::matvec_impl(std::forward<decltype(elems)>(elems)...);
         },

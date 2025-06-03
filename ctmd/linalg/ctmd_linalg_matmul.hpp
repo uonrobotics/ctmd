@@ -110,7 +110,7 @@ matmul(In1Type &&In1, In2Type &&In2,
                 decltype(uin2_exts)::static_extent(1)>{uin1_exts.extent(0),
                                                        uin2_exts.extent(1)};
 
-    return core::batch(
+    return core::batch_out(
         [](auto &&...elems) {
             detail::matmul_impl(std::forward<decltype(elems)>(elems)...);
         },

@@ -35,13 +35,11 @@ template <typename InType>
 sin(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
 
-    return core::batch(
-        [](auto &&, // dummy to make out at least float
-           auto &&...elems) {
+    return core::batch_out<float>(
+        [](auto &&...elems) {
             detail::sin_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{core::to_const_mdspan(0.0f), in},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
+        std::tuple{in}, std::tuple{extents<uint8_t>{}, extents<uint8_t>{}},
         std::tuple{}, mpmode);
 }
 
