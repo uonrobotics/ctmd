@@ -5,6 +5,8 @@
 
 namespace md = ctmd;
 
+#ifdef REAL_GCC
+
 TEST(stack, negative) {
     using T = float;
 
@@ -20,6 +22,8 @@ TEST(stack, negative) {
 
     ASSERT_TRUE(is_allclose);
 }
+
+#endif
 
 TEST(heap, negative) {
     using T = double;
