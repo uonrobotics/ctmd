@@ -10,7 +10,7 @@ template <typename InType>
     using BaseType = std::remove_reference_t<InType>;
 
     if constexpr (mdspan_c<BaseType>) {
-        return In;
+        return std::forward<InType>(In);
 
     } else if constexpr (requires { In.to_mdspan(); }) {
         return In.to_mdspan();
@@ -20,7 +20,7 @@ template <typename InType>
         return mdspan<BaseType, decltype(exts)>{&In, exts};
 
     } else {
-        static_assert(std::false_type::value, "Invalid type");
+        static_assert(std::false_type::value, "Invalid type for to_mdspan()");
     }
 }
 
