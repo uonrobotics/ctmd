@@ -54,34 +54,15 @@ concept arithmetic_c = std::is_arithmetic_v<T>;
 template <typename T>
 concept floating_point_c = std::is_floating_point_v<T>;
 
+// NOTE: mdspan_c is mainly targeted for C++23 std::mdspan, but it can also be
+// used with other mdspan-like implementation that follow the same interface.
 template <typename T>
-concept mdspan_c =
-    requires {
-        typename T::element_type;
-        typename T::extents_type;
-        typename T::layout_type;
-        typename T::accessor_type;
-    } &&
-    std::is_same_v<std::remove_const_t<T>,
-                   std::experimental::mdspan<
-                       typename T::element_type, typename T::extents_type,
-                       typename T::layout_type, typename T::accessor_type>>;
-
-template <typename T>
-concept mdarray_c =
-    requires {
-        typename T::element_type;
-        typename T::extents_type;
-        typename T::layout_type;
-        typename T::container_type;
-    } &&
-    std::is_same_v<std::remove_const_t<T>,
-                   std::experimental::mdarray<
-                       typename T::element_type, typename T::extents_type,
-                       typename T::layout_type, typename T::container_type>>;
-
-template <typename T>
-concept md_c = mdspan_c<T> || mdarray_c<T>;
+concept mdspan_c = requires {
+    typename T::element_type;
+    typename T::extents_type;
+    typename T::layout_type;
+    typename T::accessor_type;
+};
 
 template <extents_c exts_t>
 [[nodiscard]] inline constexpr size_t static_size() noexcept {

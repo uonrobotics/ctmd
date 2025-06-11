@@ -9,22 +9,17 @@ template <typename InType>
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
     using in_t = decltype(in);
 
-    if constexpr (!mdspan_c<in_t>) {
-        return static_cast<bool>(in);
+    if constexpr (in_t::rank() == 0) {
+        return static_cast<bool>(in());
 
     } else {
-        if constexpr (in_t::rank() == 0) {
-            return static_cast<bool>(in());
-
-        } else {
-            for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-                if (!all(core::submdspan_from_start(in, i))) {
-                    return false;
-                }
+        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+            if (!all(core::submdspan_from_start(in, i))) {
+                return false;
             }
-
-            return true;
         }
+
+        return true;
     }
 }
 
