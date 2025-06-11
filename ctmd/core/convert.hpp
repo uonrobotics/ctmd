@@ -12,7 +12,7 @@ template <typename InType>
     if constexpr (mdspan_c<BaseType>) {
         return In;
 
-    } else if constexpr (mdarray_c<BaseType>) {
+    } else if constexpr (requires { In.to_mdspan(); }) {
         return In.to_mdspan();
 
     } else if constexpr (arithmetic_c<BaseType>) {

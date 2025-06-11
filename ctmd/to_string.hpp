@@ -3,29 +3,28 @@
 #include "core/core.hpp"
 
 namespace ctmd {
+namespace detail {
 
-template <md_c in_t>
-[[nodiscard]] inline std::string to_string(const in_t &in) noexcept {
-    const auto rin = core::to_const_mdspan(in);
-
+template <mdspan_c in_t>
+[[nodiscard]] inline std::string to_string_impl(const in_t &in) noexcept {
     std::string str = "[";
 
     if constexpr (in_t::rank() == 0) {
         // do nothing
 
     } else if constexpr (in_t::rank() == 1) {
-        for (typename in_t::size_type i = 0; i < rin.extent(0); i++) {
-            str += std::to_string(rin[i]);
-            if (i < rin.extent(0) - 1) {
+        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+            str += std::to_string(in[i]);
+            if (i < in.extent(0) - 1) {
                 str += ", ";
             }
         }
 
     } else {
-        for (typename in_t::size_type i = 0; i < rin.extent(0); i++) {
-            const auto in_slice = core::submdspan_from_start(rin, i);
-            str += to_string(in_slice);
-            if (i < rin.extent(0) - 1) {
+        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+            const auto in_slice = core::submdspan_from_start(in, i);
+            str += to_string_impl(in_slice);
+            if (i < in.extent(0) - 1) {
                 str += ", ";
             }
         }
@@ -33,6 +32,8 @@ template <md_c in_t>
 
     return str + "]";
 }
+
+} // namespace detail
 
 template <extents_c in_t>
 [[nodiscard]] inline std::string to_string(const in_t &in) noexcept {
@@ -48,9 +49,10 @@ template <extents_c in_t>
     return str + ")";
 }
 
-template <typename in_t>
-[[nodiscard]] inline std::string to_string(const in_t &in) noexcept {
-    return std::to_string(in);
+template <typename InType>
+[[nodiscard]] inline std::string to_string(InType &&In) noexcept {
+    return detail::to_string_impl(
+        core::to_const_mdspan(std::forward<InType>(In)));
 }
 
 } // namespace ctmd
