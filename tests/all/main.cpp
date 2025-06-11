@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/ctmd_all.hpp"
+#include "ctmd/all.hpp"
 
 namespace md = ctmd;
 

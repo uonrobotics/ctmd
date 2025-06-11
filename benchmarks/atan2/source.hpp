@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/ctmd_atan2.hpp"
-#include "ctmd/random/ctmd_random_rand.hpp"
+#include "ctmd/atan2.hpp"
+#include "ctmd/random/rand.hpp"
 
 namespace md = ctmd;
 

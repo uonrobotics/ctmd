@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/ctmd_array_equal.hpp"
-#include "ctmd/ctmd_negative.hpp"
+#include "ctmd/array_equal.hpp"
+#include "ctmd/negative.hpp"
 
 namespace md = ctmd;
 
