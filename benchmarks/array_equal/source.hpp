@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/ctmd_array_equal.hpp"
-#include "ctmd/ctmd_full.hpp"
+#include "ctmd/array_equal.hpp"
+#include "ctmd/full.hpp"
 
 namespace md = ctmd;
 

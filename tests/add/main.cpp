@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/ctmd_add.hpp"
-#include "ctmd/ctmd_allclose.hpp"
-#include "ctmd/ctmd_to_string.hpp"
+#include "ctmd/add.hpp"
+#include "ctmd/allclose.hpp"
 
 namespace md = ctmd;
 

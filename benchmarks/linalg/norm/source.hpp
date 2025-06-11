@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/ctmd_full.hpp"
-#include "ctmd/linalg/ctmd_linalg_norm.hpp"
+#include "ctmd/full.hpp"
+#include "ctmd/linalg/norm.hpp"
 
 namespace md = ctmd;
 
