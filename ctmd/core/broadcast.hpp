@@ -298,6 +298,8 @@ inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
     detail::batch_impl_none<BatchRank>(std::forward<Func>(func), ins, args);
 }
 
+} // namespace detail
+
 template <typename T, extents_c exts_t>
 [[nodiscard]] inline constexpr auto create_out(const exts_t &exts) noexcept {
     if constexpr (exts_t::rank() == 0) {
@@ -307,8 +309,6 @@ template <typename T, extents_c exts_t>
         return ctmd::mdarray<T, exts_t>{exts};
     }
 }
-
-} // namespace detail
 
 template <typename T = int8_t, mdspan_c... ins_t, extents_c... uinexts_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
@@ -325,7 +325,7 @@ create_out(const std::tuple<ins_t...> &ins,
                 std::get<Is>(ins).extents())...));
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    return detail::create_out<element_t>(
+    return create_out<element_t>(
         core::concatenate(bexts, std::get<sizeof...(ins_t)>(uinexts)));
 }
 
@@ -345,7 +345,7 @@ create_out(const std::tuple<ins_t...> &ins,
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
     return [&uinexts, &bexts]<size_t... Is>(std::index_sequence<Is...>) {
-        return std::tuple{detail::create_out<element_t>(core::concatenate(
+        return std::tuple{create_out<element_t>(core::concatenate(
             bexts, std::get<sizeof...(ins_t) + Is>(uinexts)))...};
     }(std::make_index_sequence<sizeof...(uinexts_t) - sizeof...(ins_t)>{});
 }

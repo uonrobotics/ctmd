@@ -4,6 +4,7 @@
 #include <random>
 
 #include "../copy.hpp"
+#include "../empty.hpp"
 
 namespace ctmd {
 namespace random {
@@ -110,7 +111,7 @@ template <floating_point_c T, extents_c exts_t = extents<size_t>>
 [[nodiscard]] inline constexpr auto
 rand(const exts_t &exts = exts_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
-    auto out = core::detail::create_out<T>(exts);
+    auto out = empty<T>(exts);
     rand(out, mpmode);
     return out;
 }

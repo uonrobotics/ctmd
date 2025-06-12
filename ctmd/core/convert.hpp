@@ -26,11 +26,16 @@ template <typename InType>
 
 template <mdspan_c in_t>
 [[nodiscard]] inline constexpr auto to_const(const in_t &in) noexcept {
-    using const_element_t = const typename in_t::element_type;
-    return mdspan<const_element_t, typename in_t::extents_type,
-                  typename in_t::layout_type,
-                  default_accessor<const_element_t>>(in.data_handle(),
-                                                     in.mapping(), {});
+    if constexpr (std::is_const_v<typename in_t::element_type>) {
+        return in;
+
+    } else {
+        using const_element_t = const typename in_t::element_type;
+        return mdspan<const_element_t, typename in_t::extents_type,
+                      typename in_t::layout_type,
+                      default_accessor<const_element_t>>(in.data_handle(),
+                                                         in.mapping(), {});
+    }
 }
 
 template <typename InType>
