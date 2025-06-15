@@ -123,20 +123,19 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
     // concatenate
     [&ins, &out]<size_t... Is>(std::index_sequence<Is...>) {
         (([&] {
-             const size_t a = [&]<size_t... Js>(std::index_sequence<Js...>) {
-                 return (0 + ... + std::get<Js>(ins).extent(axis));
-             }(std::make_index_sequence<Is>{});
-
-             const size_t b = std::get<Is>(ins).extent(axis);
+             const size_t offset =
+                 [&]<size_t... Js>(std::index_sequence<Js...>) {
+                     return (0 + ... + std::get<Js>(ins).extent(axis));
+                 }(std::make_index_sequence<Is>{});
+             const size_t extent = std::get<Is>(ins).extent(axis);
+             constexpr size_t stride = 1;
 
              ctmd::copy(std::get<Is>(ins),
-                        std::apply(
-                            [&](auto &&...heads) {
-                                return core::submdspan_from_start(
-                                    out, heads...,
-                                    ctmd::strided_slice{a, b, 1});
-                            },
-                            core::detail::full_extents_tuple<axis>()));
+                        [&]<size_t... Js>(std::index_sequence<Js...>) {
+                            return core::submdspan_from_left(
+                                out, ((void)Js, ctmd::full_extent)...,
+                                ctmd::strided_slice{offset, extent, stride});
+                        }(std::make_index_sequence<axis>{}));
          })(),
          ...);
     }(std::make_index_sequence<num_ins>{});

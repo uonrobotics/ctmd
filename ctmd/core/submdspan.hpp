@@ -5,69 +5,37 @@
 
 namespace ctmd {
 namespace core {
-namespace detail {
 
-template <size_t... Is>
-[[nodiscard]] constexpr auto
-full_extents_tuple(std::index_sequence<Is...>) noexcept {
-    return std::tuple{((void)Is, full_extent)...};
-}
-
-template <size_t Rank>
-[[nodiscard]] constexpr auto full_extents_tuple() noexcept {
-    return full_extents_tuple(std::make_index_sequence<Rank>{});
-}
-
-template <mdspan_c in_t, typename tails_t, typename... slices_t>
-[[nodiscard]] constexpr auto submdspan_from_start_impl(const in_t &in,
-                                                       tails_t &&tails,
-                                                       slices_t &&...slices) {
-    return std::apply(
-        [&](auto &&...tails) {
-            return submdspan(in, std::forward<slices_t>(slices)..., tails...);
-        },
-        std::forward<tails_t>(tails));
-}
-
-template <mdspan_c in_t, typename heads_t, typename... slices_t>
-[[nodiscard]] constexpr auto submdspan_from_last_impl(const in_t &in,
-                                                      heads_t &&heads,
-                                                      slices_t &&...slices) {
-    return std::apply(
-        [&](auto &&...heads) {
-            return submdspan(in, heads..., std::forward<slices_t>(slices)...);
-        },
-        std::forward<heads_t>(heads));
-}
-
-} // namespace detail
-
-template <typename in_t, typename... slices_t>
+template <typename InType, typename... slices_t>
 [[nodiscard]] inline constexpr auto
-submdspan_from_start(in_t &&in, slices_t &&...slices) noexcept {
+submdspan_from_left(InType &&In, slices_t &&...slices) noexcept {
     // NOTE: use non-const rin to avoid unnecessary copies
-    auto rin = to_mdspan(std::forward<in_t>(in));
+    auto in = to_mdspan(std::forward<InType>(In));
 
-    constexpr auto full_exts =
-        detail::full_extents_tuple<decltype(rin)::rank() -
-                                   sizeof...(slices_t)>();
+    static_assert(decltype(in)::rank() >= sizeof...(slices_t),
+                  "The number of slices must not exceed the rank of the input "
+                  "mdspan.");
 
-    return detail::submdspan_from_start_impl(rin, full_exts,
-                                             std::forward<slices_t>(slices)...);
+    return [&in, &slices...]<size_t... Is>(std::index_sequence<Is...>) {
+        return ctmd::submdspan(in, std::forward<slices_t>(slices)...,
+                               ((void)Is, ctmd::full_extent)...);
+    }(std::make_index_sequence<decltype(in)::rank() - sizeof...(slices_t)>{});
 }
 
-template <typename in_t, typename... slices_t>
+template <typename InType, typename... slices_t>
 [[nodiscard]] inline constexpr auto
-submdspan_from_last(in_t &&in, slices_t &&...slices) noexcept {
+submdspan_from_right(InType &&In, slices_t &&...slices) noexcept {
     // NOTE: use non-const rin to avoid unnecessary copies
-    auto rin = to_mdspan(std::forward<in_t>(in));
+    auto in = to_mdspan(std::forward<InType>(In));
 
-    constexpr auto full_exts =
-        detail::full_extents_tuple<decltype(rin)::rank() -
-                                   sizeof...(slices_t)>();
+    static_assert(decltype(in)::rank() >= sizeof...(slices_t),
+                  "The number of slices must not exceed the rank of the input "
+                  "mdspan.");
 
-    return detail::submdspan_from_last_impl(rin, full_exts,
-                                            std::forward<slices_t>(slices)...);
+    return [&in, &slices...]<size_t... Is>(std::index_sequence<Is...>) {
+        return ctmd::submdspan(in, ((void)Is, ctmd::full_extent)...,
+                               std::forward<slices_t>(slices)...);
+    }(std::make_index_sequence<decltype(in)::rank() - sizeof...(slices_t)>{});
 }
 
 } // namespace core

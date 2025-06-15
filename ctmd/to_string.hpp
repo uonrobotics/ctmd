@@ -22,7 +22,7 @@ template <mdspan_c in_t>
 
     } else {
         for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-            const auto in_slice = core::submdspan_from_start(in, i);
+            const auto in_slice = core::submdspan_from_left(in, i);
             str += to_string_impl(in_slice);
             if (i < in.extent(0) - 1) {
                 str += ", ";

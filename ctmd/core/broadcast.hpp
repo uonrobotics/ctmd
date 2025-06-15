@@ -200,8 +200,8 @@ make_submdspan_tuple(const std::tuple<ins_t...> &ins,
     return std::apply(
         [&](auto &&...elems) {
             return std::tuple{
-                submdspan_from_start(std::forward<decltype(elems)>(elems),
-                                     std::forward<slices_t>(slices)...)...};
+                submdspan_from_left(std::forward<decltype(elems)>(elems),
+                                    std::forward<slices_t>(slices)...)...};
         },
         ins);
 }
