@@ -91,7 +91,7 @@ inline constexpr void matmul(In1Type &&In1, In2Type &&In2, OutType &&Out,
         std::tuple{core::slice_from_last<2>(in1.extents()),
                    core::slice_from_last<2>(in2.extents()),
                    core::slice_from_last<2>(out.extents())},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <typename In1Type, typename In2Type>
@@ -115,7 +115,7 @@ matmul(In1Type &&In1, In2Type &&In2,
             detail::matmul_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in1, in2}, std::tuple{uin1_exts, uin2_exts, uout_exts},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 } // namespace linalg

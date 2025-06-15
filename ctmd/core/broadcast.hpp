@@ -184,92 +184,54 @@ broadcast_to(const in_t &in = in_t{},
 
 namespace detail {
 
-template <typename Func, mdspan_c... ins_t, typename... args_t, size_t... Is,
-          size_t... Js>
-inline constexpr void batch_call(Func &&func, const std::tuple<ins_t...> &ins,
-                                 const std::tuple<args_t...> &args,
-                                 const std::index_sequence<Is...> &,
-                                 const std::index_sequence<Js...> &) {
-    func(std::get<Is>(ins)..., std::get<Js>(args)...);
-}
-
-template <mdspan_c... ins_t, typename... slices_t>
-[[nodiscard]] inline constexpr auto
-make_submdspan_tuple(const std::tuple<ins_t...> &ins,
-                     slices_t &&...slices) noexcept {
-    return std::apply(
-        [&](auto &&...elems) {
-            return std::tuple{
-                submdspan_from_left(std::forward<decltype(elems)>(elems),
-                                    std::forward<slices_t>(slices)...)...};
-        },
-        ins);
-}
-
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline constexpr void
-batch_impl_none(Func &&func, const std::tuple<ins_t...> &ins,
-                const std::tuple<args_t...> &args) noexcept {
+template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
+inline constexpr void batch_impl_none_new(Func &&func, const in_t &in,
+                                          const ins_t &...ins) noexcept {
     if constexpr (BatchRank == 0) {
-        batch_call(std::forward<Func>(func), ins, args,
-                   std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<args_t...>{});
+        std::forward<Func>(func)(in, ins...);
 
     } else {
-        using index_type =
-            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
-        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
-                                           make_submdspan_tuple(ins, i), args);
+        for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
+            batch_impl_none_new<BatchRank - 1>(std::forward<Func>(func),
+                                               submdspan_from_left(in, i),
+                                               submdspan_from_left(ins, i)...);
         }
     }
 }
 
 #ifdef _OPENMP
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline void batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
-                             const std::tuple<args_t...> &args) noexcept {
+template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
+inline constexpr void batch_impl_cpump_new(Func &&func, const in_t &in,
+                                           const ins_t &...ins) noexcept {
     if constexpr (BatchRank == 0) {
-        batch_call(std::forward<Func>(func), ins, args,
-                   std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<args_t...>{});
+        std::forward<Func>(func)(in, ins...);
 
     } else {
-        using index_type =
-            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
 #pragma omp parallel for
-        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
-                                           make_submdspan_tuple(ins, i), args);
+        for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
+            batch_impl_none_new<BatchRank - 1>(std::forward<Func>(func),
+                                               submdspan_from_left(in, i),
+                                               submdspan_from_left(ins, i)...);
         }
     }
 }
 
 #if false // TODO: fix this
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline  void
-batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<args_t...> &args) noexcept {
+
+template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
+inline constexpr void batch_impl_gpump_new(Func &&func, const in_t &in,
+                                           const ins_t &...ins) noexcept {
     if constexpr (BatchRank == 0) {
-        batch_call(std::forward<Func>(func), ins, args,
-                   std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<args_t...>{});
+        std::forward<Func>(func)(in, ins...);
 
     } else {
-        using index_type =
-            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
 #pragma omp target teams distribute parallel for
-        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
-                                      make_submdspan_tuple(ins, i), args);
+        for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
+            batch_impl_none_new<BatchRank - 1>(std::forward<Func>(func),
+                                               submdspan_from_left(in, i),
+                                               submdspan_from_left(ins, i)...);
         }
     }
 }
@@ -278,16 +240,15 @@ batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
 
 #endif
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
-                                 const std::tuple<args_t...> &args,
-                                 const MPMode mpmode) noexcept {
+template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
+inline constexpr void batch_impl_new(Func &&func, const MPMode mpmode,
+                                     const in_t &in,
+                                     const ins_t &...ins) noexcept {
     if (!std::is_constant_evaluated()) [[likely]] {
         if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
-            detail::batch_impl_cpump<BatchRank>(std::forward<Func>(func), ins,
-                                                args);
+            batch_impl_cpump_new<BatchRank>(std::forward<Func>(func), in,
+                                            ins...);
             return;
 #else
             assert(false);
@@ -295,7 +256,7 @@ inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
         }
     }
 
-    detail::batch_impl_none<BatchRank>(std::forward<Func>(func), ins, args);
+    batch_impl_none_new<BatchRank>(std::forward<Func>(func), in, ins...);
 }
 
 } // namespace detail
@@ -350,12 +311,10 @@ create_out(const std::tuple<ins_t...> &ins,
     }(std::make_index_sequence<sizeof...(uinexts_t) - sizeof...(ins_t)>{});
 }
 
-template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
-          typename... args_t>
+template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t))
 inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                             const std::tuple<uinexts_t...> &uinexts,
-                            const std::tuple<args_t...> &args,
                             const MPMode mpmode) noexcept {
     constexpr bool need_batch = []<size_t... Is>(std::index_sequence<Is...>) {
         return ((std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() !=
@@ -365,7 +324,13 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
 
     if constexpr (!need_batch) {
         // Pass directly to the function
-        detail::batch_impl_none<0>(std::forward<Func>(func), ins, args);
+        std::apply(
+            [&](auto &&...elems) {
+                detail::batch_impl_none_new<0>(
+                    std::forward<Func>(func),
+                    std::forward<decltype(elems)>(elems)...);
+            },
+            ins);
 
     } else {
         constexpr bool possibly_not_bcast = []<size_t... Is>(
@@ -415,12 +380,22 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                                         std::get<Is>(uinexts)))...};
                     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-                    detail::batch_impl<1>(std::forward<Func>(func), fins, args,
-                                          mpmode);
+                    std::apply(
+                        [&](auto &&...elems) {
+                            detail::batch_impl_new<1>(
+                                std::forward<Func>(func), mpmode,
+                                std::forward<decltype(elems)>(elems)...);
+                        },
+                        fins);
 
                 } else {
-                    detail::batch_impl<brank>(std::forward<Func>(func), ins,
-                                              args, mpmode);
+                    std::apply(
+                        [&](auto &&...elems) {
+                            detail::batch_impl_new<brank>(
+                                std::forward<Func>(func), mpmode,
+                                std::forward<decltype(elems)>(elems)...);
+                        },
+                        ins);
                 }
 
                 return;
@@ -445,41 +420,47 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                              concatenate(bexts, std::get<Is>(uinexts)))...};
         }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-        detail::batch_impl<brank>(std::forward<Func>(func), bins, args, mpmode);
+        std::apply(
+            [&](auto &&...elems) {
+                detail::batch_impl_new<brank>(
+                    std::forward<Func>(func), mpmode,
+                    std::forward<decltype(elems)>(elems)...);
+            },
+            bins);
     }
 }
 
 template <typename T = int8_t, typename Func, mdspan_c... ins_t,
-          extents_c... uinexts_t, typename... args_t>
+          extents_c... uinexts_t>
     requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
 [[nodiscard]] inline constexpr auto
 batch_out(Func &&func, const std::tuple<ins_t...> &ins,
           const std::tuple<uinexts_t...> &uinexts,
-          const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
+          const MPMode mpmode) noexcept {
     auto out = create_out<T>(ins, uinexts);
 
     batch(std::forward<Func>(func),
-          std::tuple_cat(ins, std::make_tuple(to_mdspan(out))), uinexts, args,
+          std::tuple_cat(ins, std::make_tuple(to_mdspan(out))), uinexts,
           mpmode);
 
     return out;
 }
 
 template <typename T = int8_t, typename Func, mdspan_c... ins_t,
-          extents_c... uinexts_t, typename... args_t>
+          extents_c... uinexts_t>
     requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
 [[nodiscard]] inline constexpr auto
 batch_out(Func &&func, const std::tuple<ins_t...> &ins,
           const std::tuple<uinexts_t...> &uinexts,
-          const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
+          const MPMode mpmode) noexcept {
     auto outs = create_out<T>(ins, uinexts);
 
-    [&func, &ins, &outs, &uinexts, &args,
+    [&func, &ins, &outs, &uinexts,
      &mpmode]<size_t... Is>(std::index_sequence<Is...>) {
         batch(std::forward<Func>(func),
               std::tuple_cat(ins,
                              std::make_tuple(to_mdspan(std::get<Is>(outs))...)),
-              uinexts, args, mpmode);
+              uinexts, mpmode);
     }(std::make_index_sequence<std::tuple_size_v<decltype(outs)>>{});
 
     return outs;

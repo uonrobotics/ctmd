@@ -19,11 +19,10 @@ inline constexpr void fill(InType &&In, const val_t &val,
     const auto in = core::to_mdspan(std::forward<InType>(In));
 
     core::batch(
-        [](auto &&...elems) {
-            detail::fill_impl(std::forward<decltype(elems)>(elems)...);
+        [&](auto &&...elems) {
+            detail::fill_impl(std::forward<decltype(elems)>(elems)..., val);
         },
-        std::tuple{in}, std::tuple{extents<uint8_t>{}}, std::tuple{val},
-        mpmode);
+        std::tuple{in}, std::tuple{extents<uint8_t>{}}, mpmode);
 }
 
 } // namespace ctmd

@@ -34,7 +34,7 @@ inline constexpr void clip(InType &&In, MinType &&Min, MaxType &&Max,
         std::tuple{in, min, max, out},
         std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
                    extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <typename InType, typename MinType, typename MaxType>
@@ -52,7 +52,7 @@ clip(InType &&In, MinType &&Min, MaxType &&Max,
         std::tuple{in, min, max},
         std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
                    extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 } // namespace ctmd

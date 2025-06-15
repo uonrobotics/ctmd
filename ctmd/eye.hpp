@@ -30,7 +30,7 @@ inline constexpr void eye(InType &&In,
             detail::eye_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in}, std::tuple{core::slice_from_last<2>(in.extents())},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <typename T, extents_c extents_t>

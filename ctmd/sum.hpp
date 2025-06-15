@@ -38,7 +38,7 @@ inline constexpr void sum(InType &&In, OutType &&Out,
         std::tuple{in, out},
         std::tuple{core::slice_from_last<rin_rank>(in.extents()),
                    core::slice_from_last<rin_rank - 1>(out.extents())},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <int64_t Axis, typename InType>
@@ -59,7 +59,7 @@ sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
         std::tuple{in},
         std::tuple{core::slice_from_last<rin_rank>(in.extents()),
                    core::slice_from_last<rin_rank - 1>(in.extents())},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 } // namespace ctmd

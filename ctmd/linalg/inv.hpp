@@ -84,7 +84,7 @@ inline constexpr void inv(InType &&In, OutType &&Out,
         std::tuple{in, out},
         std::tuple{core::slice_from_last<2>(in.extents()),
                    core::slice_from_last<2>(out.extents())},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <typename InType>
@@ -99,7 +99,7 @@ inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
         std::tuple{in},
         std::tuple{core::slice_from_last<2>(in.extents()),
                    core::slice_from_last<2>(in.extents())},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 } // namespace linalg

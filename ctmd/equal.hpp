@@ -27,7 +27,7 @@ inline constexpr void equal(In1Type &&In1, In2Type &&In2, OutType &&Out,
         },
         std::tuple{in1, in2, out},
         std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <typename In1Type, typename In2Type>
@@ -43,7 +43,7 @@ equal(In1Type &&In1, In2Type &&In2,
         },
         std::tuple{in1, in2},
         std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 } // namespace ctmd

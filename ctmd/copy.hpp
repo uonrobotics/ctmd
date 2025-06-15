@@ -24,7 +24,7 @@ inline constexpr void copy(InType &&In, OutType &&Out,
             detail::copy_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in, out}, std::tuple{extents<uint8_t>{}, extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 template <typename InType>
@@ -37,7 +37,7 @@ copy(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
             detail::copy_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in}, std::tuple{extents<uint8_t>{}, extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        mpmode);
 }
 
 } // namespace ctmd

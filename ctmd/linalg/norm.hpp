@@ -47,7 +47,7 @@ inline constexpr void norm(InType &&In, OutType &&Out,
             std::tuple{in, out},
             std::tuple{core::slice_from_last<1>(in.extents()),
                        extents<uint8_t>{}},
-            std::tuple{}, mpmode);
+            mpmode);
     }
 }
 
@@ -68,7 +68,7 @@ norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
             std::tuple{in},
             std::tuple{core::slice_from_last<1>(in.extents()),
                        extents<uint8_t>{}},
-            std::tuple{}, mpmode);
+            mpmode);
     }
 }
 
