@@ -185,16 +185,16 @@ broadcast_to(const in_t &in = in_t{},
 namespace detail {
 
 template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
-inline constexpr void batch_impl_none_new(Func &&func, const in_t &in,
-                                          const ins_t &...ins) noexcept {
+inline constexpr void batch_impl_none(Func &&func, const in_t &in,
+                                      const ins_t &...ins) noexcept {
     if constexpr (BatchRank == 0) {
         std::forward<Func>(func)(in, ins...);
 
     } else {
         for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
-            batch_impl_none_new<BatchRank - 1>(std::forward<Func>(func),
-                                               submdspan_from_left(in, i),
-                                               submdspan_from_left(ins, i)...);
+            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
+                                           submdspan_from_left(in, i),
+                                           submdspan_from_left(ins, i)...);
         }
     }
 }
@@ -202,17 +202,17 @@ inline constexpr void batch_impl_none_new(Func &&func, const in_t &in,
 #ifdef _OPENMP
 
 template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
-inline constexpr void batch_impl_cpump_new(Func &&func, const in_t &in,
-                                           const ins_t &...ins) noexcept {
+inline constexpr void batch_impl_cpump(Func &&func, const in_t &in,
+                                       const ins_t &...ins) noexcept {
     if constexpr (BatchRank == 0) {
         std::forward<Func>(func)(in, ins...);
 
     } else {
 #pragma omp parallel for
         for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
-            batch_impl_none_new<BatchRank - 1>(std::forward<Func>(func),
-                                               submdspan_from_left(in, i),
-                                               submdspan_from_left(ins, i)...);
+            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
+                                           submdspan_from_left(in, i),
+                                           submdspan_from_left(ins, i)...);
         }
     }
 }
@@ -221,7 +221,7 @@ inline constexpr void batch_impl_cpump_new(Func &&func, const in_t &in,
 
 
 template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
-inline constexpr void batch_impl_gpump_new(Func &&func, const in_t &in,
+inline constexpr void batch_impl_gpump(Func &&func, const in_t &in,
                                            const ins_t &...ins) noexcept {
     if constexpr (BatchRank == 0) {
         std::forward<Func>(func)(in, ins...);
@@ -229,7 +229,7 @@ inline constexpr void batch_impl_gpump_new(Func &&func, const in_t &in,
     } else {
 #pragma omp target teams distribute parallel for
         for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
-            batch_impl_none_new<BatchRank - 1>(std::forward<Func>(func),
+            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
                                                submdspan_from_left(in, i),
                                                submdspan_from_left(ins, i)...);
         }
@@ -247,8 +247,7 @@ inline constexpr void batch_impl_new(Func &&func, const MPMode mpmode,
     if (!std::is_constant_evaluated()) [[likely]] {
         if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
-            batch_impl_cpump_new<BatchRank>(std::forward<Func>(func), in,
-                                            ins...);
+            batch_impl_cpump<BatchRank>(std::forward<Func>(func), in, ins...);
             return;
 #else
             assert(false);
@@ -256,7 +255,7 @@ inline constexpr void batch_impl_new(Func &&func, const MPMode mpmode,
         }
     }
 
-    batch_impl_none_new<BatchRank>(std::forward<Func>(func), in, ins...);
+    batch_impl_none<BatchRank>(std::forward<Func>(func), in, ins...);
 }
 
 } // namespace detail
@@ -326,7 +325,7 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
         // Pass directly to the function
         std::apply(
             [&](auto &&...elems) {
-                detail::batch_impl_none_new<0>(
+                detail::batch_impl_none<0>(
                     std::forward<Func>(func),
                     std::forward<decltype(elems)>(elems)...);
             },
