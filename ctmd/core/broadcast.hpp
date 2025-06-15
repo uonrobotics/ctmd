@@ -8,7 +8,7 @@ namespace core {
 
 template <size_t SliceRank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
-slice_from_start(const in_t &in = in_t{}) noexcept {
+slice_from_left(const in_t &in = in_t{}) noexcept {
     static_assert(SliceRank <= in_t::rank(), "SliceRank exceeds rank.");
 
     return [&in]<size_t... Is>(std::index_sequence<Is...>) {
@@ -19,7 +19,7 @@ slice_from_start(const in_t &in = in_t{}) noexcept {
 
 template <size_t SliceRank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
-slice_from_last(const in_t &in = in_t{}) noexcept {
+slice_from_right(const in_t &in = in_t{}) noexcept {
     static_assert(SliceRank <= in_t::rank(), "SliceRank exceeds rank.");
 
     return [&in]<size_t... Is>(std::index_sequence<Is...>) {
@@ -185,6 +185,34 @@ inline constexpr void batch_impl_none(Func &&func, const in_t &in,
     }
 }
 
+// template <typename Func, mdspan_c in_t, mdspan_c... ins_t,
+//           extents_c... uinexts_t>
+// inline constexpr void
+// batch_impl_none_new(Func &&func, const in_t &in, const ins_t &...ins,
+//                     const std::tuple<uinexts_t...> &uinexts) noexcept {
+
+//     if constexpr (in_t::rank() ==
+//                   std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank())
+//                   {
+//         std::forward<Func>(func)(in, ins...);
+
+//     } else {
+//         for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
+//             // batch_impl_none_new(std::forward<Func>(func),
+//             //                     submdspan_from_left(in, i),
+//             //                     submdspan_from_left(ins, i)..., uinexts);
+
+//             [&]<size_t... Is>(std::index_sequence<Is...>) {
+//                 batch_impl_none_new(
+//                     std::forward<Func>(func),
+//                     submdspan_from_right(in, i,
+//                                          ((void)Is, ctmd::full_extent)...),
+//                     submdspan_from_right(ins, i)..., uinexts);
+//             }(std::make_index_sequence<sizeof...(uinexts_t)>{});
+//         }
+//     }
+// }
+
 #ifdef _OPENMP
 
 template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
@@ -263,7 +291,7 @@ create_out(const std::tuple<ins_t...> &ins,
 
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
         return broadcast(
-            slice_from_start<
+            slice_from_left<
                 std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
                 std::get<Is>(ins).extents())...);
@@ -282,7 +310,7 @@ create_out(const std::tuple<ins_t...> &ins,
 
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
         return broadcast(
-            slice_from_start<
+            slice_from_left<
                 std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
                 std::get<Is>(ins).extents())...);
@@ -338,7 +366,7 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
             const bool same_bexts = [&ins]<size_t... Is>(
                                         std::index_sequence<Is...>) {
                 return same(std::make_tuple(
-                    slice_from_start<brank>(std::get<Is>(ins).extents())...));
+                    slice_from_left<brank>(std::get<Is>(ins).extents())...));
             }(std::make_index_sequence<sizeof...(ins_t)>{});
 
             if (same_bexts) [[likely]] {
@@ -350,10 +378,10 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                 if (is_flattable) [[likely]] {
                     // Flatten batch if possible (simd friendly)
                     constexpr size_t static_bsize =
-                        static_size<decltype(slice_from_start<brank>(
+                        static_size<decltype(slice_from_left<brank>(
                             std::get<0>(ins).extents()))>();
                     const size_t bsize = size(
-                        slice_from_start<brank>(std::get<0>(ins).extents()));
+                        slice_from_left<brank>(std::get<0>(ins).extents()));
 
                     const auto fins = [&ins, &uinexts, &bsize]<size_t... Is>(
                                           std::index_sequence<Is...>) {
@@ -388,7 +416,7 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
         // Broadcasting
         const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
             return broadcast(
-                slice_from_start<
+                slice_from_left<
                     std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                     std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
                     std::get<Is>(ins).extents())...);

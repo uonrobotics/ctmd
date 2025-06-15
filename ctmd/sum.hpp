@@ -36,8 +36,8 @@ inline constexpr void sum(InType &&In, OutType &&Out,
             detail::sum_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in, out},
-        std::tuple{core::slice_from_last<rin_rank>(in.extents()),
-                   core::slice_from_last<rin_rank - 1>(out.extents())},
+        std::tuple{core::slice_from_right<rin_rank>(in.extents()),
+                   core::slice_from_right<rin_rank - 1>(out.extents())},
         mpmode);
 }
 
@@ -57,8 +57,8 @@ sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
             detail::sum_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in},
-        std::tuple{core::slice_from_last<rin_rank>(in.extents()),
-                   core::slice_from_last<rin_rank - 1>(in.extents())},
+        std::tuple{core::slice_from_right<rin_rank>(in.extents()),
+                   core::slice_from_right<rin_rank - 1>(in.extents())},
         mpmode);
 }
 

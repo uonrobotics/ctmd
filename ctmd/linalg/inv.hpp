@@ -82,8 +82,8 @@ inline constexpr void inv(InType &&In, OutType &&Out,
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in, out},
-        std::tuple{core::slice_from_last<2>(in.extents()),
-                   core::slice_from_last<2>(out.extents())},
+        std::tuple{core::slice_from_right<2>(in.extents()),
+                   core::slice_from_right<2>(out.extents())},
         mpmode);
 }
 
@@ -97,8 +97,8 @@ inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::tuple{in},
-        std::tuple{core::slice_from_last<2>(in.extents()),
-                   core::slice_from_last<2>(in.extents())},
+        std::tuple{core::slice_from_right<2>(in.extents()),
+                   core::slice_from_right<2>(in.extents())},
         mpmode);
 }
 
