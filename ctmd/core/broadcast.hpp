@@ -219,7 +219,6 @@ inline constexpr void batch_impl_cpump(Func &&func, const in_t &in,
 
 #if false // TODO: fix this
 
-
 template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
 inline constexpr void batch_impl_gpump(Func &&func, const in_t &in,
                                            const ins_t &...ins) noexcept {
@@ -241,9 +240,8 @@ inline constexpr void batch_impl_gpump(Func &&func, const in_t &in,
 #endif
 
 template <size_t BatchRank, typename Func, mdspan_c in_t, mdspan_c... ins_t>
-inline constexpr void batch_impl_new(Func &&func, const MPMode mpmode,
-                                     const in_t &in,
-                                     const ins_t &...ins) noexcept {
+inline constexpr void batch_impl(Func &&func, const MPMode mpmode,
+                                 const in_t &in, const ins_t &...ins) noexcept {
     if (!std::is_constant_evaluated()) [[likely]] {
         if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
@@ -381,7 +379,7 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
 
                     std::apply(
                         [&](auto &&...elems) {
-                            detail::batch_impl_new<1>(
+                            detail::batch_impl<1>(
                                 std::forward<Func>(func), mpmode,
                                 std::forward<decltype(elems)>(elems)...);
                         },
@@ -390,7 +388,7 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
                 } else {
                     std::apply(
                         [&](auto &&...elems) {
-                            detail::batch_impl_new<brank>(
+                            detail::batch_impl<brank>(
                                 std::forward<Func>(func), mpmode,
                                 std::forward<decltype(elems)>(elems)...);
                         },
@@ -421,7 +419,7 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
 
         std::apply(
             [&](auto &&...elems) {
-                detail::batch_impl_new<brank>(
+                detail::batch_impl<brank>(
                     std::forward<Func>(func), mpmode,
                     std::forward<decltype(elems)>(elems)...);
             },
