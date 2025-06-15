@@ -74,6 +74,12 @@ constexpr size_t broadcast_static_extent() {
 
 } // namespace detail
 
+template <extents_c in_t>
+[[nodiscard]] inline constexpr auto
+broadcast(const in_t &in = in_t{}) noexcept {
+    return in;
+}
+
 template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 [[nodiscard]] inline constexpr auto broadcast(const in1_t &in1 = in1_t{},
                                               const in2_t &in2 = in2_t{},
@@ -104,26 +110,6 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 
     } else {
         return broadcast(bexts, ins...);
-    }
-}
-
-template <extents_c... ins_t>
-[[nodiscard]] inline constexpr auto
-broadcast(const std::tuple<ins_t...> &ins) noexcept {
-    constexpr size_t ins_num =
-        std::tuple_size_v<std::remove_reference_t<decltype(ins)>>;
-
-    static_assert(ins_num > 0, "broadcast requires at least one input.");
-
-    if constexpr (ins_num == 1) {
-        return std::get<0>(ins);
-
-    } else {
-        return std::apply(
-            [&](auto &&...ins_refs) {
-                return broadcast(std::forward<decltype(ins_refs)>(ins_refs)...);
-            },
-            ins);
     }
 }
 
@@ -276,11 +262,11 @@ create_out(const std::tuple<ins_t...> &ins,
     using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
 
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
+        return broadcast(
             slice_from_start<
                 std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
+                std::get<Is>(ins).extents())...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
     return create_out<element_t>(
@@ -295,11 +281,11 @@ create_out(const std::tuple<ins_t...> &ins,
     using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
 
     const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
+        return broadcast(
             slice_from_start<
                 std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
+                std::get<Is>(ins).extents())...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
     return [&uinexts, &bexts]<size_t... Is>(std::index_sequence<Is...>) {
@@ -401,11 +387,11 @@ inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
 
         // Broadcasting
         const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-            return broadcast(std::make_tuple(
+            return broadcast(
                 slice_from_start<
                     std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
                     std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                    std::get<Is>(ins).extents())...));
+                    std::get<Is>(ins).extents())...);
         }(std::make_index_sequence<sizeof...(ins_t)>{});
 
         constexpr size_t brank = decltype(bexts)::rank();
