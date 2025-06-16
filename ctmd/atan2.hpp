@@ -31,9 +31,7 @@ inline constexpr void atan2(In1Type &&In1, In2Type &&In2, OutType &&Out,
         [](auto &&...elems) {
             detail::atan2_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2, out},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        std::index_sequence<0, 0, 0>{}, mpmode, in1, in2, out);
 }
 
 template <typename In1Type, typename In2Type>
@@ -47,9 +45,8 @@ atan2(In1Type &&In1, In2Type &&In2,
         [](auto &&...elems) {
             detail::atan2_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
-        std::tuple{}, mpmode);
+        std::index_sequence<0, 0>{}, ctmd::extents<uint8_t>{}, mpmode, in1,
+        in2);
 }
 
 } // namespace ctmd

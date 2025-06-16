@@ -6,27 +6,29 @@
 namespace ctmd {
 namespace core {
 
-template <size_t SliceRank, extents_c in_t>
+template <size_t offset, size_t rank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
-slice_from_start(const in_t &in = in_t{}) noexcept {
-    static_assert(SliceRank <= in_t::rank(), "SliceRank exceeds rank.");
+slice_with_offset(const in_t &in = in_t{}) noexcept {
+    static_assert(in_t::rank() >= offset + rank,
+                  "Incompatible offset and rank for slicing.");
 
-    return [&in]<size_t... Is>(std::index_sequence<Is...>) {
-        return extents<typename in_t::index_type, in_t::static_extent(Is)...>{
-            in.extent(Is)...};
-    }(std::make_index_sequence<SliceRank>{});
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return extents<typename in_t::index_type,
+                       in_t::static_extent(offset + Is)...>{
+            in.extent(offset + Is)...};
+    }(std::make_index_sequence<rank>{});
 }
 
-template <size_t SliceRank, extents_c in_t>
+template <size_t rank, extents_c in_t>
 [[nodiscard]] inline constexpr auto
-slice_from_last(const in_t &in = in_t{}) noexcept {
-    static_assert(SliceRank <= in_t::rank(), "SliceRank exceeds rank.");
+slice_from_left(const in_t &in = in_t{}) noexcept {
+    return slice_with_offset<0, rank>(in);
+}
 
-    return [&in]<size_t... Is>(std::index_sequence<Is...>) {
-        return extents<typename in_t::index_type,
-                       in_t::static_extent(in_t::rank() - SliceRank + Is)...>{
-            in.extent(in_t::rank() - SliceRank + Is)...};
-    }(std::make_index_sequence<SliceRank>{});
+template <size_t rank, extents_c in_t>
+[[nodiscard]] inline constexpr auto
+slice_from_right(const in_t &in = in_t{}) noexcept {
+    return slice_with_offset<in_t::rank() - rank, rank>(in);
 }
 
 template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
@@ -37,8 +39,8 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
                                        typename in2_t::index_type>;
 
     const auto cexts =
-        [&in1, &in2]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
-                                                 std::index_sequence<Js...>) {
+        [&]<size_t... Is, size_t... Js>(std::index_sequence<Is...>,
+                                        std::index_sequence<Js...>) {
             return extents<index_t, in1_t::static_extent(Is)...,
                            in2_t::static_extent(Js)...>{
                 static_cast<index_t>(in1.extent(Is))...,
@@ -74,6 +76,12 @@ constexpr size_t broadcast_static_extent() {
 
 } // namespace detail
 
+template <extents_c in_t>
+[[nodiscard]] inline constexpr auto
+broadcast(const in_t &in = in_t{}) noexcept {
+    return in;
+}
+
 template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 [[nodiscard]] inline constexpr auto broadcast(const in1_t &in1 = in1_t{},
                                               const in2_t &in2 = in2_t{},
@@ -82,10 +90,9 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
                                        typename in2_t::index_type>;
     constexpr size_t brank = std::max(in1_t::rank(), in2_t::rank());
 
-    const auto bexts = [&in1, &in2]<size_t... Is>(std::index_sequence<Is...>) {
+    const auto bexts = [&]<size_t... Is>(std::index_sequence<Is...>) {
         return extents<index_t, detail::broadcast_static_extent<
-                                    in1_t, in2_t, Is, brank>()...>{[&in1,
-                                                                    &in2]() {
+                                    in1_t, in2_t, Is, brank>()...>{[&]() {
             const size_t x1 = (Is < brank - in1_t::rank()
                                    ? 1
                                    : in1.extent(Is - (brank - in1_t::rank())));
@@ -107,65 +114,57 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
     }
 }
 
-template <extents_c... ins_t>
-[[nodiscard]] inline constexpr auto
-broadcast(const std::tuple<ins_t...> &ins) noexcept {
-    constexpr size_t ins_num =
-        std::tuple_size_v<std::remove_reference_t<decltype(ins)>>;
-
-    static_assert(ins_num > 0, "broadcast requires at least one input.");
-
-    if constexpr (ins_num == 1) {
-        return std::get<0>(ins);
-
-    } else {
-        return std::apply(
-            [&](auto &&...ins_refs) {
-                return broadcast(std::forward<decltype(ins_refs)>(ins_refs)...);
-            },
-            ins);
-    }
-}
-
-template <mdspan_c in_t, extents_c extents_t>
+template <size_t offset, size_t brank, mdspan_c in_t, extents_c new_bexts_t>
 [[nodiscard]] inline constexpr auto
 broadcast_to(const in_t &in = in_t{},
-             const extents_t &new_extents = extents_t{}) noexcept {
-    if constexpr (in_t::rank() == extents_t::rank() &&
-                  in_t::rank_dynamic() == 0 && extents_t::rank_dynamic() == 0 &&
+             const new_bexts_t &new_bexts = new_bexts_t{}) noexcept {
+    constexpr size_t urank = in_t::rank() - brank;
+
+    static_assert(in_t::rank() >= offset + brank,
+                  "Incompatible offset and brank for broadcasting.");
+    static_assert(new_bexts_t::rank() >= brank,
+                  "Incompatible brank for broadcasting.");
+
+    if constexpr (brank == new_bexts_t::rank() &&
                   []<size_t... Is>(std::index_sequence<Is...>) {
-                      return ((in_t::static_extent(Is) ==
-                               extents_t::static_extent(Is)) &&
+                      return ((in_t::static_extent(offset + Is) != ctmd::dyn &&
+                               in_t::static_extent(offset + Is) ==
+                                   new_bexts_t::static_extent(Is)) &&
                               ...);
-                  }(std::make_index_sequence<in_t::rank()>{})) {
+                  }(std::make_index_sequence<brank>{})) {
         return in;
 
     } else if constexpr (in_t::rank() == 0) {
-        auto new_strides =
-            std::array<typename extents_t::size_type, extents_t::rank()>{};
+        using size_type = typename new_bexts_t::size_type;
 
-        for (size_t i = 0; i < extents_t::rank(); i++) {
+        auto new_strides = std::array<size_type, new_bexts_t::rank()>{};
+
+        for (size_t i = 0; i < new_bexts_t::rank(); i++) {
             new_strides[i] = 0;
         }
 
-        return mdspan<typename in_t::element_type, extents_t, layout_stride,
+        return mdspan<typename in_t::element_type, new_bexts_t, layout_stride,
                       typename in_t::accessor_type>{
-            in.data_handle(), layout_stride::mapping{new_extents, new_strides}};
+            in.data_handle(), layout_stride::mapping{new_bexts, new_strides}};
 
     } else {
-        auto new_strides =
-            std::array<typename extents_t::size_type, extents_t::rank()>{};
+        using size_type = std::common_type_t<typename in_t::size_type,
+                                             typename new_bexts_t::size_type>;
 
-        for (size_t i = 0; i < extents_t::rank(); i++) {
-            if (i < extents_t::rank() - in_t::rank()) {
+        auto new_strides = std::array<size_type, urank + new_bexts_t::rank()>{};
+
+        for (size_t i = 0; i < new_strides.size(); i++) {
+            if (i < offset) {
+                new_strides[i] = static_cast<size_type>(in.stride(i));
+
+            } else if (i < offset + (new_bexts_t::rank() - brank)) {
                 new_strides[i] = 0;
 
-            } else {
-                const size_t j = i - (extents_t::rank() - in_t::rank());
+            } else if (i < offset + new_bexts_t::rank()) {
+                const size_t j = i - (new_bexts_t::rank() - brank);
 
-                if (in.extent(j) == new_extents.extent(i)) {
-                    new_strides[i] = static_cast<typename extents_t::size_type>(
-                        in.stride(j));
+                if (in.extent(j) == new_bexts.extent(i - offset)) {
+                    new_strides[i] = static_cast<size_type>(in.stride(j));
 
                 } else if (in.extent(j) == 1) {
                     new_strides[i] = 0;
@@ -173,10 +172,27 @@ broadcast_to(const in_t &in = in_t{},
                 } else {
                     assert(false);
                 }
+
+            } else {
+                new_strides[i] = static_cast<size_type>(
+                    in.stride(i - (new_bexts_t::rank() - brank)));
             }
         }
 
-        return mdspan<typename in_t::element_type, extents_t, layout_stride,
+        const auto new_extents = [&]() {
+            if constexpr (offset == 0) {
+                return concatenate(new_bexts,
+                                   slice_from_right<urank>(in.extents()));
+
+            } else {
+                return concatenate(
+                    slice_from_left<offset>(in.extents()), new_bexts,
+                    slice_from_right<urank - offset>(in.extents()));
+            }
+        }();
+
+        return mdspan<typename in_t::element_type,
+                      std::remove_const_t<decltype(new_extents)>, layout_stride,
                       typename in_t::accessor_type>{
             in.data_handle(), layout_stride::mapping{new_extents, new_strides}};
     }
@@ -184,110 +200,67 @@ broadcast_to(const in_t &in = in_t{},
 
 namespace detail {
 
-template <typename Func, mdspan_c... ins_t, typename... args_t, size_t... Is,
-          size_t... Js>
-inline constexpr void batch_call(Func &&func, const std::tuple<ins_t...> &ins,
-                                 const std::tuple<args_t...> &args,
-                                 const std::index_sequence<Is...> &,
-                                 const std::index_sequence<Js...> &) {
-    func(std::get<Is>(ins)..., std::get<Js>(args)...);
-}
-
-template <mdspan_c... ins_t, typename... slices_t>
-[[nodiscard]] inline constexpr auto
-make_submdspan_tuple(const std::tuple<ins_t...> &ins,
-                     slices_t &&...slices) noexcept {
-    return std::apply(
-        [&](auto &&...elems) {
-            return std::tuple{
-                submdspan_from_left(std::forward<decltype(elems)>(elems),
-                                    std::forward<slices_t>(slices)...)...};
-        },
-        ins);
-}
-
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
+template <size_t brank, typename Func, size_t offset, size_t... offsets,
+          mdspan_c in_t, mdspan_c... ins_t>
 inline constexpr void
-batch_impl_none(Func &&func, const std::tuple<ins_t...> &ins,
-                const std::tuple<args_t...> &args) noexcept {
-    if constexpr (BatchRank == 0) {
-        batch_call(std::forward<Func>(func), ins, args,
-                   std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<args_t...>{});
+batch_impl_none(Func &&func, std::index_sequence<offset, offsets...>,
+                const in_t &in, const ins_t &...ins) noexcept {
+    static_assert(sizeof...(offsets) == sizeof...(ins_t),
+                  "Number of offsets must match number of inputs.");
+
+    if constexpr (brank == 0) {
+        std::forward<Func>(func)(in, ins...);
 
     } else {
-        using index_type =
-            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
-        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
-                                           make_submdspan_tuple(ins, i), args);
+        for (size_t i = 0; i < in.extent(offset); i++) {
+            batch_impl_none<brank - 1>(
+                std::forward<Func>(func),
+                std::index_sequence<offset, offsets...>{},
+                submdspan_from_left<offset>(in, i),
+                submdspan_from_left<offsets>(ins, i)...);
         }
     }
 }
 
 #ifdef _OPENMP
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline void batch_impl_cpump(Func &&func, const std::tuple<ins_t...> &ins,
-                             const std::tuple<args_t...> &args) noexcept {
-    if constexpr (BatchRank == 0) {
-        batch_call(std::forward<Func>(func), ins, args,
-                   std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<args_t...>{});
+template <size_t brank, typename Func, size_t offset, size_t... offsets,
+          mdspan_c in_t, mdspan_c... ins_t>
+inline constexpr void
+batch_impl_cpump(Func &&func, std::index_sequence<offset, offsets...>,
+                 const in_t &in, const ins_t &...ins) noexcept {
+    static_assert(sizeof...(offsets) == sizeof...(ins_t),
+                  "Number of offsets must match number of inputs.");
+
+    if constexpr (brank == 0) {
+        std::forward<Func>(func)(in, ins...);
 
     } else {
-        using index_type =
-            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
 #pragma omp parallel for
-        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
-                                           make_submdspan_tuple(ins, i), args);
-        }
-    }
-}
-
-#if false // TODO: fix this
-
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline  void
-batch_impl_gpump(Func &&func, const std::tuple<ins_t...> &ins,
-                 const std::tuple<args_t...> &args) noexcept {
-    if constexpr (BatchRank == 0) {
-        batch_call(std::forward<Func>(func), ins, args,
-                   std::index_sequence_for<ins_t...>{},
-                   std::index_sequence_for<args_t...>{});
-
-    } else {
-        using index_type =
-            typename std::tuple_element_t<0, std::tuple<ins_t...>>::index_type;
-
-#pragma omp target teams distribute parallel for
-        for (index_type i = 0; i < std::get<0>(ins).extent(0); i++) {
-            batch_impl_none<BatchRank - 1>(std::forward<Func>(func),
-                                      make_submdspan_tuple(ins, i), args);
+        for (size_t i = 0; i < in.extent(offset); i++) {
+            batch_impl_none<brank - 1>(
+                std::forward<Func>(func),
+                std::index_sequence<offset, offsets...>{},
+                submdspan_from_left<offset>(in, i),
+                submdspan_from_left<offsets>(ins, i)...);
         }
     }
 }
 
 #endif
 
-#endif
+template <size_t brank, typename Func, size_t... offsets, mdspan_c... ins_t>
+inline constexpr void batch_impl(Func &&func, std::index_sequence<offsets...>,
+                                 const MPMode mpmode,
+                                 const ins_t &...ins) noexcept {
+    static_assert(sizeof...(offsets) == sizeof...(ins_t),
+                  "Number of offsets must match number of inputs.");
 
-template <size_t BatchRank, typename Func, mdspan_c... ins_t,
-          typename... args_t>
-inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
-                                 const std::tuple<args_t...> &args,
-                                 const MPMode mpmode) noexcept {
     if (!std::is_constant_evaluated()) [[likely]] {
         if (mpmode == MPMode::CPUMP) [[unlikely]] {
 #ifdef _OPENMP
-            detail::batch_impl_cpump<BatchRank>(std::forward<Func>(func), ins,
-                                                args);
+            batch_impl_cpump<brank>(std::forward<Func>(func),
+                                    std::index_sequence<offsets...>{}, ins...);
             return;
 #else
             assert(false);
@@ -295,7 +268,8 @@ inline constexpr void batch_impl(Func &&func, const std::tuple<ins_t...> &ins,
         }
     }
 
-    detail::batch_impl_none<BatchRank>(std::forward<Func>(func), ins, args);
+    batch_impl_none<brank>(std::forward<Func>(func),
+                           std::index_sequence<offsets...>{}, ins...);
 }
 
 } // namespace detail
@@ -310,179 +284,253 @@ template <typename T, extents_c exts_t>
     }
 }
 
-template <typename T = int8_t, mdspan_c... ins_t, extents_c... uinexts_t>
-    requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
+template <typename T = int8_t, size_t... offsets, size_t... uranks,
+          extents_c uout_exts_t, mdspan_c... ins_t>
+    requires(sizeof...(offsets) == sizeof...(ins_t) + 1 &&
+             sizeof...(uranks) == sizeof...(ins_t))
 [[nodiscard]] inline constexpr auto
-create_out(const std::tuple<ins_t...> &ins,
-           const std::tuple<uinexts_t...> &uinexts) noexcept {
+create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
+           const uout_exts_t &uout_exts, const ins_t &...ins) noexcept {
     using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
 
-    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
-            slice_from_start<
-                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
+    constexpr auto ofst = std::array{offsets...};
+    constexpr auto ur = std::array{uranks...};
+    constexpr auto br = [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return std::array{
+            (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+             ur[Is])...};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    return create_out<element_t>(
-        core::concatenate(bexts, std::get<sizeof...(ins_t)>(uinexts)));
+    auto ins_tuple = std::forward_as_tuple(ins...);
+
+    const auto bexts = [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return broadcast(slice_with_offset<ofst[Is], br[Is]>(
+            std::get<Is>(ins_tuple).extents())...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    constexpr size_t uout_offset = ofst[sizeof...(ins_t)];
+
+    return create_out<element_t>(core::concatenate(
+        slice_from_left<uout_offset>(uout_exts), bexts,
+        slice_from_right<uout_exts_t::rank() - uout_offset>(uout_exts)));
 }
 
-template <typename T = int8_t, mdspan_c... ins_t, extents_c... uinexts_t>
-    requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
+template <typename T = int8_t, size_t... offsets, size_t... uranks,
+          extents_c... uouts_exts_t, mdspan_c... ins_t>
+    requires(sizeof...(offsets) == sizeof...(ins_t) + sizeof...(uouts_exts_t) &&
+             sizeof...(uranks) == sizeof...(ins_t))
 [[nodiscard]] inline constexpr auto
-create_out(const std::tuple<ins_t...> &ins,
-           const std::tuple<uinexts_t...> &uinexts) noexcept {
+create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
+           const std::tuple<uouts_exts_t...> &uouts_exts,
+           const ins_t &...ins) noexcept {
     using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
 
-    const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-        return broadcast(std::make_tuple(
-            slice_from_start<
-                std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                std::get<Is>(ins).extents())...));
+    constexpr auto ofst = std::array{offsets...};
+    constexpr auto ur = std::array{uranks...};
+    constexpr auto br = [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return std::array{
+            (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+             ur[Is])...};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    return [&uinexts, &bexts]<size_t... Is>(std::index_sequence<Is...>) {
+    auto ins_tuple = std::forward_as_tuple(ins...);
+
+    const auto bexts = [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return broadcast(slice_with_offset<ofst[Is], br[Is]>(
+            std::get<Is>(ins_tuple).extents())...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
         return std::tuple{create_out<element_t>(core::concatenate(
-            bexts, std::get<sizeof...(ins_t) + Is>(uinexts)))...};
-    }(std::make_index_sequence<sizeof...(uinexts_t) - sizeof...(ins_t)>{});
+            slice_from_left<ofst[sizeof...(ins_t) + Is]>(
+                std::get<Is>(uouts_exts)),
+            bexts,
+            slice_from_right<
+                std::tuple_element_t<Is, std::tuple<uouts_exts_t...>>::rank() -
+                ofst[sizeof...(ins_t) + Is]>(std::get<Is>(uouts_exts))))...};
+    }(std::make_index_sequence<sizeof...(uouts_exts_t)>{});
 }
 
-template <typename Func, mdspan_c... ins_t, extents_c... uinexts_t,
-          typename... args_t>
-    requires(sizeof...(ins_t) == sizeof...(uinexts_t))
-inline constexpr void batch(Func &&func, const std::tuple<ins_t...> &ins,
-                            const std::tuple<uinexts_t...> &uinexts,
-                            const std::tuple<args_t...> &args,
-                            const MPMode mpmode) noexcept {
-    constexpr bool need_batch = []<size_t... Is>(std::index_sequence<Is...>) {
-        return ((std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() !=
-                 std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()) ||
-                ...);
+template <typename Func, size_t... offsets, size_t... uranks, mdspan_c... ins_t>
+    requires(sizeof...(offsets) == sizeof...(ins_t) &&
+             sizeof...(uranks) == sizeof...(ins_t))
+inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
+                            std::index_sequence<uranks...>, const MPMode mpmode,
+                            const ins_t &...ins) noexcept {
+    constexpr auto ofst = std::array{offsets...};
+    constexpr auto ur = std::array{uranks...};
+    constexpr auto br = [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return std::array{
+            (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
+             ur[Is])...};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    if constexpr (!need_batch) {
-        // Pass directly to the function
-        detail::batch_impl_none<0>(std::forward<Func>(func), ins, args);
+    auto ins_tuple = std::forward_as_tuple(ins...);
+
+    constexpr bool no_branks = [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return ((br[Is] == 0) && ...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+
+    if constexpr (no_branks) {
+        // If all branks are 0, batch is not required.
+        std::forward<Func>(func)(ins...);
 
     } else {
-        constexpr bool possibly_not_bcast = []<size_t... Is>(
-                                                std::index_sequence<Is...>) {
-            constexpr size_t ref =
-                std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
-            return (
-                (std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                     std::tuple_element_t<Is,
-                                          std::tuple<uinexts_t...>>::rank() ==
-                 ref) &&
-                ...);
-        }(std::make_index_sequence<sizeof...(ins_t)>{});
-
-        if constexpr (possibly_not_bcast) {
-            // Pass without broadcasting (less computation)
-            constexpr size_t brank =
-                std::tuple_element_t<0, std::tuple<ins_t...>>::rank() -
-                std::tuple_element_t<0, std::tuple<uinexts_t...>>::rank();
-
-            const bool same_bexts = [&ins]<size_t... Is>(
-                                        std::index_sequence<Is...>) {
-                return same(std::make_tuple(
-                    slice_from_start<brank>(std::get<Is>(ins).extents())...));
+        constexpr bool possibly_same_bexts =
+            [&]<size_t... Is>(std::index_sequence<Is...>) {
+                return ((br[Is] == br[0]) && ...);
             }(std::make_index_sequence<sizeof...(ins_t)>{});
 
+        if constexpr (possibly_same_bexts) {
+            const auto same_bexts =
+                [&]<size_t... Is>(std::index_sequence<Is...>) {
+                    return ctmd::same(slice_with_offset<ofst[Is], br[Is]>(
+                        std::get<Is>(ins_tuple).extents())...);
+                }(std::make_index_sequence<sizeof...(ins_t)>{});
+
             if (same_bexts) [[likely]] {
+                // If all bexts are same, broadcasting is not required.
+
                 const bool is_flattable =
-                    [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-                        return (core::is_reshapable(std::get<Is>(ins)) && ...);
+                    [&]<size_t... Is>(std::index_sequence<Is...>) {
+                        return (core::is_reshapable(std::get<Is>(ins_tuple)) &&
+                                ...);
                     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
                 if (is_flattable) [[likely]] {
-                    // Flatten batch if possible (simd friendly)
-                    constexpr size_t static_bsize =
-                        static_size<decltype(slice_from_start<brank>(
-                            std::get<0>(ins).extents()))>();
-                    const size_t bsize = size(
-                        slice_from_start<brank>(std::get<0>(ins).extents()));
+                    // If flattable, reshape to use single for loop (simd
+                    // friendly)
 
-                    const auto fins = [&ins, &uinexts, &bsize]<size_t... Is>(
-                                          std::index_sequence<Is...>) {
-                        return std::tuple{reshape(
-                            std::get<Is>(ins),
-                            concatenate(extents<size_t, static_bsize>{bsize},
-                                        std::get<Is>(uinexts)))...};
+                    const auto bexts = slice_with_offset<ofst[0], br[0]>(
+                        std::get<0>(ins_tuple).extents());
+
+                    constexpr size_t static_bsize = ctmd::static_size(bexts);
+                    const size_t bsize = ctmd::size(bexts);
+
+                    [&]<size_t... Is>(std::index_sequence<Is...>) {
+                        detail::batch_impl<1>(
+                            std::forward<Func>(func),
+                            std::index_sequence<offsets...>{}, mpmode,
+                            core::reshape(
+                                std::get<Is>(ins_tuple),
+                                concatenate(
+                                    slice_from_left<ofst[Is]>(
+                                        std::get<Is>(ins_tuple).extents()),
+                                    extents<size_t, static_bsize>{bsize},
+                                    slice_from_right<
+                                        std::tuple_element_t<
+                                            Is, std::tuple<ins_t...>>::rank() -
+                                        ofst[Is] - br[Is]>(
+                                        std::get<Is>(ins_tuple)
+                                            .extents())))...);
                     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-                    detail::batch_impl<1>(std::forward<Func>(func), fins, args,
-                                          mpmode);
-
                 } else {
-                    detail::batch_impl<brank>(std::forward<Func>(func), ins,
-                                              args, mpmode);
+                    // If not flattable, pass to nested for loop
+                    detail::batch_impl<br[0]>(std::forward<Func>(func),
+                                              std::index_sequence<offsets...>{},
+                                              mpmode, ins...);
                 }
 
                 return;
             }
         }
 
-        // Broadcasting
-        const auto bexts = [&ins]<size_t... Is>(std::index_sequence<Is...>) {
-            return broadcast(std::make_tuple(
-                slice_from_start<
-                    std::tuple_element_t<Is, std::tuple<ins_t...>>::rank() -
-                    std::tuple_element_t<Is, std::tuple<uinexts_t...>>::rank()>(
-                    std::get<Is>(ins).extents())...));
+        // If all previous conditions are false, broadcasting is required.
+        const auto bexts = [&]<size_t... Is>(std::index_sequence<Is...>) {
+            return broadcast(slice_with_offset<ofst[Is], br[Is]>(
+                std::get<Is>(ins_tuple).extents())...);
         }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-        constexpr size_t brank = decltype(bexts)::rank();
-
-        const auto bins = [&ins, &uinexts,
-                           &bexts]<size_t... Is>(std::index_sequence<Is...>) {
-            return std::tuple{
-                broadcast_to(std::get<Is>(ins),
-                             concatenate(bexts, std::get<Is>(uinexts)))...};
+        [&]<size_t... Is>(std::index_sequence<Is...>) {
+            detail::batch_impl<bexts.rank()>(
+                std::forward<Func>(func), std::index_sequence<offsets...>{},
+                mpmode,
+                broadcast_to<ofst[Is], br[Is]>(std::get<Is>(ins_tuple),
+                                               bexts)...);
         }(std::make_index_sequence<sizeof...(ins_t)>{});
-
-        detail::batch_impl<brank>(std::forward<Func>(func), bins, args, mpmode);
     }
 }
 
-template <typename T = int8_t, typename Func, mdspan_c... ins_t,
-          extents_c... uinexts_t, typename... args_t>
-    requires(sizeof...(ins_t) == sizeof...(uinexts_t) - 1)
-[[nodiscard]] inline constexpr auto
-batch_out(Func &&func, const std::tuple<ins_t...> &ins,
-          const std::tuple<uinexts_t...> &uinexts,
-          const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
-    auto out = create_out<T>(ins, uinexts);
+template <typename Func, size_t... uranks, mdspan_c... ins_t>
+    requires(sizeof...(uranks) == sizeof...(ins_t))
+inline constexpr void batch(Func &&func, std::index_sequence<uranks...>,
+                            const MPMode mpmode, const ins_t &...ins) noexcept {
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+        batch(std::forward<Func>(func), std::index_sequence<((void)Is, 0)...>{},
+              std::index_sequence<uranks...>{}, mpmode, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+}
 
-    batch(std::forward<Func>(func),
-          std::tuple_cat(ins, std::make_tuple(to_mdspan(out))), uinexts, args,
-          mpmode);
+template <typename T = int8_t, typename Func, size_t... offsets,
+          size_t... uranks, extents_c uout_exts_t, mdspan_c... ins_t>
+    requires(sizeof...(offsets) == sizeof...(ins_t) + 1 &&
+             sizeof...(uranks) == sizeof...(ins_t))
+[[nodiscard]] inline constexpr auto
+batch_out(Func &&func, std::index_sequence<offsets...>,
+          std::index_sequence<uranks...>, const uout_exts_t &uout_exts,
+          const MPMode mpmode, const ins_t &...ins) noexcept {
+    auto out =
+        create_out<T>(std::index_sequence<offsets...>{},
+                      std::index_sequence<uranks...>{}, uout_exts, ins...);
+
+    batch(std::forward<Func>(func), std::index_sequence<offsets...>{},
+          std::index_sequence<uranks..., uout_exts_t::rank()>{}, mpmode, ins...,
+          core::to_mdspan(out));
 
     return out;
 }
 
-template <typename T = int8_t, typename Func, mdspan_c... ins_t,
-          extents_c... uinexts_t, typename... args_t>
-    requires(sizeof...(ins_t) < sizeof...(uinexts_t) - 1)
+template <typename T = int8_t, typename Func, size_t... uranks,
+          extents_c uout_exts_t, mdspan_c... ins_t>
+    requires(sizeof...(uranks) == sizeof...(ins_t))
 [[nodiscard]] inline constexpr auto
-batch_out(Func &&func, const std::tuple<ins_t...> &ins,
-          const std::tuple<uinexts_t...> &uinexts,
-          const std::tuple<args_t...> &args, const MPMode mpmode) noexcept {
-    auto outs = create_out<T>(ins, uinexts);
+batch_out(Func &&func, std::index_sequence<uranks...>,
+          const uout_exts_t &uout_exts, const MPMode mpmode,
+          const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return batch_out<T>(
+            std::forward<Func>(func), std::index_sequence<((void)Is, 0)...>{},
+            std::index_sequence<uranks...>{}, uout_exts, mpmode, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t) + 1>{});
+}
 
-    [&func, &ins, &outs, &uinexts, &args,
-     &mpmode]<size_t... Is>(std::index_sequence<Is...>) {
-        batch(std::forward<Func>(func),
-              std::tuple_cat(ins,
-                             std::make_tuple(to_mdspan(std::get<Is>(outs))...)),
-              uinexts, args, mpmode);
-    }(std::make_index_sequence<std::tuple_size_v<decltype(outs)>>{});
+template <typename T = int8_t, typename Func, size_t... offsets,
+          size_t... uranks, extents_c... uouts_exts_t, mdspan_c... ins_t>
+    requires(sizeof...(offsets) == sizeof...(ins_t) + sizeof...(uouts_exts_t) &&
+             sizeof...(uranks) == sizeof...(ins_t))
+[[nodiscard]] inline constexpr auto
+batch_out(Func &&func, std::index_sequence<offsets...>,
+          std::index_sequence<uranks...>,
+          const std::tuple<uouts_exts_t...> &uouts_exts, const MPMode mpmode,
+          const ins_t &...ins) noexcept {
+    auto out =
+        create_out<T>(std::index_sequence<offsets...>{},
+                      std::index_sequence<uranks...>{}, uouts_exts, ins...);
 
-    return outs;
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+        batch(std::forward<Func>(func), std::index_sequence<offsets...>{},
+              std::index_sequence<
+                  uranks..., std::tuple_element_t<
+                                 Is, std::tuple<uouts_exts_t...>>::rank()...>{},
+              mpmode, ins..., core::to_mdspan(std::get<Is>(out))...);
+    }(std::make_index_sequence<sizeof...(uouts_exts_t)>{});
+
+    return out;
+}
+
+template <typename T = int8_t, typename Func, size_t... uranks,
+          extents_c... uouts_exts_t, mdspan_c... ins_t>
+    requires(sizeof...(uranks) == sizeof...(ins_t))
+[[nodiscard]] inline constexpr auto
+batch_out(Func &&func, std::index_sequence<uranks...>,
+          const std::tuple<uouts_exts_t...> &uouts_exts, const MPMode mpmode,
+          const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return batch_out<T>(
+            std::forward<Func>(func), std::index_sequence<((void)Is, 0)...>{},
+            std::index_sequence<uranks...>{}, uouts_exts, mpmode, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t) + sizeof...(uouts_exts_t)>{});
 }
 
 } // namespace core

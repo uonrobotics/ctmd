@@ -87,11 +87,7 @@ inline constexpr void matmul(In1Type &&In1, In2Type &&In2, OutType &&Out,
         [](auto &&...elems) {
             detail::matmul_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2, out},
-        std::tuple{core::slice_from_last<2>(in1.extents()),
-                   core::slice_from_last<2>(in2.extents()),
-                   core::slice_from_last<2>(out.extents())},
-        std::tuple{}, mpmode);
+        std::index_sequence<2, 2, 2>{}, mpmode, in1, in2, out);
 }
 
 template <typename In1Type, typename In2Type>
@@ -101,8 +97,8 @@ matmul(In1Type &&In1, In2Type &&In2,
     const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
     const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
-    const auto uin1_exts = core::slice_from_last<2>(in1.extents());
-    const auto uin2_exts = core::slice_from_last<2>(in2.extents());
+    const auto uin1_exts = core::slice_from_right<2>(in1.extents());
+    const auto uin2_exts = core::slice_from_right<2>(in2.extents());
     const auto uout_exts =
         extents<std::common_type_t<typename decltype(uin1_exts)::index_type,
                                    typename decltype(uin2_exts)::index_type>,
@@ -114,8 +110,7 @@ matmul(In1Type &&In1, In2Type &&In2,
         [](auto &&...elems) {
             detail::matmul_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2}, std::tuple{uin1_exts, uin2_exts, uout_exts},
-        std::tuple{}, mpmode);
+        std::index_sequence<2, 2>{}, uout_exts, mpmode, in1, in2);
 }
 
 } // namespace linalg

@@ -104,7 +104,7 @@ inline constexpr void rand(InType &&In,
         [](auto &&...elems) {
             detail::rand_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in}, std::tuple{extents<uint8_t>{}}, std::tuple{}, mpmode);
+        std::index_sequence<0>{}, mpmode, in);
 }
 
 template <floating_point_c T, extents_c exts_t = extents<size_t>>

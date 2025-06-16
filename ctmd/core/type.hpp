@@ -65,7 +65,8 @@ concept mdspan_c = requires {
 };
 
 template <extents_c exts_t>
-[[nodiscard]] inline constexpr size_t static_size() noexcept {
+[[nodiscard]] inline constexpr size_t
+static_size(const exts_t &exts = exts_t{}) noexcept {
     if constexpr (exts_t::rank() == 0) {
         return 0;
 
@@ -97,6 +98,11 @@ size(const exts_t &exts = exts_t{}) noexcept {
     }
 }
 
+template <extents_c in_t>
+[[nodiscard]] inline constexpr bool same(const in_t &in = in_t{}) noexcept {
+    return true;
+}
+
 template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 [[nodiscard]] inline constexpr bool same(const in1_t &in1 = in1_t{},
                                          const in2_t &in2 = in2_t{},
@@ -126,27 +132,6 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 
     } else {
         return true;
-    }
-}
-
-template <extents_c... ins_t>
-[[nodiscard]] inline constexpr bool
-same(const std::tuple<ins_t...> &ins) noexcept {
-    constexpr size_t ins_num =
-        std::tuple_size_v<std::remove_reference_t<decltype(ins)>>;
-
-    if constexpr (ins_num == 0) {
-        return true;
-
-    } else if constexpr (ins_num == 1) {
-        return true;
-
-    } else {
-        return std::apply(
-            [&](auto &&...elems) {
-                return same(std::forward<decltype(elems)>(elems)...);
-            },
-            ins);
     }
 }
 

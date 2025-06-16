@@ -27,7 +27,7 @@ template <typename InType>
 template <mdspan_c in_t>
 [[nodiscard]] inline constexpr auto to_const(const in_t &in) noexcept {
     if constexpr (std::is_const_v<typename in_t::element_type>) {
-        return in;
+        return std::forward<const in_t>(in);
 
     } else {
         using const_element_t = const typename in_t::element_type;

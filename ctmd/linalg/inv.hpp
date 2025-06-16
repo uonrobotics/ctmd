@@ -81,10 +81,7 @@ inline constexpr void inv(InType &&In, OutType &&Out,
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in, out},
-        std::tuple{core::slice_from_last<2>(in.extents()),
-                   core::slice_from_last<2>(out.extents())},
-        std::tuple{}, mpmode);
+        std::index_sequence<2, 2>{}, mpmode, in, out);
 }
 
 template <typename InType>
@@ -96,10 +93,8 @@ inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in},
-        std::tuple{core::slice_from_last<2>(in.extents()),
-                   core::slice_from_last<2>(in.extents())},
-        std::tuple{}, mpmode);
+        std::index_sequence<2>{}, core::slice_from_right<2>(in.extents()),
+        mpmode, in);
 }
 
 } // namespace linalg
