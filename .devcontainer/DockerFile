@@ -15,26 +15,12 @@ RUN apt-get update && \
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
     apt-get update
 
-# Install gcc 13 and g++ 13
+# Install gcc 13
 RUN apt-get install -y gcc-13 g++-13 && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13 --slave /usr/bin/g++ g++ /usr/bin/g++-13
 
-# Add LLVM official repository for Clang 17
-RUN wget https://apt.llvm.org/llvm.sh && \
-    chmod +x llvm.sh && \
-    ./llvm.sh 17 && \
-    rm llvm.sh
-
-# Set Clang 17 as the default compiler
-RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-17 100 && \
-    update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-17 100 && \
-    update-alternatives --set cc /usr/bin/clang-17 && \
-    update-alternatives --set c++ /usr/bin/clang++-17
-
-RUN ln -s /usr/bin/clang-17 /usr/bin/clang && \
-    ln -s /usr/bin/clang++-17 /usr/bin/clang++
-
-RUN apt-get update && apt-get install -y libomp-17-dev
+# Install openmp
+RUN apt-get install -y libomp-dev
 
 # Install Bazelisk
 RUN curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel && \

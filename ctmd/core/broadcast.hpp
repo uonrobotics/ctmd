@@ -222,7 +222,7 @@ batch_impl_none(Func &&func, std::index_sequence<offset, offsets...>,
     }
 }
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && defined(REAL_GCC)
 
 template <size_t brank, typename Func, size_t offset, size_t... offsets,
           mdspan_c in_t, mdspan_c... ins_t>
@@ -258,7 +258,8 @@ inline constexpr void batch_impl(Func &&func, std::index_sequence<offsets...>,
 
     if (!std::is_constant_evaluated()) [[likely]] {
         if (mpmode == MPMode::CPUMP) [[unlikely]] {
-#ifdef _OPENMP
+// TODO: use cpump in clang
+#if defined(_OPENMP) && defined(REAL_GCC)
             batch_impl_cpump<brank>(std::forward<Func>(func),
                                     std::index_sequence<offsets...>{}, ins...);
             return;
