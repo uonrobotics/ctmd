@@ -21,13 +21,21 @@ inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
     const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
     const auto out = core::to_mdspan(std::forward<OutType>(Out));
 
-    core::batch(
+    // core::batch(
+    //     [](auto &&...elems) {
+    //         detail::add_impl(std::forward<decltype(elems)>(elems)...);
+    //     },
+    //     std::tuple{in1, in2, out},
+    //     std::tuple{extents<uint8_t>{}, extents<uint8_t>{},
+    //     extents<uint8_t>{}}, mpmode);
+
+    core::batch_new(
         [](auto &&...elems) {
             detail::add_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2, out},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
-        mpmode);
+        std::index_sequence<0, 0, 0>{},
+        std::index_sequence<in1.rank(), in2.rank(), out.rank()>{}, mpmode, in1,
+        in2, out);
 }
 
 template <typename In1Type, typename In2Type>
@@ -36,13 +44,14 @@ add(In1Type &&In1, In2Type &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
     const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
 
-    return core::batch_out(
+    return core::batch_out_new(
         [](auto &&...elems) {
             detail::add_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{}},
-        mpmode);
+        std::index_sequence<0, 0>{},
+        std::index_sequence<in1.rank(), in2.rank()>{},
+        std::integral_constant<size_t, 0>{}, extents<uint8_t>{}, mpmode, in1,
+        in2);
 }
 
 } // namespace ctmd
