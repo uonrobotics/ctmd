@@ -14,7 +14,7 @@ template <typename InType>
 
     } else {
         for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-            if (!all(core::submdspan_from_left(in, i))) {
+            if (!ctmd::all(core::submdspan_from_left(in, i))) {
                 return false;
             }
         }
