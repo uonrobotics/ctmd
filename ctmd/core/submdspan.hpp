@@ -21,6 +21,15 @@ submdspan_with_space(const in_t &in, slices_t &&...slices) noexcept {
     }(std::make_index_sequence<lspace>{}, std::make_index_sequence<rspace>{});
 }
 
+template <size_t lspace, size_t rspace, typename InType, typename... slices_t>
+[[nodiscard]] inline constexpr auto
+submdspan_with_space(InType &&In, slices_t &&...slices) noexcept {
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+
+    return submdspan_with_space<lspace, rspace>(
+        in, std::forward<slices_t>(slices)...);
+}
+
 template <size_t lspace = 0, mdspan_c in_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
 submdspan_from_left(const in_t &in, slices_t &&...slices) noexcept {
@@ -33,6 +42,14 @@ submdspan_from_left(const in_t &in, slices_t &&...slices) noexcept {
         in, std::forward<slices_t>(slices)...);
 }
 
+template <size_t lspace = 0, typename InType, typename... slices_t>
+[[nodiscard]] inline constexpr auto
+submdspan_from_left(InType &&In, slices_t &&...slices) noexcept {
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+
+    return submdspan_from_left<lspace>(in, std::forward<slices_t>(slices)...);
+}
+
 template <size_t rspace = 0, mdspan_c in_t, typename... slices_t>
 [[nodiscard]] inline constexpr auto
 submdspan_from_right(const in_t &in, slices_t &&...slices) noexcept {
@@ -43,6 +60,14 @@ submdspan_from_right(const in_t &in, slices_t &&...slices) noexcept {
     constexpr size_t lspace = in_t::rank() - (rspace + sizeof...(slices_t));
     return submdspan_with_space<lspace, rspace>(
         in, std::forward<slices_t>(slices)...);
+}
+
+template <size_t rspace = 0, typename InType, typename... slices_t>
+[[nodiscard]] inline constexpr auto
+submdspan_from_right(InType &&In, slices_t &&...slices) noexcept {
+    const auto in = core::to_mdspan(std::forward<InType>(In));
+
+    return submdspan_from_right<rspace>(in, std::forward<slices_t>(slices)...);
 }
 
 } // namespace core
