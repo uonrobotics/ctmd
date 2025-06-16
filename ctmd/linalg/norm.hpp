@@ -44,10 +44,7 @@ inline constexpr void norm(InType &&In, OutType &&Out,
             [](auto &&...elems) {
                 detail::norm_impl(std::forward<decltype(elems)>(elems)...);
             },
-            std::tuple{in, out},
-            std::tuple{core::slice_from_right<1>(in.extents()),
-                       extents<uint8_t>{}},
-            mpmode);
+            std::index_sequence<1, 0>{}, mpmode, in, out);
     }
 }
 
@@ -65,10 +62,7 @@ norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
             [](auto &&...elems) {
                 detail::norm_impl(std::forward<decltype(elems)>(elems)...);
             },
-            std::tuple{in},
-            std::tuple{core::slice_from_right<1>(in.extents()),
-                       extents<uint8_t>{}},
-            mpmode);
+            std::index_sequence<1>{}, ctmd::extents<uint8_t>{}, mpmode, in);
     }
 }
 

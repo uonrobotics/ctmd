@@ -22,7 +22,7 @@ inline constexpr void fill(InType &&In, const val_t &val,
         [&](auto &&...elems) {
             detail::fill_impl(std::forward<decltype(elems)>(elems)..., val);
         },
-        std::tuple{in}, std::tuple{extents<uint8_t>{}}, mpmode);
+        std::index_sequence<0>{}, mpmode, in);
 }
 
 } // namespace ctmd

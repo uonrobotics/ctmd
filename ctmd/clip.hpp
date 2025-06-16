@@ -31,10 +31,7 @@ inline constexpr void clip(InType &&In, MinType &&Min, MaxType &&Max,
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in, min, max, out},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
-                   extents<uint8_t>{}},
-        mpmode);
+        std::index_sequence<0, 0, 0, 0>{}, mpmode, in, min, max, out);
 }
 
 template <typename InType, typename MinType, typename MaxType>
@@ -49,10 +46,8 @@ clip(InType &&In, MinType &&Min, MaxType &&Max,
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in, min, max},
-        std::tuple{extents<uint8_t>{}, extents<uint8_t>{}, extents<uint8_t>{},
-                   extents<uint8_t>{}},
-        mpmode);
+        std::index_sequence<0, 0, 0>{}, ctmd::extents<uint8_t>{}, mpmode, in,
+        min, max);
 }
 
 } // namespace ctmd

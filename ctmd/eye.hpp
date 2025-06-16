@@ -29,8 +29,7 @@ inline constexpr void eye(InType &&In,
         [](auto &&...elems) {
             detail::eye_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in}, std::tuple{core::slice_from_right<2>(in.extents())},
-        mpmode);
+        std::index_sequence<2>{}, mpmode, in);
 }
 
 template <typename T, extents_c extents_t>

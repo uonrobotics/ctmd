@@ -84,11 +84,7 @@ inline constexpr void vecmat(In1Type &&In1, In2Type &&In2, OutType &&Out,
         [](auto &&...elems) {
             detail::vecmat_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2, out},
-        std::tuple{core::slice_from_right<1>(in1.extents()),
-                   core::slice_from_right<2>(in2.extents()),
-                   core::slice_from_right<1>(out.extents())},
-        mpmode);
+        std::index_sequence<1, 2, 1>{}, mpmode, in1, in2, out);
 }
 
 template <typename In1Type, typename In2Type>
@@ -109,8 +105,7 @@ vecmat(In1Type &&In1, In2Type &&In2,
         [](auto &&...elems) {
             detail::vecmat_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in1, in2}, std::tuple{uin1_exts, uin2_exts, uout_exts},
-        mpmode);
+        std::index_sequence<1, 2>{}, uout_exts, mpmode, in1, in2);
 }
 
 } // namespace linalg

@@ -27,8 +27,8 @@ template <typename In1Type, typename In2Type>
 
     } else {
         for (typename in1_t::size_type i = 0; i < in1.extent(0); i++) {
-            if (!array_equal(core::submdspan_from_left(in1, i),
-                             core::submdspan_from_left(in2, i))) {
+            if (!ctmd::array_equal(core::submdspan_from_left(in1, i),
+                                   core::submdspan_from_left(in2, i))) {
                 return false;
             }
         }

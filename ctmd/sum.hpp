@@ -35,10 +35,7 @@ inline constexpr void sum(InType &&In, OutType &&Out,
         [](auto &&...elems) {
             detail::sum_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in, out},
-        std::tuple{core::slice_from_right<rin_rank>(in.extents()),
-                   core::slice_from_right<rin_rank - 1>(out.extents())},
-        mpmode);
+        std::index_sequence<rin_rank, rin_rank - 1>{}, mpmode, in, out);
 }
 
 template <int64_t Axis, typename InType>
@@ -56,10 +53,8 @@ sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
         [](auto &&...elems) {
             detail::sum_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::tuple{in},
-        std::tuple{core::slice_from_right<rin_rank>(in.extents()),
-                   core::slice_from_right<rin_rank - 1>(in.extents())},
-        mpmode);
+        std::index_sequence<rin_rank>{},
+        core::slice_from_right<rin_rank - 1>(in.extents()), mpmode, in);
 }
 
 } // namespace ctmd
