@@ -226,9 +226,9 @@ batch_impl_none(Func &&func, std::index_sequence<offset, offsets...>,
 
 template <size_t brank, typename Func, size_t offset, size_t... offsets,
           mdspan_c in_t, mdspan_c... ins_t>
-inline constexpr void
-batch_impl_cpump(Func &&func, std::index_sequence<offset, offsets...>,
-                 const in_t &in, const ins_t &...ins) noexcept {
+inline void batch_impl_cpump(Func &&func,
+                             std::index_sequence<offset, offsets...>,
+                             const in_t &in, const ins_t &...ins) noexcept {
     static_assert(sizeof...(offsets) == sizeof...(ins_t),
                   "Number of offsets must match number of inputs.");
 
@@ -316,6 +316,19 @@ create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
         slice_from_right<uout_exts_t::rank() - uout_offset>(uout_exts)));
 }
 
+template <typename T = int8_t, size_t... uranks, extents_c uout_exts_t,
+          mdspan_c... ins_t>
+    requires(sizeof...(uranks) == sizeof...(ins_t))
+[[nodiscard]] inline constexpr auto create_out(std::index_sequence<uranks...>,
+                                               const uout_exts_t &uout_exts,
+                                               const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return create_out<T>(std::index_sequence<((void)Is, 0)...>{},
+                             std::index_sequence<uranks...>{}, uout_exts,
+                             ins...);
+    }(std::make_index_sequence<sizeof...(ins_t) + 1>{});
+}
+
 template <typename T = int8_t, size_t... offsets, size_t... uranks,
           extents_c... uouts_exts_t, mdspan_c... ins_t>
     requires(sizeof...(offsets) == sizeof...(ins_t) + sizeof...(uouts_exts_t) &&
@@ -350,6 +363,20 @@ create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
                 std::tuple_element_t<Is, std::tuple<uouts_exts_t...>>::rank() -
                 ofst[sizeof...(ins_t) + Is]>(std::get<Is>(uouts_exts))))...};
     }(std::make_index_sequence<sizeof...(uouts_exts_t)>{});
+}
+
+template <typename T = int8_t, size_t... uranks, extents_c... uouts_exts_t,
+          mdspan_c... ins_t>
+    requires(sizeof...(uranks) == sizeof...(ins_t))
+[[nodiscard]] inline constexpr auto
+create_out(std::index_sequence<uranks...>,
+           const std::tuple<uouts_exts_t...> &uouts_exts,
+           const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return create_out<T>(std::index_sequence<((void)Is, 0)...>{},
+                             std::index_sequence<uranks...>{}, uouts_exts,
+                             ins...);
+    }(std::make_index_sequence<sizeof...(ins_t) + sizeof...(uouts_exts_t)>{});
 }
 
 template <typename Func, size_t... offsets, size_t... uranks, mdspan_c... ins_t>
