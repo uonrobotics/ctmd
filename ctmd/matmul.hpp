@@ -4,19 +4,18 @@
 
 namespace ctmd {
 
-template <typename In1Type, typename In2Type, typename OutType>
-inline constexpr void matmul(In1Type &&In1, In2Type &&In2, OutType &&Out,
-                             const MPMode mpmode = MPMode::NONE) noexcept {
-    ctmd::linalg::matmul(std::forward<In1Type>(In1), std::forward<In2Type>(In2),
-                         std::forward<OutType>(Out), mpmode);
+template <typename... Elems>
+    requires(std::is_void_v<
+             decltype(ctmd::linalg::matmul(std::declval<Elems>()...))>)
+inline constexpr void matmul(Elems &&...elems) noexcept {
+    ctmd::linalg::matmul(std::forward<Elems>(elems)...);
 }
 
-template <typename In1Type, typename In2Type>
-[[nodiscard]] inline constexpr auto
-matmul(In1Type &&In1, In2Type &&In2,
-       const MPMode mpmode = MPMode::NONE) noexcept {
-    return ctmd::linalg::matmul(std::forward<In1Type>(In1),
-                                std::forward<In2Type>(In2), mpmode);
+template <typename... Elems>
+    requires(!std::is_void_v<
+             decltype(ctmd::linalg::matmul(std::declval<Elems>()...))>)
+[[nodiscard]] inline constexpr auto matmul(Elems &&...elems) noexcept {
+    return ctmd::linalg::matmul(std::forward<Elems>(elems)...);
 }
 
 } // namespace ctmd
