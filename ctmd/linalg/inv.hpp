@@ -86,12 +86,14 @@ inline constexpr void inv(InType &&In, OutType &&Out,
 template <typename InType>
 [[nodiscard]] inline constexpr auto
 inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+
     return core::batch_out(
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<2>{}, core::slice_from_right<2>(in.extents()),
-        mpmode, core::to_const_mdspan(std::forward<InType>(In)));
+        mpmode, in);
 }
 
 } // namespace linalg
