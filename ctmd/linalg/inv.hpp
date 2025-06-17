@@ -74,27 +74,24 @@ inline constexpr void inv_impl(const in_t &in, const out_t &out) noexcept {
 template <typename InType, typename OutType>
 inline constexpr void inv(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-    const auto out = core::to_mdspan(std::forward<OutType>(Out));
-
     core::batch(
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<2, 2>{}, mpmode, in, out);
+        std::index_sequence<2, 2>{}, mpmode,
+        core::to_const_mdspan(std::forward<InType>(In)),
+        core::to_mdspan(std::forward<OutType>(Out)));
 }
 
 template <typename InType>
 [[nodiscard]] inline constexpr auto
 inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-
     return core::batch_out(
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<2>{}, core::slice_from_right<2>(in.extents()),
-        mpmode, in);
+        mpmode, core::to_const_mdspan(std::forward<InType>(In)));
 }
 
 } // namespace linalg

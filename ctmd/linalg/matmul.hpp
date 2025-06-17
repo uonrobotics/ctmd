@@ -79,15 +79,14 @@ inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
 template <typename In1Type, typename In2Type, typename OutType>
 inline constexpr void matmul(In1Type &&In1, In2Type &&In2, OutType &&Out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
-    const auto out = core::to_mdspan(std::forward<OutType>(Out));
-
     core::batch(
         [](auto &&...elems) {
             detail::matmul_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<2, 2, 2>{}, mpmode, in1, in2, out);
+        std::index_sequence<2, 2, 2>{}, mpmode,
+        core::to_const_mdspan(std::forward<In1Type>(In1)),
+        core::to_const_mdspan(std::forward<In2Type>(In2)),
+        core::to_mdspan(std::forward<OutType>(Out)));
 }
 
 template <typename In1Type, typename In2Type>

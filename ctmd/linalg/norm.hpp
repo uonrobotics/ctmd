@@ -38,14 +38,14 @@ inline constexpr void norm(InType &&In, OutType &&Out,
     if (mpmode == MPMode::SIMD) [[unlikely]] {
         ctmd::sum<-1>(ctmd::multiply(in, in, mpmode), out, mpmode);
         ctmd::sqrt(out, out, mpmode);
-
-    } else {
-        core::batch(
-            [](auto &&...elems) {
-                detail::norm_impl(std::forward<decltype(elems)>(elems)...);
-            },
-            std::index_sequence<1, 0>{}, mpmode, in, out);
+        return;
     }
+
+    core::batch(
+        [](auto &&...elems) {
+            detail::norm_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::index_sequence<1, 0>{}, mpmode, in, out);
 }
 
 template <typename InType>
@@ -56,14 +56,13 @@ norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     if (mpmode == MPMode::SIMD) [[unlikely]] {
         return ctmd::sqrt(ctmd::sum<-1>(ctmd::multiply(in, in, mpmode), mpmode),
                           mpmode);
-
-    } else {
-        return core::batch_out(
-            [](auto &&...elems) {
-                detail::norm_impl(std::forward<decltype(elems)>(elems)...);
-            },
-            std::index_sequence<1>{}, ctmd::extents<uint8_t>{}, mpmode, in);
     }
+
+    return core::batch_out(
+        [](auto &&...elems) {
+            detail::norm_impl(std::forward<decltype(elems)>(elems)...);
+        },
+        std::index_sequence<1>{}, ctmd::extents<uint8_t>{}, mpmode, in);
 }
 
 } // namespace linalg

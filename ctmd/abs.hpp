@@ -25,26 +25,24 @@ inline constexpr void abs_impl(const in_t &in, const out_t &out) noexcept {
 template <typename InType, typename OutType>
 inline constexpr void abs(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-    const auto out = core::to_const_mdspan(std::forward<OutType>(Out));
-
     core::batch(
         [](auto &&...elems) {
             detail::abs_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0, 0>{}, mpmode, in, out);
+        std::index_sequence<0, 0>{}, mpmode,
+        core::to_const_mdspan(std::forward<InType>(In)),
+        core::to_const_mdspan(std::forward<OutType>(Out)));
 }
 
 template <typename InType>
 [[nodiscard]] inline constexpr auto
 abs(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-
     return core::batch_out(
         [](auto &&...elems) {
             detail::abs_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode, in);
+        std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode,
+        core::to_const_mdspan(std::forward<InType>(In)));
 }
 
 } // namespace ctmd

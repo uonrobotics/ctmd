@@ -19,26 +19,24 @@ inline constexpr void sin_impl(const in_t &in, const out_t &out) noexcept {
 template <typename InType, typename OutType>
 inline constexpr void sin(InType &&In, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-    const auto out = core::to_mdspan(std::forward<OutType>(Out));
-
     core::batch(
         [](auto &&...elems) {
             detail::sin_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0, 0>{}, mpmode, in, out);
+        std::index_sequence<0, 0>{}, mpmode,
+        core::to_const_mdspan(std::forward<InType>(In)),
+        core::to_mdspan(std::forward<OutType>(Out)));
 }
 
 template <typename InType>
 [[nodiscard]] inline constexpr auto
 sin(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-
     return core::batch_out<float>(
         [](auto &&...elems) {
             detail::sin_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode, in);
+        std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode,
+        core::to_const_mdspan(std::forward<InType>(In)));
 }
 
 } // namespace ctmd

@@ -20,16 +20,12 @@ inline constexpr void eye_impl(const in_t &in) noexcept {
 template <typename InType>
 inline constexpr void eye(InType &&In,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
-
-    static_assert(decltype(in)::rank() >= 2,
-                  "eye function requires at least 2D input.");
-
     core::batch(
         [](auto &&...elems) {
             detail::eye_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<2>{}, mpmode, in);
+        std::index_sequence<2>{}, mpmode,
+        core::to_mdspan(std::forward<InType>(In)));
 }
 
 template <typename T, extents_c extents_t>

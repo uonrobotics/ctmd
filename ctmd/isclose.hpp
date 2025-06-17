@@ -23,16 +23,15 @@ inline constexpr void isclose(In1Type &&In1, In2Type &&In2, OutType &&Out,
                               const double &rtol = 1e-05,
                               const double &atol = 1e-08,
                               const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
-    const auto out = core::to_mdspan(std::forward<OutType>(Out));
-
     core::batch(
         [&](auto &&...elems) {
             detail::isclose_impl(std::forward<decltype(elems)>(elems)..., rtol,
                                  atol);
         },
-        std::index_sequence<0, 0, 0>{}, mpmode, in1, in2, out);
+        std::index_sequence<0, 0, 0>{}, mpmode,
+        core::to_const_mdspan(std::forward<In1Type>(In1)),
+        core::to_const_mdspan(std::forward<In2Type>(In2)),
+        core::to_mdspan(std::forward<OutType>(Out)));
 }
 
 template <typename In1Type, typename In2Type>
@@ -40,16 +39,14 @@ template <typename In1Type, typename In2Type>
 isclose(In1Type &&In1, In2Type &&In2, const double &rtol = 1e-05,
         const double &atol = 1e-08,
         const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_const_mdspan(std::forward<In2Type>(In2));
-
     return core::batch_out(
         [&](auto &&...elems) {
             detail::isclose_impl(std::forward<decltype(elems)>(elems)..., rtol,
                                  atol);
         },
-        std::index_sequence<0, 0>{}, ctmd::extents<uint8_t>{}, mpmode, in1,
-        in2);
+        std::index_sequence<0, 0>{}, ctmd::extents<uint8_t>{}, mpmode,
+        core::to_const_mdspan(std::forward<In1Type>(In1)),
+        core::to_const_mdspan(std::forward<In2Type>(In2)));
 }
 
 } // namespace ctmd
