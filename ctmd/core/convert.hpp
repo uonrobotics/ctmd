@@ -15,12 +15,9 @@ template <typename InType>
     } else if constexpr (requires { In.to_mdspan(); }) {
         return In.to_mdspan();
 
-    } else if constexpr (arithmetic_c<BaseType>) {
+    } else {
         auto exts = extents<size_t>{};
         return mdspan<BaseType, decltype(exts)>{&In, exts};
-
-    } else {
-        static_assert(std::false_type::value, "Invalid type for to_mdspan()");
     }
 }
 
