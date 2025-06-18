@@ -10,9 +10,10 @@ template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
 inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
                                    const out_t &out, const double &rtol,
                                    const double &atol) noexcept {
-    using T = std::remove_cvref_t<decltype(in2())>;
+    using T = typename in2_t::value_type;
     out() = ctmd::abs(in1() - in2()) <=
-            (static_cast<T>(atol) + static_cast<T>(rtol) * ctmd::abs(in2()));
+            (static_cast<const T>(atol) +
+             static_cast<const T>(rtol) * ctmd::abs(in2()));
 }
 
 } // namespace detail
