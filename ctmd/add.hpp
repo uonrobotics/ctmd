@@ -3,7 +3,7 @@
  * @brief Element-wise addition utilities for CTMD.
  *
  * @details
- * Part of CTMD: Compile-Time Multi-Dimensional Library.
+ * Part of CTMD: Compile-Time Multi-Dimensional matrix library.
  * Licensed under the Apache License v2.0.
  *
  * @copyright
