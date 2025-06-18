@@ -58,6 +58,7 @@ concept floating_point_c = std::is_floating_point_v<T>;
 // used with other mdspan-like implementation that follow the same interface.
 template <typename T>
 concept mdspan_c = requires {
+    typename T::value_type;
     typename T::element_type;
     typename T::extents_type;
     typename T::layout_type;
@@ -154,21 +155,20 @@ enum class MPMode : uint8_t {
     CPUMP,
 };
 
-template <typename T> struct element_type {
-    using type = T;
-};
+namespace detail {
 
-template <typename T, typename Extents, typename Layout, typename Accessor>
-struct element_type<std::experimental::mdspan<T, Extents, Layout, Accessor>> {
-    using type = T;
-};
-
-template <typename T, typename Extents, typename Layout, typename Container>
-struct element_type<std::experimental::mdarray<T, Extents, Layout, Container>> {
-    using type = T;
+template <typename T, typename = void> struct value_type_t_impl {
+    using type = std::remove_cvref_t<T>;
 };
 
 template <typename T>
-using element_type_t = typename element_type<std::remove_cvref_t<T>>::type;
+struct value_type_t_impl<T, std::void_t<typename T::value_type>> {
+    using type = typename T::value_type;
+};
+
+} // namespace detail
+
+template <typename T>
+using value_type_t = typename detail::value_type_t_impl<T>::type;
 
 } // namespace ctmd
