@@ -1,3 +1,16 @@
+/**
+ * @file
+ * @brief Element-wise addition utilities for CTMD.
+ *
+ * @details
+ * Part of CTMD: Compile-Time Multi-Dimensional Library.
+ * Licensed under the Apache License v2.0.
+ *
+ * @copyright
+ * Copyright (2025) Uon Robotics, South Korea.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #pragma once
 
 #include "core/core.hpp"
@@ -14,6 +27,19 @@ inline constexpr void add_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
+/**
+ * @brief Add arguments element-wise.
+ *
+ * @param In1 md-like or scalar.
+ * @param In2 md-like or scalar.
+ * @param Out md-like or scalar.
+ * @param mpmode (optional) Parallel execution mode. Default is MPMode::NONE.
+ *
+ * @note Equivalent to In1 + In2 = Out in terms of array broadcasting.
+ *
+ * @see ctmd::add(In1Type&&, In2Type&&, MPMode) for the in-place version that
+ * returns the result.
+ */
 template <typename In1Type, typename In2Type, typename OutType>
 inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
@@ -27,6 +53,20 @@ inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
+/**
+ * @brief Add arguments element-wise.
+ *
+ * @param In1 md-like or scalar.
+ * @param In2 md-like or scalar.
+ * @param mpmode (optional) Parallel execution mode. Default is MPMode::NONE.
+ *
+ * @return mdarray or scalar.
+ *
+ * @note Equivalent to In1 + In2 = Out in terms of array broadcasting.
+ *
+ * @see ctmd::add(In1Type&&, In2Type&&, OutType&&, MPMode) for the in-place
+ * version that modifies the output.
+ */
 template <typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 add(In1Type &&In1, In2Type &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
