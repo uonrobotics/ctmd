@@ -28,8 +28,8 @@ inline constexpr void sqrt_impl(const in_t &in, const out_t &out) noexcept {
 #else
     // NOTE: std::abs is not constexpr in clang 16.
 
-    if constexpr (floating_point_c<typename in_t::element_type>) {
-        using T = typename in_t::element_type;
+    if constexpr (floating_point_c<typename in_t::value_type>) {
+        using T = typename in_t::value_type;
 
         out() = (in() >= 0 && in() < std::numeric_limits<T>::infinity())
                     ? sqrt_newton_raphson(in(), in(), (T)0)
@@ -39,8 +39,8 @@ inline constexpr void sqrt_impl(const in_t &in, const out_t &out) noexcept {
         using T = float;
 
         out() = (in() >= 0 && in() < std::numeric_limits<T>::infinity())
-                    ? sqrt_newton_raphson(static_cast<T>(in()),
-                                          static_cast<T>(in()), (T)0)
+                    ? sqrt_newton_raphson(static_cast<const T>(in()),
+                                          static_cast<const T>(in()), (T)0)
                     : std::numeric_limits<T>::quiet_NaN();
     }
 

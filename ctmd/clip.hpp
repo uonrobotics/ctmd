@@ -10,10 +10,10 @@ template <mdspan_c in_t, mdspan_c min_t, mdspan_c max_t, mdspan_c out_t>
              out_t::rank() == 0)
 inline constexpr void clip_impl(const in_t &in, const min_t &min,
                                 const max_t &max, const out_t &out) noexcept {
-    using element_t = std::remove_cvref_t<decltype(in())>;
+    using value_t = typename in_t::value_type;
 
-    out() = std::clamp(in(), static_cast<element_t>(min()),
-                       static_cast<element_t>(max()));
+    out() = std::clamp(in(), static_cast<const value_t>(min()),
+                       static_cast<const value_t>(max()));
 }
 
 } // namespace detail

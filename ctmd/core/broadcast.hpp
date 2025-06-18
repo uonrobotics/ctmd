@@ -292,7 +292,7 @@ template <typename T = int8_t, size_t... offsets, size_t... uranks,
 [[nodiscard]] inline constexpr auto
 create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
            const uout_exts_t &uout_exts, const ins_t &...ins) noexcept {
-    using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
+    using value_t = std::common_type_t<T, value_type_t<ins_t>...>;
 
     constexpr auto ofst = std::array{offsets...};
     constexpr auto ur = std::array{uranks...};
@@ -311,7 +311,7 @@ create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
 
     constexpr size_t uout_offset = ofst[sizeof...(ins_t)];
 
-    return create_out<element_t>(core::concatenate(
+    return create_out<value_t>(core::concatenate(
         slice_from_left<uout_offset>(uout_exts), bexts,
         slice_from_right<uout_exts_t::rank() - uout_offset>(uout_exts)));
 }
@@ -337,7 +337,7 @@ template <typename T = int8_t, size_t... offsets, size_t... uranks,
 create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
            const std::tuple<uouts_exts_t...> &uouts_exts,
            const ins_t &...ins) noexcept {
-    using element_t = std::common_type_t<T, element_type_t<ins_t>...>;
+    using value_t = std::common_type_t<T, value_type_t<ins_t>...>;
 
     constexpr auto ofst = std::array{offsets...};
     constexpr auto ur = std::array{uranks...};
@@ -355,7 +355,7 @@ create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
     return [&]<size_t... Is>(std::index_sequence<Is...>) {
-        return std::tuple{create_out<element_t>(core::concatenate(
+        return std::tuple{create_out<value_t>(core::concatenate(
             slice_from_left<ofst[sizeof...(ins_t) + Is]>(
                 std::get<Is>(uouts_exts)),
             bexts,

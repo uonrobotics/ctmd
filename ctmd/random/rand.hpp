@@ -54,10 +54,9 @@ template <typename T, std::size_t sz>
 }
 
 template <mdspan_c in_t>
-    requires(in_t::rank() == 0 && floating_point_c<typename in_t::element_type>)
+    requires(in_t::rank() == 0 && floating_point_c<typename in_t::value_type>)
 inline void rand_impl(const in_t &in) noexcept {
-    using T = typename in_t::element_type;
-    using dist_t = std::uniform_real_distribution<T>;
+    using dist_t = std::uniform_real_distribution<typename in_t::value_type>;
 
     static auto rd = std::random_device{};
     thread_local static auto gen = std::mt19937(rd());
@@ -76,7 +75,7 @@ inline constexpr void rand(InType &&In,
 
     if constexpr (in_t::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {
-            using T = element_type_t<in_t>;
+            using T = value_type_t<in_t>;
 
             if constexpr (in_t::rank() == 0) {
                 constexpr auto data =

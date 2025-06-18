@@ -43,7 +43,7 @@ inline constexpr void matmul_naive(const in1_t &in1, const in2_t &in2,
         }
 
     } else [[unlikely]] {
-        auto out_tmp = ctmd::mdarray<typename out_t::element_type,
+        auto out_tmp = ctmd::mdarray<typename out_t::value_type,
                                      typename out_t::extents_type>{
             out.extent(0), out.extent(1)};
         matmul_naive(in1, in2, out_tmp.to_mdspan());

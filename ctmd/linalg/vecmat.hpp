@@ -42,7 +42,7 @@ inline constexpr void vecmat_naive(const in1_t &in1, const in2_t &in2,
 
     } else [[unlikely]] {
         auto out_tmp =
-            ctmd::mdarray<typename out_t::element_type,
+            ctmd::mdarray<typename out_t::value_type,
                           typename out_t::extents_type>{out.extents()};
         vecmat_naive(in1, in2, out_tmp.to_mdspan());
         ctmd::copy(out_tmp, out);

@@ -27,11 +27,11 @@ template <mdspan_c in_t>
         return std::forward<const in_t>(in);
 
     } else {
-        using const_element_t = const typename in_t::element_type;
-        return mdspan<const_element_t, typename in_t::extents_type,
-                      typename in_t::layout_type,
-                      default_accessor<const_element_t>>(in.data_handle(),
-                                                         in.mapping(), {});
+        using element_t = const typename in_t::value_type;
+
+        return mdspan<element_t, typename in_t::extents_type,
+                      typename in_t::layout_type, default_accessor<element_t>>(
+            in.data_handle(), in.mapping(), {});
     }
 }
 

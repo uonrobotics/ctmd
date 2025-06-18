@@ -116,7 +116,7 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
     // generate out
     using T = decltype([]<size_t... Is>(std::index_sequence<Is...>) {
         return std::common_type_t<
-            element_type_t<std::tuple_element_t<Is, ins_t>>...>{};
+            value_type_t<std::tuple_element_t<Is, ins_t>>...>{};
     }(std::make_index_sequence<num_ins>{}));
     auto out = ctmd::empty<T>(out_extents);
 

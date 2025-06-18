@@ -9,7 +9,7 @@ namespace detail {
 
 template <mdspan_c in_t, mdspan_c out_t>
     requires(in_t::rank() == 0 && out_t::rank() == 0 &&
-             floating_point_c<typename out_t::element_type>)
+             floating_point_c<typename out_t::value_type>)
 inline constexpr void tan_impl(const in_t &in, const out_t &out) noexcept {
     out() = std::tan(in());
 }
