@@ -106,7 +106,7 @@ inline constexpr void rand(InType &&In,
         std::index_sequence<0>{}, mpmode, in);
 }
 
-template <floating_point_c T, extents_c exts_t = extents<size_t>>
+template <floating_point_c T = float, extents_c exts_t = extents<uint8_t, 1>>
 [[nodiscard]] inline constexpr auto
 rand(const exts_t &exts = exts_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
