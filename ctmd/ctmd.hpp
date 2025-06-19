@@ -24,6 +24,7 @@
 #include "fill.hpp"
 #include "full.hpp"
 #include "isclose.hpp"
+#include "linspace.hpp"
 #include "matmul.hpp"
 #include "matvec.hpp"
 #include "multiply.hpp"
