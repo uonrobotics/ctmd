@@ -14,8 +14,8 @@ inline constexpr void atan2_impl(const in1_t &in1, const in2_t &in2,
                                  const out_t &out) noexcept {
     using value_t = typename out_t::value_type;
 
-    out() = std::atan2(static_cast<const value_t>(in1()),
-                       static_cast<const value_t>(in2()));
+    out() =
+        std::atan2(static_cast<value_t>(in1()), static_cast<value_t>(in2()));
 }
 
 } // namespace detail

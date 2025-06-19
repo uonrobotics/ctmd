@@ -12,8 +12,8 @@ inline constexpr void clip_impl(const in_t &in, const min_t &min,
                                 const max_t &max, const out_t &out) noexcept {
     using value_t = typename in_t::value_type;
 
-    out() = std::clamp(in(), static_cast<const value_t>(min()),
-                       static_cast<const value_t>(max()));
+    out() = std::clamp(in(), static_cast<value_t>(min()),
+                       static_cast<value_t>(max()));
 }
 
 } // namespace detail
