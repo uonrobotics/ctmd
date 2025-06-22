@@ -212,7 +212,7 @@ batch_impl_none(Func &&func, std::index_sequence<offset, offsets...>,
         std::forward<Func>(func)(in, ins...);
 
     } else {
-        for (size_t i = 0; i < in.extent(offset); i++) {
+        for (typename in_t::index_type i = 0; i < in.extent(offset); i++) {
             batch_impl_none<brank - 1>(
                 std::forward<Func>(func),
                 std::index_sequence<offset, offsets...>{},
@@ -237,7 +237,7 @@ inline void batch_impl_cpump(Func &&func,
 
     } else {
 #pragma omp parallel for
-        for (size_t i = 0; i < in.extent(offset); i++) {
+        for (typename in_t::index_type i = 0; i < in.extent(offset); i++) {
             batch_impl_none<brank - 1>(
                 std::forward<Func>(func),
                 std::index_sequence<offset, offsets...>{},
