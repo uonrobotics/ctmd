@@ -292,7 +292,10 @@ template <typename T = int8_t, size_t... offsets, size_t... uranks,
 [[nodiscard]] inline constexpr auto
 create_out(std::index_sequence<offsets...>, std::index_sequence<uranks...>,
            const uout_exts_t &uout_exts, const ins_t &...ins) noexcept {
-    using value_t = std::common_type_t<T, value_type_t<ins_t>...>;
+    using value_t = std::common_type_t<
+        T,
+        std::conditional_t<std::is_same_v<value_type_t<ins_t>, std::nullopt_t>,
+                           T, value_type_t<ins_t>>...>;
 
     constexpr auto ofst = std::array{offsets...};
     constexpr auto ur = std::array{uranks...};
