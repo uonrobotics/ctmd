@@ -10,7 +10,7 @@ template <mdspan_c in_t>
     std::string str = "[";
 
     if constexpr (in_t::rank() == 0) {
-        // do nothing
+        return std::to_string(in());
 
     } else if constexpr (in_t::rank() == 1) {
         for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
