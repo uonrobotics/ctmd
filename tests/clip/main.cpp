@@ -1,9 +1,40 @@
 #include <gtest/gtest.h>
 
+#include "ctmd/array_equal.hpp"
 #include "ctmd/clip.hpp"
 #include "ctmd/random/rand.hpp"
 
 namespace md = ctmd;
+
+TEST(test, 1) {
+    using T = double;
+
+    constexpr T in = 1.5;
+
+    static_assert(md::clip(in, 1, 2) == 1.5);
+    static_assert(md::clip(in, 2, 3) == 2);
+    static_assert(md::clip(in, 0, 1) == 1);
+    static_assert(md::clip(in, 2, std::nullopt) == 2);
+    static_assert(md::clip(in, std::nullopt, 1) == 1);
+    static_assert(md::clip(in, std::nullopt, std::nullopt) == 1.5);
+}
+
+TEST(test, 2) {
+    using T = double;
+
+    constexpr auto in = md::mdarray<T, md::extents<size_t, 10>>{
+        std::array<T, 10>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
+
+    static_assert(
+        md::array_equal(md::clip(in, 1, 8),
+                        md::mdarray<T, md::extents<size_t, 10>>{
+                            std::array<T, 10>{1, 1, 2, 3, 4, 5, 6, 7, 8, 8}}));
+
+    static_assert(
+        md::array_equal(md::clip(in, 8, 1),
+                        md::mdarray<T, md::extents<size_t, 10>>{
+                            std::array<T, 10>{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}));
+}
 
 TEST(stack, clip) {
     using T = double;
