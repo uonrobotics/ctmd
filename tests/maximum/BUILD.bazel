@@ -1,0 +1,17 @@
+cc_test(
+    name = "main",
+    srcs = [
+        "main.cpp",
+        ],
+    copts = [
+        "-O3",
+        "-funroll-loops",
+        "-fno-rtti",
+        "-Wall",
+        "-march=native",
+    ],
+    deps = [
+        "@gtest//:gtest_main",
+        "//:ctmd",
+    ],
+)
