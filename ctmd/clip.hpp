@@ -10,10 +10,16 @@ template <mdspan_c in_t, mdspan_c min_t, mdspan_c max_t, mdspan_c out_t>
              out_t::rank() == 0)
 inline constexpr void clip_impl(const in_t &in, const min_t &min,
                                 const max_t &max, const out_t &out) noexcept {
-    using value_t = typename in_t::value_type;
+    // NOTE: std::clamp is not used to match the behavior with original np.clip
+    out() = in();
 
-    out() = std::clamp(in(), static_cast<value_t>(min()),
-                       static_cast<value_t>(max()));
+    if constexpr (!std::is_same_v<typename min_t::value_type, std::nullopt_t>) {
+        out() = std::max(out(), static_cast<typename out_t::value_type>(min()));
+    }
+
+    if constexpr (!std::is_same_v<typename max_t::value_type, std::nullopt_t>) {
+        out() = std::min(out(), static_cast<typename out_t::value_type>(max()));
+    }
 }
 
 } // namespace detail
