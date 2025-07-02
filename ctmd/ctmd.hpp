@@ -27,6 +27,8 @@
 #include "linspace.hpp"
 #include "matmul.hpp"
 #include "matvec.hpp"
+#include "maximum.hpp"
+#include "minimum.hpp"
 #include "multiply.hpp"
 #include "negative.hpp"
 #include "not_equal.hpp"
