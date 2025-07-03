@@ -7,6 +7,7 @@
 #include "add.hpp"
 #include "all.hpp"
 #include "allclose.hpp"
+#include "arange.hpp"
 #include "array_equal.hpp"
 #include "array_equiv.hpp"
 #include "atan2.hpp"
