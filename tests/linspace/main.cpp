@@ -42,19 +42,19 @@ TEST(stack, 2) {
         md::linspace<-1>(start, stop, md::extents<uint8_t, num>{}, true);
 
     static_assert(
-        md::same(out1.extents(), md::extents<size_t, num, ext1, ext2>{}));
+        md::core::same(out1.extents(), md::extents<size_t, num, ext1, ext2>{}));
     static_assert(out1(0, 0, 0) == start(0, 0));
     static_assert(out1(num - 1, ext1 - 1, ext2 - 1) ==
                   stop(ext1 - 1, ext2 - 1));
 
     static_assert(
-        md::same(out2.extents(), md::extents<size_t, ext1, num, ext2>{}));
+        md::core::same(out2.extents(), md::extents<size_t, ext1, num, ext2>{}));
     static_assert(out2(0, 0, 0) == start(0, 0));
     static_assert(out2(ext1 - 1, num - 1, ext2 - 1) ==
                   stop(ext1 - 1, ext2 - 1));
 
     static_assert(
-        md::same(out3.extents(), md::extents<size_t, ext1, ext2, num>{}));
+        md::core::same(out3.extents(), md::extents<size_t, ext1, ext2, num>{}));
     static_assert(out3(0, 0, 0) == start(0, 0));
     static_assert(out3(ext1 - 1, ext2 - 1, num - 1) ==
                   stop(ext1 - 1, ext2 - 1));

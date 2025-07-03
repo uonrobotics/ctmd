@@ -11,7 +11,7 @@ TEST(stack, 1) {
     constexpr auto y = md::empty_like(x);
 
     constexpr auto is_same_extents =
-        md::same(y.extents(), md::extents<size_t, 1, 2, 3>{});
+        md::core::same(y.extents(), md::extents<size_t, 1, 2, 3>{});
 
     ASSERT_TRUE(is_same_extents);
 }
@@ -23,7 +23,7 @@ TEST(heap, 2) {
     const auto y = md::empty_like(x);
 
     const auto is_same_extents =
-        md::same(y.extents(), md::extents<size_t, 1, 2, 3>{});
+        md::core::same(y.extents(), md::extents<size_t, 1, 2, 3>{});
 
     ASSERT_TRUE(is_same_extents);
 }

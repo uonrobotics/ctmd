@@ -75,7 +75,7 @@ inline constexpr void rand(InType &&In,
 
     if constexpr (in_t::rank_dynamic() == 0) {
         if (std::is_constant_evaluated()) {
-            using T = value_type_t<in_t>;
+            using T = core::value_type_t<in_t>;
 
             if constexpr (in_t::rank() == 0) {
                 constexpr auto data =

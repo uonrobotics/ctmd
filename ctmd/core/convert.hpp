@@ -64,5 +64,15 @@ reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
                                                           new_extents};
 }
 
+template <typename T>
+using to_mdspan_t = decltype(to_mdspan(std::declval<T>()));
+
+template <typename T>
+using to_mdcontainer_t =
+    std::conditional_t<to_mdspan_t<T>::rank() == 0,
+                       typename to_mdspan_t<T>::value_type,
+                       mdarray<typename to_mdspan_t<T>::value_type,
+                               typename to_mdspan_t<T>::extents_type>>;
+
 } // namespace core
 } // namespace ctmd

@@ -415,7 +415,7 @@ inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
         if constexpr (possibly_same_bexts) {
             const auto same_bexts =
                 [&]<size_t... Is>(std::index_sequence<Is...>) {
-                    return ctmd::same(slice_with_offset<ofst[Is], br[Is]>(
+                    return core::same(slice_with_offset<ofst[Is], br[Is]>(
                         std::get<Is>(ins_tuple).extents())...);
                 }(std::make_index_sequence<sizeof...(ins_t)>{});
 
@@ -435,8 +435,8 @@ inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
                     const auto bexts = slice_with_offset<ofst[0], br[0]>(
                         std::get<0>(ins_tuple).extents());
 
-                    constexpr size_t static_bsize = ctmd::static_size(bexts);
-                    const size_t bsize = ctmd::size(bexts);
+                    constexpr size_t static_bsize = core::static_size(bexts);
+                    const size_t bsize = core::size(bexts);
 
                     [&]<size_t... Is>(std::index_sequence<Is...>) {
                         detail::batch_impl<1>(

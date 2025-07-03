@@ -65,6 +65,8 @@ concept mdspan_c = requires {
     typename T::accessor_type;
 };
 
+namespace core {
+
 template <extents_c exts_t>
 [[nodiscard]] inline constexpr size_t
 static_size(const exts_t &exts = exts_t{}) noexcept {
@@ -136,11 +138,13 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
     }
 }
 
+} // namespace core
+
 template <typename T, extents_c extent_t>
 using mdarray = std::conditional_t<
     extent_t::rank_dynamic() == 0,
     std::experimental::mdarray<T, extent_t, layout_right,
-                               std::array<T, static_size<extent_t>()>>,
+                               std::array<T, core::static_size<extent_t>()>>,
     std::experimental::mdarray<T, extent_t, layout_right, std::vector<T>>>;
 
 template <size_t start, size_t end>
@@ -150,11 +154,12 @@ using slice = std::experimental::strided_slice<
     std::integral_constant<size_t, 1>>;
 
 enum class MPMode : uint8_t {
-    NONE,
-    SIMD, // NOTE: Testing
-    CPUMP,
+    NONE,  // No parallelization
+    SIMD,  // SIMD parallelization
+    CPUMP, // CPU multi-processing with OpenMP
 };
 
+namespace core {
 namespace detail {
 
 template <typename T, typename = void> struct value_type_t_impl {
@@ -171,4 +176,5 @@ struct value_type_t_impl<T, std::void_t<typename T::value_type>> {
 template <typename T>
 using value_type_t = typename detail::value_type_t_impl<T>::type;
 
+} // namespace core
 } // namespace ctmd
