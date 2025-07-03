@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #ifdef USE_EIGEN
 #include "eigen/eigen.hpp"
 #endif

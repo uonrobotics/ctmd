@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-
 #include "../multiply.hpp"
 #include "../sqrt.hpp"
 #include "../sum.hpp"

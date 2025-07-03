@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cmath>
-
 #include "core/core.hpp"
 
 namespace ctmd {
