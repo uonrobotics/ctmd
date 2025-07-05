@@ -1,6 +1,6 @@
 #pragma once
 
-#include "abs.hpp"
+#include "absolute.hpp"
 
 namespace ctmd {
 namespace detail {
@@ -11,9 +11,9 @@ inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
                                    const out_t &out, const double &rtol,
                                    const double &atol) noexcept {
     using T = typename in2_t::value_type;
-    out() = ctmd::abs(in1() - in2()) <=
+    out() = ctmd::absolute(in1() - in2()) <=
             (static_cast<const T>(atol) +
-             static_cast<const T>(rtol) * ctmd::abs(in2()));
+             static_cast<const T>(rtol) * ctmd::absolute(in2()));
 }
 
 } // namespace detail
