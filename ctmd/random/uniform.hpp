@@ -31,7 +31,7 @@ inline constexpr void uniform(InType &&In, const double &low = 0,
         std::index_sequence<0>{}, mpmode, in);
 }
 
-template <floating_point_c T = float, extents_c exts_t = extents<uint8_t, 1>>
+template <floating_point_c T = float, extents_c exts_t = ctmd::extents<uint8_t>>
 [[nodiscard]] inline constexpr auto
 uniform(const exts_t &exts = exts_t{}, const double &low = 0,
         const double &high = 1, const MPMode mpmode = MPMode::NONE) noexcept {
