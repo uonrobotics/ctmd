@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "submdspan.hpp"
 #include "type.hpp"
 
