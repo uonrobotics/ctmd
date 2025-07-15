@@ -61,8 +61,12 @@ inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
                   core::eigen::eigen_mappable_mdspan_c<out_t>) {
         if (!std::is_constant_evaluated() && 8 <= out.extent(0) + out.extent(1))
             [[likely]] {
-            const auto ein1 = core::eigen::to_eigen(in1);
-            const auto ein2 = core::eigen::to_eigen(in2);
+            using common_t = std::common_type_t<typename in1_t::value_type,
+                                                typename in2_t::value_type>;
+            const auto ein1 =
+                core::eigen::to_eigen(in1).template cast<common_t>();
+            const auto ein2 =
+                core::eigen::to_eigen(in2).template cast<common_t>();
             auto eout = core::eigen::to_eigen(out);
             eout = ein1 * ein2;
             return;
