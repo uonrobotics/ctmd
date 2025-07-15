@@ -29,7 +29,7 @@
 - **Array manipulation routines**: [reshape](ctmd/reshape.hpp), [expand_dims](ctmd/expand_dims.hpp), [concatenate](ctmd/concatenate.hpp).
 - **Linear algebra**: [matmul](ctmd/linalg/matmul.hpp), [matvec](ctmd/linalg/matvec.hpp), [vecmat](ctmd/linalg/vecmat.hpp), [norm](ctmd/linalg/norm.hpp), [inv](ctmd/linalg/inv.hpp).
 - **Logic functions**: [all](ctmd/all.hpp), [any](ctmd/any.hpp), [allclose](ctmd/allclose.hpp), [isclose](ctmd/isclose.hpp), [array_equal](ctmd/array_equal.hpp), [array_equiv](ctmd/array_equiv.hpp), [greater](ctmd/greater.hpp), [greater_equal](ctmd/greater_equal.hpp), [less](ctmd/less.hpp), [less_equal](ctmd/less_equal.hpp), [equal](ctmd/equal.hpp), [not_equal](ctmd/not_equal.hpp).
-- **Logic functions**: [sin](ctmd/sin.hpp), [cos](ctmd/cos.hpp), [tan](ctmd/tan.hpp), [atan2](ctmd/atan2.hpp), [deg2rad](ctmd/deg2rad.hpp), [rad2deg](ctmd/rad2deg.hpp), [sum](ctmd/sum.hpp), [add](ctmd/add.hpp), [negative](ctmd/negative.hpp), [multiply](ctmd/multiply.hpp), [divide](ctmd/divide.hpp), [subtract](ctmd/subtract.hpp), [maximum](ctmd/maximum.hpp), [minimum](ctmd/minimum.hpp), [clip](ctmd/clip.hpp), [sqrt](ctmd/sqrt.hpp), [absolute](ctmd/absolute.hpp).
+- **Mathematical functions**: [sin](ctmd/sin.hpp), [cos](ctmd/cos.hpp), [tan](ctmd/tan.hpp), [atan2](ctmd/atan2.hpp), [deg2rad](ctmd/deg2rad.hpp), [rad2deg](ctmd/rad2deg.hpp), [sum](ctmd/sum.hpp), [add](ctmd/add.hpp), [negative](ctmd/negative.hpp), [multiply](ctmd/multiply.hpp), [divide](ctmd/divide.hpp), [subtract](ctmd/subtract.hpp), [maximum](ctmd/maximum.hpp), [minimum](ctmd/minimum.hpp), [clip](ctmd/clip.hpp), [sqrt](ctmd/sqrt.hpp), [absolute](ctmd/absolute.hpp).
 - **Random sampling**: [rand](ctmd/random/rand.hpp), [uniform](ctmd/random/uniform.hpp).
 
 ## Installation
