@@ -38,3 +38,17 @@ TEST(heap, matmul) {
 
     ASSERT_TRUE(allclose);
 }
+
+TEST(test, mixed) {
+    using T1 = int;
+    using T2 = float;
+    using T3 = double;
+
+    const auto a = md::mdarray<T1, md::dims<2>>{std::vector<T1>{1, 2, 3, 4},
+                                                md::dims<2>{2, 2}};
+    const auto b = md::mdarray<T2, md::dims<2>>{std::vector<T2>{5, 6, 7, 8},
+                                                md::dims<2>{2, 2}};
+    auto c = md::mdarray<T3, md::dims<2>>{md::dims<2>{2, 2}};
+
+    md::linalg::matmul(a, b, c);
+}

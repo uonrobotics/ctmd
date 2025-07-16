@@ -68,7 +68,7 @@ inline constexpr void matmul_impl(const in1_t &in1, const in2_t &in2,
             const auto ein2 =
                 core::eigen::to_eigen(in2).template cast<common_t>();
             auto eout = core::eigen::to_eigen(out);
-            eout = ein1 * ein2;
+            eout = (ein1 * ein2).template cast<typename out_t::value_type>();
             return;
         }
     }
