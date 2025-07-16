@@ -4,11 +4,11 @@
 
 namespace ctmd {
 
-template <typename T, extents_c exts_t = extents<size_t>>
+template <typename dtype, extents_c exts_t = extents<size_t>>
 [[nodiscard]] inline constexpr auto
 ones(const exts_t &exts = exts_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
-    return ctmd::full<T>(1, exts, mpmode);
+    return ctmd::full<dtype>(1, exts, mpmode);
 }
 
 } // namespace ctmd

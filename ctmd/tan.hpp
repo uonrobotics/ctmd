@@ -26,10 +26,10 @@ inline constexpr void tan(InType &&In, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 tan(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out<float>(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::tan_impl(std::forward<decltype(elems)>(elems)...);
         },

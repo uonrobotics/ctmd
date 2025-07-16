@@ -32,10 +32,10 @@ inline constexpr void absolute(InType &&In, OutType &&Out,
         core::to_const_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 absolute(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::absolute_impl(std::forward<decltype(elems)>(elems)...);
         },

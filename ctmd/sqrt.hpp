@@ -7,12 +7,13 @@ namespace detail {
 
 #ifndef REAL_GCC
 
-template <floating_point_c T>
-[[nodiscard]] inline constexpr T sqrt_newton_raphson(const T &x, const T &curr,
-                                                     const T &prev) noexcept {
+template <floating_point_c dtype>
+[[nodiscard]] inline constexpr dtype
+sqrt_newton_raphson(const dtype &x, const dtype &curr,
+                    const dtype &prev) noexcept {
     return (curr == prev)
                ? curr
-               : sqrt_newton_raphson(x, (curr + x / curr) / (T)2, curr);
+               : sqrt_newton_raphson(x, (curr + x / curr) / (dtype)2, curr);
 }
 
 #endif
@@ -27,19 +28,20 @@ inline constexpr void sqrt_impl(const in_t &in, const out_t &out) noexcept {
     // NOTE: std::abs is not constexpr in clang 16.
 
     if constexpr (floating_point_c<typename in_t::value_type>) {
-        using T = typename in_t::value_type;
+        using dtype = typename in_t::value_type;
 
-        out() = (in() >= 0 && in() < std::numeric_limits<T>::infinity())
-                    ? sqrt_newton_raphson(in(), in(), (T)0)
-                    : std::numeric_limits<T>::quiet_NaN();
+        out() = (in() >= 0 && in() < std::numeric_limits<dtype>::infinity())
+                    ? sqrt_newton_raphson(in(), in(), (dtype)0)
+                    : std::numeric_limits<dtype>::quiet_NaN();
 
     } else {
-        using T = float;
+        using dtype = float;
 
-        out() = (in() >= 0 && in() < std::numeric_limits<T>::infinity())
-                    ? sqrt_newton_raphson(static_cast<const T>(in()),
-                                          static_cast<const T>(in()), (T)0)
-                    : std::numeric_limits<T>::quiet_NaN();
+        out() =
+            (in() >= 0 && in() < std::numeric_limits<dtype>::infinity())
+                ? sqrt_newton_raphson(static_cast<const dtype>(in()),
+                                      static_cast<const dtype>(in()), (dtype)0)
+                : std::numeric_limits<dtype>::quiet_NaN();
     }
 
 #endif
@@ -59,10 +61,10 @@ inline constexpr void sqrt(InType &&In, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 sqrt(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::sqrt_impl(std::forward<decltype(elems)>(elems)...);
         },

@@ -28,11 +28,11 @@ inline constexpr void maximum(In1Type &&In1, In2Type &&In2, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename In1Type, typename In2Type>
+template <typename dtype = void, typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 maximum(In1Type &&In1, In2Type &&In2,
         const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::maximum_impl(std::forward<decltype(elems)>(elems)...);
         },

@@ -46,7 +46,7 @@ inline constexpr void norm(InType &&In, OutType &&Out,
         std::index_sequence<1, 0>{}, mpmode, in, out);
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
@@ -56,7 +56,7 @@ norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
                           mpmode);
     }
 
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::norm_impl(std::forward<decltype(elems)>(elems)...);
         },

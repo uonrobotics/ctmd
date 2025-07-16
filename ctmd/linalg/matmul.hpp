@@ -89,7 +89,7 @@ inline constexpr void matmul(In1Type &&In1, In2Type &&In2, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename In1Type, typename In2Type>
+template <typename dtype = void, typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 matmul(In1Type &&In1, In2Type &&In2,
        const MPMode mpmode = MPMode::NONE) noexcept {
@@ -105,7 +105,7 @@ matmul(In1Type &&In1, In2Type &&In2,
                 decltype(uin2_exts)::static_extent(1)>{uin1_exts.extent(0),
                                                        uin2_exts.extent(1)};
 
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::matmul_impl(std::forward<decltype(elems)>(elems)...);
         },

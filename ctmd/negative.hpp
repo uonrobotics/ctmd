@@ -25,10 +25,10 @@ inline constexpr void negative(InType &&In, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 negative(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::negative_impl(std::forward<decltype(elems)>(elems)...);
         },
