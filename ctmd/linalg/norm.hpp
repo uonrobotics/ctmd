@@ -50,17 +50,12 @@ template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 norm(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
+    auto out = core::create_out<dtype>(std::index_sequence<1>{},
+                                       ctmd::extents<uint8_t>{}, in);
 
-    if (mpmode == MPMode::SIMD) [[unlikely]] {
-        return ctmd::sqrt(ctmd::sum<-1>(ctmd::multiply(in, in, mpmode), mpmode),
-                          mpmode);
-    }
+    norm(in, out, mpmode);
 
-    return core::batch_out<dtype>(
-        [](auto &&...elems) {
-            detail::norm_impl(std::forward<decltype(elems)>(elems)...);
-        },
-        std::index_sequence<1>{}, ctmd::extents<uint8_t>{}, mpmode, in);
+    return out;
 }
 
 } // namespace linalg
