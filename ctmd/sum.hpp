@@ -38,7 +38,7 @@ inline constexpr void sum(InType &&In, OutType &&Out,
         std::index_sequence<rin_rank, rin_rank - 1>{}, mpmode, in, out);
 }
 
-template <int64_t Axis, typename InType>
+template <int64_t Axis, typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
@@ -49,7 +49,7 @@ sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
         static_cast<size_t>(
             ((Axis % static_cast<int64_t>(in_rank)) + (in_rank)) % in_rank);
 
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::sum_impl(std::forward<decltype(elems)>(elems)...);
         },

@@ -10,10 +10,10 @@ template <mdspan_c in1_t, mdspan_c in2_t, mdspan_c out_t>
 inline constexpr void isclose_impl(const in1_t &in1, const in2_t &in2,
                                    const out_t &out, const double &rtol,
                                    const double &atol) noexcept {
-    using T = typename in2_t::value_type;
+    using dtype = typename in2_t::value_type;
     out() = ctmd::absolute(in1() - in2()) <=
-            (static_cast<const T>(atol) +
-             static_cast<const T>(rtol) * ctmd::absolute(in2()));
+            (static_cast<const dtype>(atol) +
+             static_cast<const dtype>(rtol) * ctmd::absolute(in2()));
 }
 
 } // namespace detail
@@ -35,12 +35,12 @@ inline constexpr void isclose(In1Type &&In1, In2Type &&In2, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename In1Type, typename In2Type>
+template <typename dtype = int8_t, typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 isclose(In1Type &&In1, In2Type &&In2, const double &rtol = 1e-05,
         const double &atol = 1e-08,
         const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [&](auto &&...elems) {
             detail::isclose_impl(std::forward<decltype(elems)>(elems)..., rtol,
                                  atol);

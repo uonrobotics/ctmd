@@ -76,7 +76,7 @@ inline constexpr void linspace(start_in_t &&start_in, stop_in_t &&stop_in,
 }
 
 template <int64_t Axis = 0, extents_c exts_t = extents<uint8_t, 50>,
-          typename start_in_t, typename stop_in_t>
+          typename dtype = void, typename start_in_t, typename stop_in_t>
     requires(exts_t::rank() == 1)
 [[nodiscard]] inline constexpr auto
 linspace(start_in_t &&start_in, stop_in_t &&stop_in,
@@ -87,8 +87,10 @@ linspace(start_in_t &&start_in, stop_in_t &&stop_in,
     using start_t = decltype(start);
     using stop_t = decltype(stop);
 
-    using value_t = std::common_type_t<typename start_t::value_type,
-                                       typename stop_t::value_type>;
+    using value_t =
+        std::conditional_t<!std::is_void_v<dtype>, dtype,
+                           core::common_type_t<typename start_t::value_type,
+                                               typename stop_t::value_type>>;
 
     constexpr size_t out_rank = start_t::rank() + 1;
     constexpr size_t axis = static_cast<size_t>(

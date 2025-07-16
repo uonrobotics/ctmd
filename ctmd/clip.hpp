@@ -39,11 +39,12 @@ inline constexpr void clip(InType &&In, MinType &&Min, MaxType &&Max,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename InType, typename MinType, typename MaxType>
+template <typename dtype = void, typename InType, typename MinType,
+          typename MaxType>
 [[nodiscard]] inline constexpr auto
 clip(InType &&In, MinType &&Min, MaxType &&Max,
      const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },

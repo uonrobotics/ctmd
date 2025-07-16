@@ -25,10 +25,10 @@ inline constexpr void copy(InType &&In, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 copy(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::copy_impl(std::forward<decltype(elems)>(elems)...);
         },

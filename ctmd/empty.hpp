@@ -4,10 +4,10 @@
 
 namespace ctmd {
 
-template <typename T, extents_c exts_t = extents<size_t>>
+template <typename dtype, extents_c exts_t = extents<size_t>>
 [[nodiscard]] inline constexpr auto
 empty(const exts_t &exts = exts_t{}) noexcept {
-    return core::create_out<T>(exts);
+    return core::create_out<dtype>(exts);
 }
 
 } // namespace ctmd

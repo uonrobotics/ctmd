@@ -11,11 +11,11 @@ inline constexpr void matmul(Elems &&...elems) noexcept {
     ctmd::linalg::matmul(std::forward<Elems>(elems)...);
 }
 
-template <typename... Elems>
+template <typename dtype = void, typename... Elems>
     requires(!std::is_void_v<
              decltype(ctmd::linalg::matmul(std::declval<Elems>()...))>)
 [[nodiscard]] inline constexpr auto matmul(Elems &&...elems) noexcept {
-    return ctmd::linalg::matmul(std::forward<Elems>(elems)...);
+    return ctmd::linalg::matmul<dtype>(std::forward<Elems>(elems)...);
 }
 
 } // namespace ctmd

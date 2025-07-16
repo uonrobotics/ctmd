@@ -14,13 +14,13 @@ inline constexpr void deg2rad(InType &&In, OutType &&Out,
                    mpmode);
 }
 
-template <typename InType>
+template <typename dtype = void, typename InType>
 [[nodiscard]] inline constexpr auto
 deg2rad(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     using TI = decltype(core::to_mdspan(std::forward<InType>(In)))::value_type;
     constexpr TI D2R = static_cast<TI>(M_PI / 180.);
 
-    return ctmd::multiply(std::forward<InType>(In), D2R, mpmode);
+    return ctmd::multiply<dtype>(std::forward<InType>(In), D2R, mpmode);
 }
 
 } // namespace ctmd

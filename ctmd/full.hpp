@@ -5,11 +5,11 @@
 
 namespace ctmd {
 
-template <typename T, extents_c extents_t>
+template <typename dtype, extents_c extents_t>
 [[nodiscard]] inline constexpr auto
-full(const T &val, const extents_t &extents = extents_t{},
+full(const dtype &val, const extents_t &extents = extents_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
-    auto out = ctmd::empty<T>(extents);
+    auto out = ctmd::empty<dtype>(extents);
     ctmd::fill(out, val, mpmode);
     return out;
 }

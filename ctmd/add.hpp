@@ -56,6 +56,9 @@ inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
 /**
  * @brief Add arguments element-wise.
  *
+ * @tparam dtype (optional) data type of the result. If void, deduced from
+ * inputs.
+ *
  * @param In1 md-like or scalar.
  * @param In2 md-like or scalar.
  * @param mpmode (optional) Parallel execution mode. Default is MPMode::NONE.
@@ -67,10 +70,10 @@ inline constexpr void add(In1Type &&In1, In2Type &&In2, OutType &&Out,
  * @see ctmd::add(In1Type&&, In2Type&&, OutType&&, MPMode) for the in-place
  * version that modifies the output.
  */
-template <typename In1Type, typename In2Type>
+template <typename dtype = void, typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 add(In1Type &&In1, In2Type &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::add_impl(std::forward<decltype(elems)>(elems)...);
         },

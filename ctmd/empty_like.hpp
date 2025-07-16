@@ -7,14 +7,14 @@ namespace ctmd {
 template <typename InType>
 [[nodiscard]] inline constexpr auto empty_like(InType &&In) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
-    using T = typename decltype(in)::value_type;
-    return ctmd::empty<T>(in.extents());
+    using dtype = typename decltype(in)::value_type;
+    return ctmd::empty<dtype>(in.extents());
 }
 
-template <typename T, typename InType>
+template <typename dtype, typename InType>
 [[nodiscard]] inline constexpr auto empty_like(InType &&In) noexcept {
     const auto in = core::to_const_mdspan(std::forward<InType>(In));
-    return ctmd::empty<T>(in.extents());
+    return ctmd::empty<dtype>(in.extents());
 }
 
 } // namespace ctmd

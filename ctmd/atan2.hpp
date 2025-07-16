@@ -31,11 +31,11 @@ inline constexpr void atan2(In1Type &&In1, In2Type &&In2, OutType &&Out,
         core::to_mdspan(std::forward<OutType>(Out)));
 }
 
-template <typename In1Type, typename In2Type>
+template <typename dtype = void, typename In1Type, typename In2Type>
 [[nodiscard]] inline constexpr auto
 atan2(In1Type &&In1, In2Type &&In2,
       const MPMode mpmode = MPMode::NONE) noexcept {
-    return core::batch_out<float>(
+    return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::atan2_impl(std::forward<decltype(elems)>(elems)...);
         },
