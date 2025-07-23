@@ -1,7 +1,7 @@
 #pragma once
 
-#include "all.hpp"
-#include "isclose.hpp"
+#include "./all.hpp"
+#include "./isclose.hpp"
 
 namespace ctmd {
 
