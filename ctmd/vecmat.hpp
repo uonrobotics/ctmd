@@ -1,6 +1,6 @@
 #pragma once
 
-#include "linalg/vecmat.hpp"
+#include "./linalg/vecmat.hpp"
 
 namespace ctmd {
 

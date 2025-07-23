@@ -1,7 +1,7 @@
 #pragma once
 
-#include "all.hpp"
-#include "equal.hpp"
+#include "./all.hpp"
+#include "./equal.hpp"
 
 namespace ctmd {
 

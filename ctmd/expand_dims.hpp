@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reshape.hpp"
+#include "./reshape.hpp"
 
 namespace ctmd {
 
