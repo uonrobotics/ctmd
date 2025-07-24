@@ -5,20 +5,19 @@
 
 namespace ctmd {
 
-template <typename InType, typename val_t>
 [[nodiscard]] inline constexpr auto
-full_like(InType &&In, const val_t &val,
+full_like(auto &&In, const auto &val,
           const MPMode mpmode = MPMode::NONE) noexcept {
-    auto out = ctmd::empty_like(std::forward<InType>(In));
+    auto out = ctmd::empty_like(std::forward<decltype(In)>(In));
     ctmd::fill(out, val, mpmode);
     return out;
 }
 
-template <typename dtype, typename InType, typename val_t>
+template <typename dtype>
 [[nodiscard]] inline constexpr auto
-full_like(InType &&In, const val_t &val,
+full_like(auto &&In, const auto &val,
           const MPMode mpmode = MPMode::NONE) noexcept {
-    auto out = ctmd::empty_like<dtype>(std::forward<InType>(In));
+    auto out = ctmd::empty_like<dtype>(std::forward<decltype(In)>(In));
     ctmd::fill(out, val, mpmode);
     return out;
 }

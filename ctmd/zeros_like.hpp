@@ -4,16 +4,15 @@
 
 namespace ctmd {
 
-template <typename InType>
 [[nodiscard]] inline constexpr auto
-zeros_like(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return ctmd::full_like(std::forward<InType>(In), 0, mpmode);
+zeros_like(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    return ctmd::full_like(std::forward<decltype(In)>(In), 0, mpmode);
 }
 
-template <typename dtype, typename InType>
+template <typename dtype>
 [[nodiscard]] inline constexpr auto
-zeros_like(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    return ctmd::full_like<dtype>(std::forward<InType>(In), 0, mpmode);
+zeros_like(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    return ctmd::full_like<dtype>(std::forward<decltype(In)>(In), 0, mpmode);
 }
 
 } // namespace ctmd

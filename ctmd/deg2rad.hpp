@@ -4,23 +4,24 @@
 
 namespace ctmd {
 
-template <typename InType, typename OutType>
-inline constexpr void deg2rad(InType &&In, OutType &&Out,
+inline constexpr void deg2rad(auto &&In, auto &&Out,
                               const MPMode mpmode = MPMode::NONE) noexcept {
-    using TI = decltype(core::to_mdspan(std::forward<InType>(In)))::value_type;
+    using TI =
+        decltype(core::to_mdspan(std::forward<decltype(In)>(In)))::value_type;
     constexpr TI D2R = static_cast<TI>(M_PI / 180.);
 
-    ctmd::multiply(std::forward<InType>(In), D2R, std::forward<OutType>(Out),
-                   mpmode);
+    ctmd::multiply(std::forward<decltype(In)>(In), D2R,
+                   std::forward<decltype(Out)>(Out), mpmode);
 }
 
-template <typename dtype = void, typename InType>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-deg2rad(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    using TI = decltype(core::to_mdspan(std::forward<InType>(In)))::value_type;
+deg2rad(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    using TI =
+        decltype(core::to_mdspan(std::forward<decltype(In)>(In)))::value_type;
     constexpr TI D2R = static_cast<TI>(M_PI / 180.);
 
-    return ctmd::multiply<dtype>(std::forward<InType>(In), D2R, mpmode);
+    return ctmd::multiply<dtype>(std::forward<decltype(In)>(In), D2R, mpmode);
 }
 
 } // namespace ctmd

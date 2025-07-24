@@ -4,9 +4,8 @@
 
 namespace ctmd {
 
-template <typename InType>
-[[nodiscard]] inline constexpr bool all(InType &&In) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+[[nodiscard]] inline constexpr bool all(auto &&In) noexcept {
+    const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
     using in_t = decltype(in);
 
     if constexpr (in_t::rank() == 0) {

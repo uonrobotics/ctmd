@@ -4,10 +4,10 @@
 
 namespace ctmd {
 
-template <typename InType, extents_c extents_t>
+template <extents_c extents_t>
 [[nodiscard]] inline constexpr auto
-reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
-    return core::reshape(core::to_mdspan(std::forward<InType>(In)),
+reshape(auto &&In, const extents_t &new_extents = extents_t{}) noexcept {
+    return core::reshape(core::to_mdspan(std::forward<decltype(In)>(In)),
                          new_extents);
 }
 

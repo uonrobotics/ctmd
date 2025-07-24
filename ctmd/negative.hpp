@@ -13,27 +13,26 @@ inline constexpr void negative_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <typename InType, typename OutType>
-inline constexpr void negative(InType &&In, OutType &&Out,
+inline constexpr void negative(auto &&In, auto &&Out,
                                const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::negative_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = void, typename InType>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-negative(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+negative(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::negative_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)));
 }
 
 } // namespace ctmd

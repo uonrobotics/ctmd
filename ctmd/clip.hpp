@@ -24,34 +24,31 @@ inline constexpr void clip_impl(const in_t &in, const min_t &min,
 
 } // namespace detail
 
-template <typename InType, typename MinType, typename MaxType, typename OutType>
-inline constexpr void clip(InType &&In, MinType &&Min, MaxType &&Max,
-                           OutType &&Out,
+inline constexpr void clip(auto &&In, auto &&Min, auto &&Max, auto &&Out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0, 0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)),
-        core::to_const_mdspan(std::forward<MinType>(Min)),
-        core::to_const_mdspan(std::forward<MaxType>(Max)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        core::to_const_mdspan(std::forward<decltype(Min)>(Min)),
+        core::to_const_mdspan(std::forward<decltype(Max)>(Max)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = void, typename InType, typename MinType,
-          typename MaxType>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-clip(InType &&In, MinType &&Min, MaxType &&Max,
+clip(auto &&In, auto &&Min, auto &&Max,
      const MPMode mpmode = MPMode::NONE) noexcept {
     return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0, 0>{}, ctmd::extents<uint8_t>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)),
-        core::to_const_mdspan(std::forward<MinType>(Min)),
-        core::to_const_mdspan(std::forward<MaxType>(Max)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        core::to_const_mdspan(std::forward<decltype(Min)>(Min)),
+        core::to_const_mdspan(std::forward<decltype(Max)>(Max)));
 }
 
 } // namespace ctmd

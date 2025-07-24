@@ -77,25 +77,23 @@ inline constexpr void vecmat_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-template <typename In1Type, typename In2Type, typename OutType>
-inline constexpr void vecmat(In1Type &&In1, In2Type &&In2, OutType &&Out,
+inline constexpr void vecmat(auto &&In1, auto &&In2, auto &&Out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::vecmat_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<1, 2, 1>{}, mpmode,
-        core::to_const_mdspan(std::forward<In1Type>(In1)),
-        core::to_const_mdspan(std::forward<In2Type>(In2)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In1)>(In1)),
+        core::to_const_mdspan(std::forward<decltype(In2)>(In2)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = void, typename In1Type, typename In2Type>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-vecmat(In1Type &&In1, In2Type &&In2,
-       const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in1 = core::to_const_mdspan(std::forward<In1Type>(In1));
-    const auto in2 = core::to_mdspan(std::forward<In2Type>(In2));
+vecmat(auto &&In1, auto &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in1 = core::to_const_mdspan(std::forward<decltype(In1)>(In1));
+    const auto in2 = core::to_mdspan(std::forward<decltype(In2)>(In2));
 
     const auto uin1_exts = core::slice_from_right<1>(in1.extents());
     const auto uin2_exts = core::slice_from_right<2>(in2.extents());

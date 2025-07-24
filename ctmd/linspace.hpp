@@ -35,16 +35,15 @@ inline constexpr void linspace_impl(const start_t &start, const stop_t &stop,
 
 } // namespace detail
 
-template <int64_t Axis = 0, typename start_in_t, typename stop_in_t,
-          typename out_in_t>
-    requires(!extents_c<out_in_t>)
-inline constexpr void linspace(start_in_t &&start_in, stop_in_t &&stop_in,
-                               out_in_t &&out_in,
-                               const bool endpoint = true) noexcept {
+template <int64_t Axis = 0>
+inline constexpr void linspace_to(auto &&start_in, auto &&stop_in,
+                                  auto &&out_in,
+                                  const bool endpoint = true) noexcept {
     const auto start =
-        core::to_const_mdspan(std::forward<start_in_t>(start_in));
-    const auto stop = core::to_const_mdspan(std::forward<stop_in_t>(stop_in));
-    const auto out = core::to_mdspan(std::forward<out_in_t>(out_in));
+        core::to_const_mdspan(std::forward<decltype(start_in)>(start_in));
+    const auto stop =
+        core::to_const_mdspan(std::forward<decltype(stop_in)>(stop_in));
+    const auto out = core::to_mdspan(std::forward<decltype(out_in)>(out_in));
     using start_t = decltype(start);
     using stop_t = decltype(stop);
     using out_t = decltype(out);
@@ -67,7 +66,7 @@ inline constexpr void linspace(start_in_t &&start_in, stop_in_t &&stop_in,
         assert(start.extent(0) == out.extent(lspace));
 
         for (typename out_t::index_type i = 0; i < out.extent(lspace); i++) {
-            linspace<axis - (lspace == 0 ? 1 : 0)>(
+            linspace_to<axis - (lspace == 0 ? 1 : 0)>(
                 core::submdspan_from_left(start, i),
                 core::submdspan_from_left(stop, i),
                 core::submdspan_from_left<lspace>(out, i), endpoint);
@@ -76,14 +75,15 @@ inline constexpr void linspace(start_in_t &&start_in, stop_in_t &&stop_in,
 }
 
 template <int64_t Axis = 0, extents_c exts_t = extents<uint8_t, 50>,
-          typename dtype = void, typename start_in_t, typename stop_in_t>
+          typename dtype = void>
     requires(exts_t::rank() == 1)
 [[nodiscard]] inline constexpr auto
-linspace(start_in_t &&start_in, stop_in_t &&stop_in,
-         const exts_t &exts = exts_t{}, const bool endpoint = true) noexcept {
+linspace(auto &&start_in, auto &&stop_in, const exts_t &exts = exts_t{},
+         const bool endpoint = true) noexcept {
     const auto start =
-        core::to_const_mdspan(std::forward<start_in_t>(start_in));
-    const auto stop = core::to_const_mdspan(std::forward<stop_in_t>(stop_in));
+        core::to_const_mdspan(std::forward<decltype(start_in)>(start_in));
+    const auto stop =
+        core::to_const_mdspan(std::forward<decltype(stop_in)>(stop_in));
     using start_t = decltype(start);
     using stop_t = decltype(stop);
 
@@ -101,7 +101,7 @@ linspace(start_in_t &&start_in, stop_in_t &&stop_in,
         core::slice_from_left<axis>(bexts), exts,
         core::slice_from_right<decltype(bexts)::rank() - axis>(bexts)));
 
-    linspace<Axis>(start, stop, out, endpoint);
+    linspace_to<Axis>(start, stop, out, endpoint);
 
     return out;
 }

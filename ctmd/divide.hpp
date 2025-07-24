@@ -14,30 +14,28 @@ inline constexpr void divide_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-template <typename In1Type, typename In2Type, typename OutType>
-inline constexpr void divide(In1Type &&In1, In2Type &&In2, OutType &&Out,
+inline constexpr void divide(auto &&In1, auto &&In2, auto &&Out,
                              const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::divide_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<In1Type>(In1)),
-        core::to_const_mdspan(std::forward<In2Type>(In2)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In1)>(In1)),
+        core::to_const_mdspan(std::forward<decltype(In2)>(In2)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = void, typename In1Type, typename In2Type>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-divide(In1Type &&In1, In2Type &&In2,
-       const MPMode mpmode = MPMode::NONE) noexcept {
+divide(auto &&In1, auto &&In2, const MPMode mpmode = MPMode::NONE) noexcept {
     return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::divide_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0>{}, ctmd::extents<uint8_t>{}, mpmode,
-        core::to_const_mdspan(std::forward<In1Type>(In1)),
-        core::to_const_mdspan(std::forward<In2Type>(In2)));
+        core::to_const_mdspan(std::forward<decltype(In1)>(In1)),
+        core::to_const_mdspan(std::forward<decltype(In2)>(In2)));
 }
 
 } // namespace ctmd
