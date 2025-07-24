@@ -13,8 +13,8 @@ inline constexpr void negative_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-inline constexpr void negative(auto &&In, auto &&Out,
-                               const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void negative_to(auto &&In, auto &&Out,
+                                  const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::negative_impl(std::forward<decltype(elems)>(elems)...);

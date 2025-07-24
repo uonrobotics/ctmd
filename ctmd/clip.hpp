@@ -24,8 +24,8 @@ inline constexpr void clip_impl(const in_t &in, const min_t &min,
 
 } // namespace detail
 
-inline constexpr void clip(auto &&In, auto &&Min, auto &&Max, auto &&Out,
-                           const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void clip_to(auto &&In, auto &&Min, auto &&Max, auto &&Out,
+                              const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);

@@ -20,15 +20,15 @@ inline constexpr void absolute_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-inline constexpr void absolute(auto &&In, auto &&Out,
-                               const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void absolute_to(auto &&In, auto &&Out,
+                                  const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::absolute_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0>{}, mpmode,
         core::to_const_mdspan(std::forward<decltype(In)>(In)),
-        core::to_const_mdspan(std::forward<decltype(Out)>(Out)));
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
 template <typename dtype = void>

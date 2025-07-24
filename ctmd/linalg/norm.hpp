@@ -27,14 +27,14 @@ inline constexpr void norm_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-inline constexpr void norm(auto &&In, auto &&Out,
-                           const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void norm_to(auto &&In, auto &&Out,
+                              const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
     const auto out = core::to_mdspan(std::forward<decltype(Out)>(Out));
 
     if (mpmode == MPMode::SIMD) [[unlikely]] {
-        ctmd::sum<-1>(ctmd::multiply(in, in, mpmode), out, mpmode);
-        ctmd::sqrt(out, out, mpmode);
+        ctmd::sum_to<-1>(ctmd::multiply(in, in, mpmode), out, mpmode);
+        ctmd::sqrt_to(out, out, mpmode);
         return;
     }
 
@@ -52,7 +52,7 @@ norm(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     auto out = core::create_out<dtype>(std::index_sequence<1>{},
                                        ctmd::extents<uint8_t>{}, in);
 
-    norm(in, out, mpmode);
+    norm_to(in, out, mpmode);
 
     return out;
 }

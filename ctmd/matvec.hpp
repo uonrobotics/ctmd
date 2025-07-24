@@ -7,8 +7,8 @@ namespace ctmd {
 template <typename... Elems>
     requires(std::is_void_v<
              decltype(ctmd::linalg::matvec(std::declval<Elems>()...))>)
-inline constexpr void matvec(Elems &&...elems) noexcept {
-    ctmd::linalg::matvec(std::forward<Elems>(elems)...);
+inline constexpr void matvec_to(Elems &&...elems) noexcept {
+    ctmd::linalg::matvec_to(std::forward<Elems>(elems)...);
 }
 
 template <typename dtype = void, typename... Elems>

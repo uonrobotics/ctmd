@@ -13,8 +13,8 @@ inline constexpr void copy_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-inline constexpr void copy(auto &&In, auto &&Out,
-                           const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void copy_to(auto &&In, auto &&Out,
+                              const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::copy_impl(std::forward<decltype(elems)>(elems)...);

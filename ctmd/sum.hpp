@@ -13,15 +13,15 @@ inline constexpr void sum_impl(const in_t &in, const out_t &out) noexcept {
     ctmd::fill(out, 0);
 
     for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-        ctmd::add(out, core::submdspan_from_left(in, i), out);
+        ctmd::add_to(out, core::submdspan_from_left(in, i), out);
     }
 }
 
 } // namespace detail
 
 template <int64_t Axis>
-inline constexpr void sum(auto &&In, auto &&Out,
-                          const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void sum_to(auto &&In, auto &&Out,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
     const auto out = core::to_mdspan(std::forward<decltype(Out)>(Out));
 

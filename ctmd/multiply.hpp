@@ -14,8 +14,8 @@ inline constexpr void multiply_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-inline constexpr void multiply(auto &&In1, auto &&In2, auto &&Out,
-                               const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void multiply_to(auto &&In1, auto &&In2, auto &&Out,
+                                  const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::multiply_impl(std::forward<decltype(elems)>(elems)...);

@@ -45,7 +45,7 @@ inline constexpr void matvec_naive(const in1_t &in1, const in2_t &in2,
             ctmd::mdarray<typename out_t::value_type,
                           typename out_t::extents_type>{out.extents()};
         matvec_naive(in1, in2, out_tmp.to_mdspan());
-        ctmd::copy(out_tmp, out);
+        ctmd::copy_to(out_tmp, out);
     }
 }
 
@@ -77,8 +77,8 @@ inline constexpr void matvec_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-inline constexpr void matvec(auto &&In1, auto &&In2, auto &&Out,
-                             const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void matvec_to(auto &&In1, auto &&In2, auto &&Out,
+                                const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::matvec_impl(std::forward<decltype(elems)>(elems)...);

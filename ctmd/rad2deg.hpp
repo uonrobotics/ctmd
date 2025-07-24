@@ -4,8 +4,8 @@
 
 namespace ctmd {
 
-inline constexpr void rad2deg(auto &&In, auto &&Out,
-                              const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void rad2deg_to(auto &&In, auto &&Out,
+                                 const MPMode mpmode = MPMode::NONE) noexcept {
     using TI =
         decltype(core::to_mdspan(std::forward<decltype(In)>(In)))::value_type;
     constexpr TI R2D = static_cast<TI>(180. / M_PI);

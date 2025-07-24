@@ -15,8 +15,8 @@ inline constexpr void maximum_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-inline constexpr void maximum(auto &&In1, auto &&In2, auto &&Out,
-                              const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void maximum_to(auto &&In1, auto &&In2, auto &&Out,
+                                 const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::maximum_impl(std::forward<decltype(elems)>(elems)...);

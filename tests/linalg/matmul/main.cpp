@@ -50,5 +50,5 @@ TEST(test, mixed) {
                                                 md::dims<2>{2, 2}};
     auto c = md::mdarray<T3, md::dims<2>>{md::dims<2>{2, 2}};
 
-    md::linalg::matmul(a, b, c);
+    md::linalg::matmul_to(a, b, c);
 }

@@ -71,8 +71,8 @@ inline constexpr void inv_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-inline constexpr void inv(auto &&In, auto &&Out,
-                          const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void inv_to(auto &&In, auto &&Out,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);

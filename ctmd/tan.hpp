@@ -14,8 +14,8 @@ inline constexpr void tan_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-inline constexpr void tan(auto &&In, auto &&Out,
-                          const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void tan_to(auto &&In, auto &&Out,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::tan_impl(std::forward<decltype(elems)>(elems)...);

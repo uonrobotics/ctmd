@@ -17,7 +17,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     T out;
 
     for (auto _ : state) {
-        md::linalg::norm(in, out);
+        md::linalg::norm_to(in, out);
     }
 
     state.SetComplexityN(state.range(0));

@@ -7,18 +7,18 @@
 namespace ctmd {
 namespace random {
 
-inline constexpr void uniform(auto &&In, const double &low = 0,
-                              const double &high = 1,
-                              const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void uniform_to(auto &&In, const double &low = 0,
+                                 const double &high = 1,
+                                 const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_mdspan(std::forward<decltype(In)>(In));
 
     using T = typename decltype(in)::value_type;
 
-    random::rand(in, mpmode);
+    random::rand_to(in, mpmode);
 
     if (mpmode == MPMode::SIMD) [[unlikely]] {
-        ctmd::multiply(in, static_cast<const T>(high - low), in);
-        ctmd::add(in, static_cast<const T>(low), in);
+        ctmd::multiply_to(in, static_cast<const T>(high - low), in);
+        ctmd::add_to(in, static_cast<const T>(low), in);
         return;
     }
 
@@ -35,7 +35,7 @@ template <floating_point_c T = float, extents_c exts_t = ctmd::extents<uint8_t>>
 uniform(const exts_t &exts = exts_t{}, const double &low = 0,
         const double &high = 1, const MPMode mpmode = MPMode::NONE) noexcept {
     auto out = empty<T>(exts);
-    uniform(out, low, high, mpmode);
+    uniform_to(out, low, high, mpmode);
     return out;
 }
 

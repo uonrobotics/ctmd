@@ -17,8 +17,8 @@ inline constexpr void eye_impl(const in_t &in) noexcept {
 
 } // namespace detail
 
-inline constexpr void eye(auto &&In,
-                          const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void eye_to(auto &&In,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::eye_impl(std::forward<decltype(elems)>(elems)...);
@@ -32,7 +32,7 @@ template <typename dtype, extents_c extents_t>
 eye(const extents_t &extents = extents_t{},
     const MPMode mpmode = MPMode::NONE) noexcept {
     auto out = ctmd::empty<dtype>(extents);
-    ctmd::eye(out, mpmode);
+    ctmd::eye_to(out, mpmode);
     return out;
 }
 

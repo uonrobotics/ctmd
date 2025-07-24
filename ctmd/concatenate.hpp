@@ -130,8 +130,8 @@ concatenate(std::tuple<InsTypes...> &&Ins) noexcept {
              const size_t extent = std::get<Is>(ins).extent(axis);
              constexpr size_t stride = 1;
 
-             ctmd::copy(std::get<Is>(ins), [&]<size_t... Js>(
-                                               std::index_sequence<Js...>) {
+             ctmd::copy_to(std::get<Is>(ins), [&]<size_t... Js>(
+                                                  std::index_sequence<Js...>) {
                  return core::submdspan_from_left(
                      core::to_mdspan(out), ((void)Js, ctmd::full_extent)...,
                      ctmd::strided_slice{offset, extent, stride});

@@ -67,8 +67,8 @@ inline void rand_impl(const in_t &in) noexcept {
 
 } // namespace detail
 
-inline constexpr void rand(auto &&In,
-                           const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void rand_to(auto &&In,
+                              const MPMode mpmode = MPMode::NONE) noexcept {
     const auto in = core::to_mdspan(std::forward<decltype(In)>(In));
     using in_t = decltype(in);
 
@@ -91,7 +91,7 @@ inline constexpr void rand(auto &&In,
                     ctmd::mdarray<T, typename in_t::extents_type>{
                         detail::uniform_distribution<T, data_size>(0, 1)};
 
-                ctmd::copy(data, in);
+                ctmd::copy_to(data, in);
             }
 
             return;
@@ -110,7 +110,7 @@ template <floating_point_c T = float, extents_c exts_t = ctmd::extents<uint8_t>>
 rand(const exts_t &exts = exts_t{},
      const MPMode mpmode = MPMode::NONE) noexcept {
     auto out = empty<T>(exts);
-    rand(out, mpmode);
+    rand_to(out, mpmode);
     return out;
 }
 

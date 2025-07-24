@@ -37,11 +37,10 @@ inline constexpr void add_impl(const in1_t &in1, const in2_t &in2,
  *
  * @note Equivalent to In1 + In2 = Out in terms of array broadcasting.
  *
- * @see ctmd::add(auto&&, auto&&, MPMode) for the in-place version that returns
- * the result.
+ * @see ctmd::add for the in-place version that returns the result.
  */
-inline constexpr void add(auto &&In1, auto &&In2, auto &&Out,
-                          const MPMode mpmode = MPMode::NONE) noexcept {
+inline constexpr void add_to(auto &&In1, auto &&In2, auto &&Out,
+                             const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::add_impl(std::forward<decltype(elems)>(elems)...);
@@ -66,8 +65,7 @@ inline constexpr void add(auto &&In1, auto &&In2, auto &&Out,
  *
  * @note Equivalent to In1 + In2 = Out in terms of array broadcasting.
  *
- * @see ctmd::add(auto&&, auto&&, auto&&, MPMode) for the in-place version that
- * modifies the output.
+ * @see ctmd::add_to for the in-place version that modifies the output.
  */
 template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
