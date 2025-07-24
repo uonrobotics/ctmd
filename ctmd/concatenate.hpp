@@ -1,8 +1,8 @@
 #pragma once
 
-#include "./copy.hpp"
-#include "./empty.hpp"
-#include "./expand_dims.hpp"
+#include "copy.hpp"
+#include "empty.hpp"
+#include "expand_dims.hpp"
 
 namespace ctmd {
 namespace detail {

@@ -1,4 +1,4 @@
 #pragma once
 
-#include "./rand.hpp"
-#include "./uniform.hpp"
+#include "rand.hpp"
+#include "uniform.hpp"

@@ -2,7 +2,7 @@
 
 #include "../add.hpp"
 #include "../multiply.hpp"
-#include "./rand.hpp"
+#include "rand.hpp"
 
 namespace ctmd {
 namespace random {

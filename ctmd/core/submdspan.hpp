@@ -1,7 +1,7 @@
 #pragma once
 
-#include "./convert.hpp"
-#include "./type.hpp"
+#include "convert.hpp"
+#include "type.hpp"
 
 namespace ctmd {
 

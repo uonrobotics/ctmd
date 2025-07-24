@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../copy.hpp"
+#include "../core/eigen/eigen.hpp"
 
 namespace ctmd {
 namespace linalg {

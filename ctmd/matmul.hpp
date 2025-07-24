@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./linalg/matmul.hpp"
+#include "linalg/matmul.hpp"
 
 namespace ctmd {
 

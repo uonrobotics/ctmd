@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./absolute.hpp"
+#include "absolute.hpp"
 
 namespace ctmd {
 namespace detail {
