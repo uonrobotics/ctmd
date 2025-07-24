@@ -17,15 +17,14 @@ inline constexpr void eye_impl(const in_t &in) noexcept {
 
 } // namespace detail
 
-template <typename InType>
-inline constexpr void eye(InType &&In,
+inline constexpr void eye(auto &&In,
                           const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::eye_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<2>{}, mpmode,
-        core::to_mdspan(std::forward<InType>(In)));
+        core::to_mdspan(std::forward<decltype(In)>(In)));
 }
 
 template <typename dtype, extents_c extents_t>

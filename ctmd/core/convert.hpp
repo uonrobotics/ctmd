@@ -5,12 +5,11 @@
 namespace ctmd {
 namespace core {
 
-template <typename InType>
-[[nodiscard]] inline constexpr auto to_mdspan(InType &&In) noexcept {
-    using BaseType = std::remove_reference_t<InType>;
+[[nodiscard]] inline constexpr auto to_mdspan(auto &&In) noexcept {
+    using BaseType = std::remove_reference_t<decltype(In)>;
 
     if constexpr (mdspan_c<BaseType>) {
-        return std::forward<InType>(In);
+        return std::forward<decltype(In)>(In);
 
     } else if constexpr (requires { In.to_mdspan(); }) {
         return In.to_mdspan();
@@ -35,9 +34,8 @@ template <mdspan_c in_t>
     }
 }
 
-template <typename InType>
-[[nodiscard]] inline constexpr auto to_const_mdspan(InType &&In) noexcept {
-    return to_const(to_mdspan(std::forward<InType>(In)));
+[[nodiscard]] inline constexpr auto to_const_mdspan(auto &&In) noexcept {
+    return to_const(to_mdspan(std::forward<decltype(In)>(In)));
 }
 
 template <mdspan_c in_t>
@@ -51,10 +49,10 @@ template <mdspan_c in_t>
     return in.is_unique() && in.is_exhaustive() && in.is_strided();
 }
 
-template <typename InType, extents_c extents_t>
+template <extents_c extents_t>
 [[nodiscard]] inline constexpr auto
-reshape(InType &&In, const extents_t &new_extents = extents_t{}) noexcept {
-    const auto in = to_mdspan(std::forward<InType>(In));
+reshape(auto &&In, const extents_t &new_extents = extents_t{}) noexcept {
+    const auto in = to_mdspan(std::forward<decltype(In)>(In));
     using in_t = decltype(in);
 
     assert(is_reshapable(in));

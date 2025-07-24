@@ -49,10 +49,9 @@ template <extents_c in_t>
     return str + ")";
 }
 
-template <typename InType>
-[[nodiscard]] inline std::string to_string(InType &&In) noexcept {
+[[nodiscard]] inline std::string to_string(auto &&In) noexcept {
     return detail::to_string_impl(
-        core::to_const_mdspan(std::forward<InType>(In)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)));
 }
 
 } // namespace ctmd

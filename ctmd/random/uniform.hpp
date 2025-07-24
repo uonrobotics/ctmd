@@ -7,11 +7,10 @@
 namespace ctmd {
 namespace random {
 
-template <typename InType>
-inline constexpr void uniform(InType &&In, const double &low = 0,
+inline constexpr void uniform(auto &&In, const double &low = 0,
                               const double &high = 1,
                               const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_mdspan(std::forward<decltype(In)>(In));
 
     using T = typename decltype(in)::value_type;
 

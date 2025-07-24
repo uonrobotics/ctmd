@@ -71,22 +71,21 @@ inline constexpr void inv_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <typename InType, typename OutType>
-inline constexpr void inv(InType &&In, OutType &&Out,
+inline constexpr void inv(auto &&In, auto &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::inv_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<2, 2>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = void, typename InType>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-inv(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+inv(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
 
     return core::batch_out<dtype>(
         [](auto &&...elems) {

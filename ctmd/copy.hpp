@@ -13,27 +13,26 @@ inline constexpr void copy_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <typename InType, typename OutType>
-inline constexpr void copy(InType &&In, OutType &&Out,
+inline constexpr void copy(auto &&In, auto &&Out,
                            const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::copy_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = void, typename InType>
+template <typename dtype = void>
 [[nodiscard]] inline constexpr auto
-copy(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+copy(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
     return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::copy_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode,
-        core::to_const_mdspan(std::forward<InType>(In)));
+        core::to_const_mdspan(std::forward<decltype(In)>(In)));
 }
 
 } // namespace ctmd

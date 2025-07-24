@@ -67,10 +67,9 @@ inline void rand_impl(const in_t &in) noexcept {
 
 } // namespace detail
 
-template <typename InType>
-inline constexpr void rand(InType &&In,
+inline constexpr void rand(auto &&In,
                            const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_mdspan(std::forward<InType>(In));
+    const auto in = core::to_mdspan(std::forward<decltype(In)>(In));
     using in_t = decltype(in);
 
     if constexpr (in_t::rank_dynamic() == 0) {

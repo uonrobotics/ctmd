@@ -18,7 +18,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::isclose(in1, in2, out);
+        md::isclose_to(in1, in2, out);
     }
 
     state.SetComplexityN(state.range(0));

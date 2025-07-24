@@ -14,31 +14,30 @@ inline constexpr void greater_equal_impl(const in1_t &in1, const in2_t &in2,
 
 } // namespace detail
 
-template <typename In1Type, typename In2Type, typename OutType>
 inline constexpr void
-greater_equal(In1Type &&In1, In2Type &&In2, OutType &&Out,
+greater_equal(auto &&In1, auto &&In2, auto &&Out,
               const MPMode mpmode = MPMode::NONE) noexcept {
     core::batch(
         [](auto &&...elems) {
             detail::greater_equal_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<In1Type>(In1)),
-        core::to_const_mdspan(std::forward<In2Type>(In2)),
-        core::to_mdspan(std::forward<OutType>(Out)));
+        core::to_const_mdspan(std::forward<decltype(In1)>(In1)),
+        core::to_const_mdspan(std::forward<decltype(In2)>(In2)),
+        core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
-template <typename dtype = int8_t, typename In1Type, typename In2Type>
+template <typename dtype = int8_t>
 [[nodiscard]] inline constexpr auto
-greater_equal(In1Type &&In1, In2Type &&In2,
+greater_equal(auto &&In1, auto &&In2,
               const MPMode mpmode = MPMode::NONE) noexcept {
     return core::batch_out<dtype>(
         [](auto &&...elems) {
             detail::greater_equal_impl(std::forward<decltype(elems)>(elems)...);
         },
         std::index_sequence<0, 0>{}, ctmd::extents<uint8_t>{}, mpmode,
-        core::to_const_mdspan(std::forward<In1Type>(In1)),
-        core::to_const_mdspan(std::forward<In2Type>(In2)));
+        core::to_const_mdspan(std::forward<decltype(In1)>(In1)),
+        core::to_const_mdspan(std::forward<decltype(In2)>(In2)));
 }
 
 } // namespace ctmd

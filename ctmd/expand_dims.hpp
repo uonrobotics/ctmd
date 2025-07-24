@@ -4,9 +4,9 @@
 
 namespace ctmd {
 
-template <int64_t Axis, typename InType>
-[[nodiscard]] inline constexpr auto expand_dims(InType &&In) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+template <int64_t Axis>
+[[nodiscard]] inline constexpr auto expand_dims(auto &&In) noexcept {
+    const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
     using in_t = decltype(in);
 
     constexpr size_t rank = in_t::rank();
@@ -32,7 +32,7 @@ template <int64_t Axis, typename InType>
                                : (Is == axis ? 1 : in.extent(Is - 1)))...};
             }(std::make_index_sequence<rank + 1>{});
 
-        return ctmd::reshape(std::forward<InType>(In), new_extents);
+        return ctmd::reshape(std::forward<decltype(In)>(In), new_extents);
     }
 }
 

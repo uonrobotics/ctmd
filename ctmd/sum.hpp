@@ -19,11 +19,11 @@ inline constexpr void sum_impl(const in_t &in, const out_t &out) noexcept {
 
 } // namespace detail
 
-template <int64_t Axis, typename InType, typename OutType>
-inline constexpr void sum(InType &&In, OutType &&Out,
+template <int64_t Axis>
+inline constexpr void sum(auto &&In, auto &&Out,
                           const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
-    const auto out = core::to_mdspan(std::forward<OutType>(Out));
+    const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
+    const auto out = core::to_mdspan(std::forward<decltype(Out)>(Out));
 
     constexpr size_t in_rank = decltype(in)::rank();
     constexpr size_t rin_rank =
@@ -38,10 +38,10 @@ inline constexpr void sum(InType &&In, OutType &&Out,
         std::index_sequence<rin_rank, rin_rank - 1>{}, mpmode, in, out);
 }
 
-template <int64_t Axis, typename dtype = void, typename InType>
+template <int64_t Axis, typename dtype = void>
 [[nodiscard]] inline constexpr auto
-sum(InType &&In, const MPMode mpmode = MPMode::NONE) noexcept {
-    const auto in = core::to_const_mdspan(std::forward<InType>(In));
+sum(auto &&In, const MPMode mpmode = MPMode::NONE) noexcept {
+    const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
 
     constexpr size_t in_rank = decltype(in)::rank();
     constexpr size_t rin_rank =
