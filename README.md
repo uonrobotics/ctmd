@@ -88,7 +88,7 @@ bazel test tests/...
 
 Benchmarks (in benchmarks/) are written using [GoogleBenchmark](https://github.com/google/benchmark). To run a benchmark (e.g., matrix addition in double precision):
 ```bash
-bazel run benchmarks/add:pd
+bazel run benchmarks/add/none:ps
 ```
 
 ## About
