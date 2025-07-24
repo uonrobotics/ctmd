@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/full.hpp"
-#include "ctmd/linalg/vecmat.hpp"
+#include "ctmd/ctmd_full.hpp"
+#include "ctmd/linalg/ctmd_linalg_vecmat.hpp"
 
 namespace md = ctmd;
 

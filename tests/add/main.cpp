@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/add.hpp"
-#include "ctmd/allclose.hpp"
-#include "ctmd/to_string.hpp" // TODO: remove
+#include "ctmd/ctmd_add.hpp"
+#include "ctmd/ctmd_allclose.hpp"
+#include "ctmd/ctmd_to_string.hpp" // TODO: remove
 
 namespace md = ctmd;
 

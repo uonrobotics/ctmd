@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/allclose.hpp"
-#include "ctmd/multiply.hpp"
+#include "ctmd/ctmd_allclose.hpp"
+#include "ctmd/ctmd_multiply.hpp"
 
 namespace md = ctmd;
 

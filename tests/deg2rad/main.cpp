@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/allclose.hpp"
-#include "ctmd/deg2rad.hpp"
+#include "ctmd/ctmd_allclose.hpp"
+#include "ctmd/ctmd_deg2rad.hpp"
 
 namespace md = ctmd;
 
