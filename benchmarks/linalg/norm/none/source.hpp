@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/full.hpp"
-#include "ctmd/linalg/norm.hpp"
+#include "ctmd/ctmd_full.hpp"
+#include "ctmd/linalg/ctmd_linalg_norm.hpp"
 
 namespace md = ctmd;
 
@@ -17,7 +17,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     T out;
 
     for (auto _ : state) {
-        md::linalg::norm(in, out);
+        md::linalg::norm_to(in, out);
     }
 
     state.SetComplexityN(state.range(0));

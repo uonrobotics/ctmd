@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/full.hpp"
-#include "ctmd/multiply.hpp"
+#include "ctmd/ctmd_full.hpp"
+#include "ctmd/ctmd_multiply.hpp"
 
 namespace md = ctmd;
 
@@ -18,7 +18,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::multiply(in1, in2, out);
+        md::multiply_to(in1, in2, out);
     }
 
     state.SetComplexityN(state.range(0));

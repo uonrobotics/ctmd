@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/linalg/inv.hpp"
-#include "ctmd/random/rand.hpp"
+#include "ctmd/linalg/ctmd_linalg_inv.hpp"
+#include "ctmd/random/ctmd_random_rand.hpp"
 
 namespace md = ctmd;
 
@@ -18,7 +18,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<2>>{md::dims<2>{set_num, set_num}};
 
     for (auto _ : state) {
-        md::linalg::inv(in, out);
+        md::linalg::inv_to(in, out);
     }
 
     state.SetComplexityN(state.range(0));

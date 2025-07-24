@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/array_equal.hpp"
-#include "ctmd/clip.hpp"
-#include "ctmd/random/rand.hpp"
+#include "ctmd/ctmd_array_equal.hpp"
+#include "ctmd/ctmd_clip.hpp"
+#include "ctmd/random/ctmd_random_rand.hpp"
 
 namespace md = ctmd;
 

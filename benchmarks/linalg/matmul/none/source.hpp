@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/full.hpp"
-#include "ctmd/linalg/matmul.hpp"
+#include "ctmd/ctmd_full.hpp"
+#include "ctmd/linalg/ctmd_linalg_matmul.hpp"
 
 namespace md = ctmd;
 
@@ -18,7 +18,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<2>>{md::dims<2>{set_num, set_num}};
 
     for (auto _ : state) {
-        md::linalg::matmul(in1, in2, out);
+        md::linalg::matmul_to(in1, in2, out);
     }
 
     state.SetComplexityN(state.range(0));

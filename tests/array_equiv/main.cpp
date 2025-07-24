@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/array_equiv.hpp"
+#include "ctmd/ctmd_array_equiv.hpp"
 
 namespace md = ctmd;
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/atan2.hpp"
-#include "ctmd/random/rand.hpp"
+#include "ctmd/ctmd_atan2.hpp"
+#include "ctmd/random/ctmd_random_rand.hpp"
 
 namespace md = ctmd;
 
@@ -18,7 +18,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::atan2(in1, in2, out);
+        md::atan2_to(in1, in2, out);
     }
 
     state.SetComplexityN(state.range(0));

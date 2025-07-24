@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/allclose.hpp"
-#include "ctmd/linalg/vecmat.hpp"
+#include "ctmd/ctmd_allclose.hpp"
+#include "ctmd/linalg/ctmd_linalg_vecmat.hpp"
 
 namespace md = ctmd;
 

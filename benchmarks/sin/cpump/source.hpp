@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/random/rand.hpp"
-#include "ctmd/sin.hpp"
+#include "ctmd/ctmd_sin.hpp"
+#include "ctmd/random/ctmd_random_rand.hpp"
 
 namespace md = ctmd;
 
@@ -17,7 +17,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::sin(in, out, md::MPMode::CPUMP);
+        md::sin_to(in, out, md::MPMode::CPUMP);
     }
 
     state.SetComplexityN(state.range(0));

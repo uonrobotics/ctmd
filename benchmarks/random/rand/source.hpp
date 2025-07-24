@@ -1,7 +1,7 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/random/rand.hpp"
+#include "ctmd/random/ctmd_random_rand.hpp"
 
 namespace md = ctmd;
 
@@ -15,7 +15,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto in = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::random::rand(in);
+        md::random::rand_to(in);
     }
 
     state.SetComplexityN(state.range(0));

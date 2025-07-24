@@ -1,8 +1,8 @@
 #pragma once
 
 #include "benchmark/benchmark.h"
-#include "ctmd/copy.hpp"
-#include "ctmd/full.hpp"
+#include "ctmd/ctmd_copy.hpp"
+#include "ctmd/ctmd_full.hpp"
 
 namespace md = ctmd;
 
@@ -17,7 +17,7 @@ template <typename T> inline void test(benchmark::State &state) noexcept {
     auto out = md::mdarray<T, md::dims<1>>{md::dims<1>{set_num}};
 
     for (auto _ : state) {
-        md::copy(in, out);
+        md::copy_to(in, out);
     }
 
     state.SetComplexityN(state.range(0));
