@@ -11,8 +11,8 @@ deg2rad_to(auto &&In, auto &&Out,
         decltype(core::to_mdspan(std::forward<decltype(In)>(In)))::value_type;
     constexpr TI D2R = static_cast<TI>(M_PI / 180.);
 
-    ctmd::multiply(std::forward<decltype(In)>(In), D2R,
-                   std::forward<decltype(Out)>(Out), mpmode);
+    ctmd::multiply_to(std::forward<decltype(In)>(In), D2R,
+                      std::forward<decltype(Out)>(Out), mpmode);
 }
 
 template <typename dtype = void>
