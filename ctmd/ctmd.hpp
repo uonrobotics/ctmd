@@ -42,6 +42,7 @@
 #include "ctmd_ones_like.hpp"
 #include "ctmd_rad2deg.hpp"
 #include "ctmd_reshape.hpp"
+#include "ctmd_sign.hpp"
 #include "ctmd_sin.hpp"
 #include "ctmd_sqrt.hpp"
 #include "ctmd_subtract.hpp"
