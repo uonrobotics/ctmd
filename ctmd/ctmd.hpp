@@ -15,6 +15,7 @@
 #include "ctmd_clip.hpp"
 #include "ctmd_concatenate.hpp"
 #include "ctmd_copy.hpp"
+#include "ctmd_copy_like.hpp"
 #include "ctmd_cos.hpp"
 #include "ctmd_deg2rad.hpp"
 #include "ctmd_divide.hpp"
