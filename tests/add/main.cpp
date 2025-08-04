@@ -2,7 +2,6 @@
 
 #include "ctmd/ctmd_add.hpp"
 #include "ctmd/ctmd_allclose.hpp"
-#include "ctmd/ctmd_to_string.hpp" // TODO: remove
 
 namespace md = ctmd;
 
