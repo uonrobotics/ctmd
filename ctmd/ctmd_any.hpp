@@ -4,7 +4,7 @@
 
 namespace ctmd {
 
-[[nodiscard]] inline constexpr bool all(auto &&In) noexcept {
+[[nodiscard]] inline constexpr bool any(auto &&In) noexcept {
     // TODO: Implement axis
     const auto in = core::to_const_mdspan(std::forward<decltype(In)>(In));
     using in_t = decltype(in);
@@ -14,12 +14,12 @@ namespace ctmd {
 
     } else {
         for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
-            if (!ctmd::all(core::submdspan_from_left(in, i))) {
-                return false;
+            if (ctmd::any(core::submdspan_from_left(in, i))) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 }
 
