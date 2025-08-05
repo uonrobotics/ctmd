@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ctmd/ctmd_all.hpp"
+#include "ctmd/ctmd_array_equal.hpp"
 
 namespace md = ctmd;
 
@@ -42,4 +43,22 @@ TEST(heap, 2) {
     const bool b_expect = false;
 
     ASSERT_TRUE(b == b_expect);
+}
+
+TEST(test, 1) {
+    static_assert(
+        md::array_equal(md::all(md::mdarray<int8_t, md::extents<uint8_t, 2, 2>>{
+                            std::array<int8_t, 4>{true, false, true, true}}),
+                        false));
+
+    static_assert(md::array_equal(
+        md::all<0>(md::mdarray<int8_t, md::extents<uint8_t, 2, 2>>{
+            std::array<int8_t, 4>{true, false, true, true}}),
+        md::mdarray<int8_t, md::extents<uint8_t, 2>>{
+            std::array<int8_t, 2>{true, false}}));
+
+    static_assert(
+        md::array_equal(md::all(md::mdarray<int8_t, md::extents<uint8_t, 3>>{
+                            std::array<int8_t, 3>{-1, 4, 5}}),
+                        true));
 }
