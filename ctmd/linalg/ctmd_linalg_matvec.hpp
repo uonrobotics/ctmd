@@ -33,9 +33,9 @@ inline constexpr void matvec_naive(const in1_t &in1, const in2_t &in2,
     }
 
     if (!need_copy) [[likely]] {
-        for (typename out_t::size_type i = 0; i < out.extent(0); i++) {
+        for (typename out_t::index_type i = 0; i < out.extent(0); i++) {
             out(i) = 0;
-            for (typename in1_t::size_type j = 0; j < in1.extent(1); j++) {
+            for (typename in1_t::index_type j = 0; j < in1.extent(1); j++) {
                 out(i) += in1(i, j) * in2(j);
             }
         }

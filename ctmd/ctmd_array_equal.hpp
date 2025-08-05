@@ -25,7 +25,7 @@ namespace ctmd {
         return in1() == in2();
 
     } else {
-        for (typename in1_t::size_type i = 0; i < in1.extent(0); i++) {
+        for (typename in1_t::index_type i = 0; i < in1.extent(0); i++) {
             if (!ctmd::array_equal(core::submdspan_from_left(in1, i),
                                    core::submdspan_from_left(in2, i))) {
                 return false;

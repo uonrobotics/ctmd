@@ -13,7 +13,7 @@ template <mdspan_c in_t>
         return std::to_string(in());
 
     } else if constexpr (in_t::rank() == 1) {
-        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+        for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
             str += std::to_string(in[i]);
             if (i < in.extent(0) - 1) {
                 str += ", ";
@@ -21,7 +21,7 @@ template <mdspan_c in_t>
         }
 
     } else {
-        for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+        for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
             const auto in_slice = core::submdspan_from_left(in, i);
             str += to_string_impl(in_slice);
             if (i < in.extent(0) - 1) {

@@ -137,9 +137,9 @@ broadcast_to(const in_t &in = in_t{},
         return in;
 
     } else if constexpr (in_t::rank() == 0) {
-        using size_type = typename new_bexts_t::size_type;
+        using index_type = typename new_bexts_t::index_type;
 
-        auto new_strides = std::array<size_type, new_bexts_t::rank()>{};
+        auto new_strides = std::array<index_type, new_bexts_t::rank()>{};
 
         for (size_t i = 0; i < new_bexts_t::rank(); i++) {
             new_strides[i] = 0;
@@ -150,14 +150,15 @@ broadcast_to(const in_t &in = in_t{},
             in.data_handle(), layout_stride::mapping{new_bexts, new_strides}};
 
     } else {
-        using size_type = std::common_type_t<typename in_t::size_type,
-                                             typename new_bexts_t::size_type>;
+        using index_type = std::common_type_t<typename in_t::index_type,
+                                              typename new_bexts_t::index_type>;
 
-        auto new_strides = std::array<size_type, urank + new_bexts_t::rank()>{};
+        auto new_strides =
+            std::array<index_type, urank + new_bexts_t::rank()>{};
 
         for (size_t i = 0; i < new_strides.size(); i++) {
             if (i < offset) {
-                new_strides[i] = static_cast<size_type>(in.stride(i));
+                new_strides[i] = static_cast<index_type>(in.stride(i));
 
             } else if (i < offset + (new_bexts_t::rank() - brank)) {
                 new_strides[i] = 0;
@@ -166,7 +167,7 @@ broadcast_to(const in_t &in = in_t{},
                 const size_t j = i - (new_bexts_t::rank() - brank);
 
                 if (in.extent(j) == new_bexts.extent(i - offset)) {
-                    new_strides[i] = static_cast<size_type>(in.stride(j));
+                    new_strides[i] = static_cast<index_type>(in.stride(j));
 
                 } else if (in.extent(j) == 1) {
                     new_strides[i] = 0;
@@ -176,7 +177,7 @@ broadcast_to(const in_t &in = in_t{},
                 }
 
             } else {
-                new_strides[i] = static_cast<size_type>(
+                new_strides[i] = static_cast<index_type>(
                     in.stride(i - (new_bexts_t::rank() - brank)));
             }
         }

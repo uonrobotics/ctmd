@@ -12,7 +12,7 @@ template <mdspan_c in_t, mdspan_c out_t>
 inline constexpr void sum_impl(const in_t &in, const out_t &out) noexcept {
     ctmd::fill(out, 0);
 
-    for (typename in_t::size_type i = 0; i < in.extent(0); i++) {
+    for (typename in_t::index_type i = 0; i < in.extent(0); i++) {
         ctmd::add_to(out, core::submdspan_from_left(in, i), out);
     }
 }
