@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ctmd/ctmd_array_equiv.hpp"
 #include "ctmd/ctmd_to_string.hpp"
+#include "ctmd/logic/ctmd_array_equiv.hpp"
 #include "ctmd/random/ctmd_random_uniform.hpp"
 
 namespace md = ctmd;

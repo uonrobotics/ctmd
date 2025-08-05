@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../ctmd_add.hpp"
-#include "../ctmd_multiply.hpp"
+#include "../math/ctmd_add.hpp"
+#include "../math/ctmd_multiply.hpp"
 #include "ctmd_random_rand.hpp"
 
 namespace ctmd {

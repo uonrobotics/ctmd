@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <random>
 
-#include "../ctmd_copy.hpp"
-#include "../ctmd_empty.hpp"
+#include "../creation/ctmd_copy.hpp"
+#include "../creation/ctmd_empty.hpp"
 
 namespace ctmd {
 namespace random {

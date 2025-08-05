@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../ctmd_multiply.hpp"
-#include "../ctmd_sqrt.hpp"
-#include "../ctmd_sum.hpp"
+#include "../math/ctmd_multiply.hpp"
+#include "../math/ctmd_sqrt.hpp"
+#include "../math/ctmd_sum.hpp"
 
 namespace ctmd {
 namespace linalg {

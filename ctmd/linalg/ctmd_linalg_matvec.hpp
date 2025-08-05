@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ctmd_copy.hpp"
+#include "../creation/ctmd_copy.hpp"
 
 namespace ctmd {
 namespace linalg {
