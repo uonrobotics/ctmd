@@ -21,8 +21,7 @@ cos_to(auto &&In, auto &&Out,
         [](auto &&...elems) {
             detail::cos_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        mpmode, core::to_const_mdspan(std::forward<decltype(In)>(In)),
         core::to_mdspan(std::forward<decltype(Out)>(Out)));
 }
 
@@ -33,7 +32,7 @@ cos(auto &&In, const ctmd::MPMode mpmode = ctmd::MPMode::NONE) noexcept {
         [](auto &&...elems) {
             detail::cos_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0>{}, ctmd::extents<uint8_t>{}, mpmode,
+        ctmd::extents<uint8_t>{}, mpmode,
         core::to_const_mdspan(std::forward<decltype(In)>(In)));
 }
 

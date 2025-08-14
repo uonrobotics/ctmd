@@ -27,7 +27,7 @@ uniform_to(auto &&In, const double &low = 0, const double &high = 1,
             in() = static_cast<const T>(high - low) * in() +
                    static_cast<const T>(low);
         },
-        std::index_sequence<0>{}, mpmode, in);
+        mpmode, in);
 }
 
 template <floating_point_c T = float, extents_c exts_t = ctmd::extents<uint8_t>>

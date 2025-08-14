@@ -31,8 +31,7 @@ clip_to(auto &&In, auto &&Min, auto &&Max, auto &&Out,
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0, 0, 0, 0>{}, mpmode,
-        core::to_const_mdspan(std::forward<decltype(In)>(In)),
+        mpmode, core::to_const_mdspan(std::forward<decltype(In)>(In)),
         core::to_const_mdspan(std::forward<decltype(Min)>(Min)),
         core::to_const_mdspan(std::forward<decltype(Max)>(Max)),
         core::to_mdspan(std::forward<decltype(Out)>(Out)));
@@ -46,7 +45,7 @@ clip(auto &&In, auto &&Min, auto &&Max,
         [](auto &&...elems) {
             detail::clip_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0, 0, 0>{}, ctmd::extents<uint8_t>{}, mpmode,
+        ctmd::extents<uint8_t>{}, mpmode,
         core::to_const_mdspan(std::forward<decltype(In)>(In)),
         core::to_const_mdspan(std::forward<decltype(Min)>(Min)),
         core::to_const_mdspan(std::forward<decltype(Max)>(Max)));
