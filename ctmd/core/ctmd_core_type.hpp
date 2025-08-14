@@ -124,7 +124,8 @@ template <extents_c in1_t, extents_c in2_t, extents_c... ins_t>
 
     } else {
         for (size_t i = 0; i < in1_t::rank(); i++) {
-            if (in1.extent(i) != in2.extent(i)) {
+            if (static_cast<size_t>(in1.extent(i)) !=
+                static_cast<size_t>(in2.extent(i))) {
                 return false;
             }
         }
