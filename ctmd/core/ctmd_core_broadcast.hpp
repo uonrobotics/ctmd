@@ -452,8 +452,6 @@ inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
              ur[Is])...};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    auto ins_tuple = std::forward_as_tuple(ins...);
-
     constexpr bool no_branks = [&]<size_t... Is>(std::index_sequence<Is...>) {
         return ((br[Is] == 0) && ...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
@@ -463,6 +461,8 @@ inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
         std::forward<Func>(func)(ins...);
 
     } else {
+        auto ins_tuple = std::forward_as_tuple(ins...);
+
         constexpr bool possibly_same_bexts =
             [&]<size_t... Is>(std::index_sequence<Is...>) {
                 return ((br[Is] == br[0]) && ...);
