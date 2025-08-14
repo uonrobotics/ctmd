@@ -166,7 +166,8 @@ broadcast_to(const in_t &in = in_t{},
             } else if (i < offset + new_bexts_t::rank()) {
                 const size_t j = i - (new_bexts_t::rank() - brank);
 
-                if (in.extent(j) == new_bexts.extent(i - offset)) {
+                if (static_cast<size_t>(in.extent(j)) ==
+                    static_cast<size_t>(new_bexts.extent(i - offset))) {
                     new_strides[i] = static_cast<index_type>(in.stride(j));
 
                 } else if (in.extent(j) == 1) {
