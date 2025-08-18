@@ -365,6 +365,15 @@ template <typename dtype = void, size_t... uranks, extents_c uout_exts_t,
     }(std::make_index_sequence<sizeof...(ins_t) + 1>{});
 }
 
+template <typename dtype = void, extents_c uout_exts_t, mdspan_c... ins_t>
+[[nodiscard]] inline constexpr auto create_out(const uout_exts_t &uout_exts,
+                                               const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return create_out<dtype>(std::index_sequence<((void)Is, 0)...>{},
+                                 uout_exts, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+}
+
 template <typename dtype = void, size_t... offsets, size_t... uranks,
           extents_c... uouts_exts_t, mdspan_c... ins_t>
     requires(sizeof...(offsets) == sizeof...(ins_t) + sizeof...(uouts_exts_t) &&
@@ -416,6 +425,16 @@ create_out(std::index_sequence<uranks...>,
     }(std::make_index_sequence<sizeof...(ins_t) + sizeof...(uouts_exts_t)>{});
 }
 
+template <typename dtype = void, extents_c... uouts_exts_t, mdspan_c... ins_t>
+[[nodiscard]] inline constexpr auto
+create_out(const std::tuple<uouts_exts_t...> &uouts_exts,
+           const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return create_out<dtype>(std::index_sequence<((void)Is, 0)...>{},
+                                 uouts_exts, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+}
+
 template <typename Func, size_t... offsets, size_t... uranks, mdspan_c... ins_t>
     requires(sizeof...(offsets) == sizeof...(ins_t) &&
              sizeof...(uranks) == sizeof...(ins_t))
@@ -431,8 +450,6 @@ inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
              ur[Is])...};
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 
-    auto ins_tuple = std::forward_as_tuple(ins...);
-
     constexpr bool no_branks = [&]<size_t... Is>(std::index_sequence<Is...>) {
         return ((br[Is] == 0) && ...);
     }(std::make_index_sequence<sizeof...(ins_t)>{});
@@ -442,6 +459,8 @@ inline constexpr void batch(Func &&func, std::index_sequence<offsets...>,
         std::forward<Func>(func)(ins...);
 
     } else {
+        auto ins_tuple = std::forward_as_tuple(ins...);
+
         constexpr bool possibly_same_bexts =
             [&]<size_t... Is>(std::index_sequence<Is...>) {
                 return ((br[Is] == br[0]) && ...);
@@ -529,6 +548,15 @@ inline constexpr void batch(Func &&func, std::index_sequence<uranks...>,
     }(std::make_index_sequence<sizeof...(ins_t)>{});
 }
 
+template <typename Func, mdspan_c... ins_t>
+inline constexpr void batch(Func &&func, const ctmd::MPMode mpmode,
+                            const ins_t &...ins) noexcept {
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+        batch(std::forward<Func>(func), std::index_sequence<((void)Is, 0)...>{},
+              mpmode, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
+}
+
 template <typename dtype = void, typename Func, size_t... offsets,
           size_t... uranks, extents_c uout_exts_t, mdspan_c... ins_t>
     requires(sizeof...(offsets) == sizeof...(ins_t) + 1 &&
@@ -560,6 +588,18 @@ batch_out(Func &&func, std::index_sequence<uranks...>,
             std::forward<Func>(func), std::index_sequence<((void)Is, 0)...>{},
             std::index_sequence<uranks...>{}, uout_exts, mpmode, ins...);
     }(std::make_index_sequence<sizeof...(ins_t) + 1>{});
+}
+
+template <typename dtype = void, typename Func, extents_c uout_exts_t,
+          mdspan_c... ins_t>
+[[nodiscard]] inline constexpr auto
+batch_out(Func &&func, const uout_exts_t &uout_exts, const ctmd::MPMode mpmode,
+          const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return batch_out<dtype>(std::forward<Func>(func),
+                                std::index_sequence<((void)Is, 0)...>{},
+                                uout_exts, mpmode, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
 }
 
 template <typename dtype = void, typename Func, size_t... offsets,
@@ -598,6 +638,18 @@ batch_out(Func &&func, std::index_sequence<uranks...>,
             std::forward<Func>(func), std::index_sequence<((void)Is, 0)...>{},
             std::index_sequence<uranks...>{}, uouts_exts, mpmode, ins...);
     }(std::make_index_sequence<sizeof...(ins_t) + sizeof...(uouts_exts_t)>{});
+}
+
+template <typename dtype = void, typename Func, extents_c... uouts_exts_t,
+          mdspan_c... ins_t>
+[[nodiscard]] inline constexpr auto
+batch_out(Func &&func, const std::tuple<uouts_exts_t...> &uouts_exts,
+          const ctmd::MPMode mpmode, const ins_t &...ins) noexcept {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return batch_out<dtype>(std::forward<Func>(func),
+                                std::index_sequence<((void)Is, 0)...>{},
+                                uouts_exts, mpmode, ins...);
+    }(std::make_index_sequence<sizeof...(ins_t)>{});
 }
 
 } // namespace core

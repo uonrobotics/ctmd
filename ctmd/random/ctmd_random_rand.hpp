@@ -102,7 +102,7 @@ rand_to(auto &&In, const ctmd::MPMode mpmode = ctmd::MPMode::NONE) noexcept {
         [](auto &&...elems) {
             detail::rand_impl(std::forward<decltype(elems)>(elems)...);
         },
-        std::index_sequence<0>{}, mpmode, in);
+        mpmode, in);
 }
 
 template <floating_point_c T = float, extents_c exts_t = ctmd::extents<uint8_t>>

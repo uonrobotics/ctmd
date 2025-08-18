@@ -20,8 +20,7 @@ fill(auto &&In, const auto &val,
         [&](auto &&...elems) {
             detail::fill_impl(std::forward<decltype(elems)>(elems)..., val);
         },
-        std::index_sequence<0>{}, mpmode,
-        core::to_mdspan(std::forward<decltype(In)>(In)));
+        mpmode, core::to_mdspan(std::forward<decltype(In)>(In)));
 }
 
 } // namespace ctmd
