@@ -425,9 +425,7 @@ create_out(std::index_sequence<uranks...>,
     }(std::make_index_sequence<sizeof...(ins_t) + sizeof...(uouts_exts_t)>{});
 }
 
-template <typename dtype = void, size_t... uranks, extents_c... uouts_exts_t,
-          mdspan_c... ins_t>
-    requires(sizeof...(uranks) == sizeof...(ins_t))
+template <typename dtype = void, extents_c... uouts_exts_t, mdspan_c... ins_t>
 [[nodiscard]] inline constexpr auto
 create_out(const std::tuple<uouts_exts_t...> &uouts_exts,
            const ins_t &...ins) noexcept {
