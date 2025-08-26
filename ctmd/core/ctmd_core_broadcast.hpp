@@ -160,11 +160,11 @@ broadcast_to(const in_t &in = in_t{},
             if (i < offset) {
                 new_strides[i] = static_cast<index_type>(in.stride(i));
 
-            } else if (i < offset + (new_bexts_t::rank() - brank)) {
+            } else if (i < offset + new_bexts_t::rank() - brank) {
                 new_strides[i] = 0;
 
             } else if (i < offset + new_bexts_t::rank()) {
-                const size_t j = i - (new_bexts_t::rank() - brank);
+                const size_t j = i + brank - new_bexts_t::rank();
 
                 if (static_cast<size_t>(in.extent(j)) ==
                     static_cast<size_t>(new_bexts.extent(i - offset))) {
@@ -179,7 +179,7 @@ broadcast_to(const in_t &in = in_t{},
 
             } else {
                 new_strides[i] = static_cast<index_type>(
-                    in.stride(i - (new_bexts_t::rank() - brank)));
+                    in.stride(i + brank - new_bexts_t::rank()));
             }
         }
 
