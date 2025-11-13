@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .docker-cache/docker-cache.tar
-          key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/DockerFile') }}
+          key: ${{ runner.os }}-docker-${{ hashFiles('.devcontainer/dockerfile') }}
           restore-keys: ${{ runner.os }}-docker-
 
       # Load Docker image if cache hit
@@ -34,7 +34,7 @@ jobs:
         if: steps.docker-cache.outputs.cache-hit != 'true'
         run: |
           echo "Docker cache miss, building image..."
-          docker build -f .devcontainer/DockerFile -t ctmd-dev:latest .
+          docker build -f .devcontainer/dockerfile -t ctmd-dev:latest .
           mkdir -p .docker-cache
           docker save -o .docker-cache/docker-cache.tar ctmd-dev:latest
 
